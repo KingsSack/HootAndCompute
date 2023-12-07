@@ -27,6 +27,7 @@ public class ElManual extends OpMode {
    // Servos
    CRServo intake;
    CRServo launcher;
+   CRServo conveyor;
 
    // Initialize
    @Override
@@ -41,6 +42,8 @@ public class ElManual extends OpMode {
 
        hookLift = hardwareMap.get(DcMotor.class, "HookLift");
        hook = hardwareMap.get(DcMotor.class, "Hook");
+
+       conveyor = hardwareMap.get(CRServo.class, "Conveyor");
    }
 
    // Robot Loop
@@ -116,6 +119,7 @@ public class ElManual extends OpMode {
        leftRearDrive.setPower(leftRearPower);
 
        intake.setPower(intakeOn ? -.7 : 0);
+       conveyor.setPower(intakeOn ? -1 : 0);
 
        telemetry.addData("Movement", "RF %5.2f, LF %5.2f, RR %5.2f, LR %5.2f",
                rightFrontPower,
