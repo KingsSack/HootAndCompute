@@ -16,19 +16,16 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
 
-@Autonomous(name = "El Auto", group = "Competition")
+@Autonomous(name = "El Auto Red", group = "Competition")
 public class ElAuto extends LinearOpMode {
-
-    // Robot Components
     IMU imu;
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
     DcMotor leftRearDrive;
     DcMotor rightRearDrive;
     TfodProcessor tfod;
-    VisionPortal tfodVision;
     AprilTagProcessor aprilTag;
-    VisionPortal aprilTagVision;
+    VisionPortal visionPortal;
     CRServo intake;
     CRServo launcher;
 
@@ -70,19 +67,14 @@ public class ElAuto extends LinearOpMode {
                 .setModelInputSize(300)
                 .setModelAspectRatio(16.0 / 9.0)
                 .build();
-        tfod.setMinResultConfidence(0.7f);
-        tfodVision = VisionPortal.easyCreateWithDefaults(
-                hardwareMap.get(WebcamName.class, "Webcam 1"),
-                tfod
-        );
-        // tfodVision.close();
+        tfod.setMinResultConfidence(0.8f);
 
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-        aprilTagVision = VisionPortal.easyCreateWithDefaults(
-                hardwareMap.get(WebcamName.class, "Webcam 1"),
-                aprilTag
-        );
-        // aprilTagVision.close();
+
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .addProcessors(tfod, aprilTag)
+                .build();
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -116,8 +108,7 @@ public class ElAuto extends LinearOpMode {
                         }
                         break;
                     case LEAVE_PIXELS:
-                        sleep(100);
-                        state = states.TURN_TOWARDS_BACKSTAGE;
+                        move(-MAX_SPEED, -MAX_SPEED);
                         break;
                     case TURN_TOWARDS_BACKSTAGE:
                         spin(270);
@@ -145,8 +136,8 @@ public class ElAuto extends LinearOpMode {
         }
 
         // Close
-        tfodVision.close();
-        aprilTagVision.close();
+        // tfodVision.close();
+        // aprilTagVision.close();
 
         // Stop
         telemetry.addData("Status", "Stopped");
@@ -170,10 +161,10 @@ public class ElAuto extends LinearOpMode {
 
         telemetry.addData(">", "Moving, Left: %5.2f, Right: %5.2f", leftPower, rightPower);
 
-        leftFrontDrive.setPower(leftPower);
-        rightFrontDrive.setPower(-rightPower);
-        leftRearDrive.setPower(leftPower);
-        rightRearDrive.setPower(-rightPower);
+        leftFrontDrive.setPower(-leftPower);
+        rightFrontDrive.setPower(rightPower);
+        leftRearDrive.setPower(-leftPower);
+        rightRearDrive.setPower(rightPower);
     }
 
     void resetPower() {
@@ -216,7 +207,8 @@ public class ElAuto extends LinearOpMode {
         }
 
         if (currentRecognitions.isEmpty()) {
-            state = states.SEEK_TURN;
+            // state = states.SEEK_TURN;
+            resetPower();
         }
         else {
            if (prop_x < 150) {
@@ -225,7 +217,7 @@ public class ElAuto extends LinearOpMode {
            else if (prop_x > 150) {
                move(-MAX_SPEED, -MAX_SPEED);
            }
-           else {
+           if (prop_height > 100) {
                resetPower();
                state = states.LEAVE_PIXELS;
            }

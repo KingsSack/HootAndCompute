@@ -13,9 +13,9 @@ import java.util.List;
 @TeleOp(name = "Object Detection", group = "Test")
 public class TestTFLite extends LinearOpMode {
     private TfodProcessor tfod;
-    private String TFOD_MODEL_NAME = "red_prop.tflite";
+    private String TFOD_MODEL_NAME = "blue_prop";
     private String[] LABELS = {
-            "prop"
+            "blue"
     };
 
     private VisionPortal visionPortal;

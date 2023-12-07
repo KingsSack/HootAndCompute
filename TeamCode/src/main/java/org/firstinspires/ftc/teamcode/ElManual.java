@@ -17,7 +17,8 @@ public class ElManual extends OpMode {
    DcMotor rightFrontDrive;
    DcMotor leftRearDrive;
    DcMotor rightRearDrive;
-   DcMotor linearActuator;
+   DcMotor hookLift;
+   DcMotor hook;
 
    // Booleans
    boolean slowDown = false;
@@ -38,19 +39,20 @@ public class ElManual extends OpMode {
        intake = hardwareMap.get(CRServo.class, "Sweeper");
        launcher = hardwareMap.get(CRServo.class, "Launcher");
 
-       linearActuator = hardwareMap.get(DcMotor.class, "LinearActuator");
+       hookLift = hardwareMap.get(DcMotor.class, "HookLift");
+       hook = hardwareMap.get(DcMotor.class, "Hook");
    }
 
    // Robot Loop
    @Override
    public void loop() {
-       double rightTurn = gamepad1.left_stick_y-gamepad1.right_stick_x;
-       double leftTurn = -gamepad1.left_stick_y-gamepad1.right_stick_x;
+       double rightTurn = -gamepad1.left_stick_y-gamepad1.right_stick_x;
+       double leftTurn = gamepad1.left_stick_y-gamepad1.right_stick_x;
 
-       double rightFrontPower = rightTurn+gamepad1.left_stick_x;
-       double leftFrontPower = leftTurn+gamepad1.left_stick_x;
-       double rightRearPower = rightTurn-gamepad1.left_stick_x;
-       double leftRearPower = leftTurn-gamepad1.left_stick_x;
+       double rightFrontPower = rightTurn-gamepad1.left_stick_x;
+       double leftFrontPower = leftTurn-gamepad1.left_stick_x;
+       double rightRearPower = rightTurn+gamepad1.left_stick_x;
+       double leftRearPower = leftTurn+gamepad1.left_stick_x;
 
        if (gamepad1.left_bumper) {
            slowDown = true;
@@ -58,8 +60,11 @@ public class ElManual extends OpMode {
            slowDown = false;
        }
 
-       if (gamepad2.a) {
-           launcher.setPower(1);
+       if (gamepad2.left_bumper) {
+           launcher.setPower(.7);
+       }
+       else {
+           launcher.setPower(0);
        }
 
        if (gamepad2.dpad_down) {
@@ -67,7 +72,35 @@ public class ElManual extends OpMode {
        }
 
        if (gamepad2.b) {
-           linearActuator.setPower(1);
+           int pos = hookLift.getCurrentPosition();
+
+           if (gamepad2.right_bumper) {
+               if (hookLift.getCurrentPosition() < 640) {
+                   hookLift.setPower(.6);
+               }
+               else {
+                   hookLift.setPower(0);
+               }
+           }
+           else {
+               if (hookLift.getCurrentPosition() < 180) {
+                   hookLift.setPower(.75);
+               }
+               else {
+                   hookLift.setPower(0);
+               }
+           }
+           // hookLift.setTargetPosition(hookLift.getCurrentPosition() + 40);
+       }
+
+       if (gamepad2.y) {
+           hook.setPower(.75);
+       }
+       else if (gamepad2.a) {
+           hook.setPower(-1);
+       }
+       else {
+           hook.setPower(0);
        }
 
        if (slowDown) {
@@ -82,13 +115,15 @@ public class ElManual extends OpMode {
        rightRearDrive.setPower(rightRearPower);
        leftRearDrive.setPower(leftRearPower);
 
-       intake.setPower(intakeOn ? -1 : 0);
+       intake.setPower(intakeOn ? -.7 : 0);
 
        telemetry.addData("Movement", "RF %5.2f, LF %5.2f, RR %5.2f, LR %5.2f",
                rightFrontPower,
                leftFrontPower,
                rightRearPower,
                leftRearPower);
+       telemetry.addData("Intake", "On: %b, Power: %5.2f", intakeOn, intake.getPower());
+       telemetry.addData("Hook", "Position: %s, Power: %5.2f", hookLift.getCurrentPosition(), hookLift.getPower());
        telemetry.update();
    }
 }
