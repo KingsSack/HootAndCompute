@@ -3,7 +3,9 @@ package org.firstinspires.ftc.teamcode;
 import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -16,8 +18,8 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
 
-@Autonomous(name = "El Auto", group = "Competition")
-public class ElAuto extends LinearOpMode {
+@Autonomous(name = "El Auto Blue", group = "Competition")
+public class ElAutoBlue extends LinearOpMode {
     IMU imu;
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
@@ -30,9 +32,9 @@ public class ElAuto extends LinearOpMode {
     CRServo launcher;
 
     // Constants
-    private String TFOD_MODEL_NAME = "red_prop.tflite";
+    private String TFOD_MODEL_NAME = "blue_prop";
     private String[] LABELS = {
-            "prop"
+            "blue"
     };
 
     // Robot Variables
@@ -40,14 +42,13 @@ public class ElAuto extends LinearOpMode {
     private double TURN_GAIN = .04;
     public enum states
     {
-        MOVE_TO_PROP,
-        SEEK_TURN,
-        LEAVE_PIXELS,
-        TURN_TOWARDS_BACKSTAGE,
+        DETECT,
+        NO_DETECT,
+        DROP_PIXEL,
         MOVE_TO_BACKSTAGE,
         STOP
     }
-    public states state = states.MOVE_TO_PROP;
+    public states state = states.DETECT;
 
     void Init() {
         // Initialize
@@ -97,25 +98,37 @@ public class ElAuto extends LinearOpMode {
                 double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
                 switch (state) {
-                    case MOVE_TO_PROP:
-                        detectProp();
-                        break;
-                    case SEEK_TURN:
-                        spin(45);
-                        if (yaw > 44) {
+                    case DETECT:
+                        Recognition detectedProp = propDetected();
+                        if (detectedProp == null) {
                             resetPower();
-                            state = states.MOVE_TO_PROP;
+                            state = states.NO_DETECT;
+                            break;
+                        }
+                        else {
+                            double x = (detectedProp.getLeft() + detectedProp.getRight()) / 2;
+                            // spin(x);
+
+                            move(MAX_SPEED, MAX_SPEED);
+                        }
+
+                        if (detectedProp.getHeight() > 300) {
+                            resetPower();
+                            state = states.DROP_PIXEL;
+                            break;
                         }
                         break;
-                    case LEAVE_PIXELS:
+                    case NO_DETECT:
+                        move(MAX_SPEED, MAX_SPEED);
+
+                        Recognition prop = propDetected();
+                        if (prop != null) {
+                            state = states.DETECT;
+                            break;
+                        }
+                        break;
+                    case DROP_PIXEL:
                         move(-MAX_SPEED, -MAX_SPEED);
-                        break;
-                    case TURN_TOWARDS_BACKSTAGE:
-                        spin(270);
-                        if (yaw > 270) {
-                            resetPower();
-                            state = states.MOVE_TO_BACKSTAGE;
-                        }
                         break;
                     case MOVE_TO_BACKSTAGE:
                         move(MAX_SPEED / 2, MAX_SPEED / 2);
@@ -134,10 +147,6 @@ public class ElAuto extends LinearOpMode {
                 sleep(20);
             }
         }
-
-        // Close
-        // tfodVision.close();
-        // aprilTagVision.close();
 
         // Stop
         telemetry.addData("Status", "Stopped");
@@ -174,9 +183,7 @@ public class ElAuto extends LinearOpMode {
         rightRearDrive.setPower(0);
     }
 
-    private void detectProp() {
-        // tfodVision.resumeStreaming();
-
+    private Recognition propDetected() {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
 
@@ -185,45 +192,16 @@ public class ElAuto extends LinearOpMode {
         double prop_width = 0;
         double prop_height = 0;
 
-        // Step through the list of recognitions and display info for each one.
         for (Recognition recognition : currentRecognitions) {
-            double x = (recognition.getLeft() + recognition.getRight()) / 2;
-            double y = (recognition.getTop()  + recognition.getBottom()) / 2;
-
-            telemetry.addData(""," ");
-            telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-            telemetry.addData("- Position", "%.0f / %.0f", x, y);
-            telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
-
-            if (recognition.getLabel().equals("red_prop")) {
+            if (recognition.getLabel().equals("blue")) {
                 telemetry.addData(">", "Prop Detected");
                 telemetry.update();
 
-                prop_x = x;
-                prop_y = y;
-                prop_width = recognition.getWidth();
-                prop_height = recognition.getHeight();
+                return recognition;
             }
         }
 
-        if (currentRecognitions.isEmpty()) {
-            // state = states.SEEK_TURN;
-            resetPower();
-        }
-        else {
-           if (prop_x < 150) {
-               move(MAX_SPEED, MAX_SPEED);
-           }
-           else if (prop_x > 150) {
-               move(-MAX_SPEED, -MAX_SPEED);
-           }
-           if (prop_height > 100) {
-               resetPower();
-               state = states.LEAVE_PIXELS;
-           }
-        }
-
-        // tfodVision.close();
+        return null;
     }
 
     @SuppressLint("DefaultLocale")
