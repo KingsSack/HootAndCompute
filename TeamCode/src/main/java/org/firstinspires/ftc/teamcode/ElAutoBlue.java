@@ -107,20 +107,15 @@ public class ElAutoBlue extends LinearOpMode {
                         }
                         else {
                             double x = (detectedProp.getLeft() + detectedProp.getRight()) / 2;
-                            // spin(x);
-
                             move(MAX_SPEED, MAX_SPEED);
                         }
-
-                        if (detectedProp.getHeight() > 300) {
+                        if (detectedProp.getHeight() > 280) {
                             resetPower();
                             state = states.DROP_PIXEL;
                             break;
                         }
                         break;
                     case NO_DETECT:
-                        move(MAX_SPEED, MAX_SPEED);
-
                         Recognition prop = propDetected();
                         if (prop != null) {
                             state = states.DETECT;
@@ -129,6 +124,7 @@ public class ElAutoBlue extends LinearOpMode {
                         break;
                     case DROP_PIXEL:
                         move(-MAX_SPEED, -MAX_SPEED);
+                        // spin(90);
                         break;
                     case MOVE_TO_BACKSTAGE:
                         move(MAX_SPEED / 2, MAX_SPEED / 2);
@@ -138,9 +134,10 @@ public class ElAutoBlue extends LinearOpMode {
                 }
 
                 // Telemetry data
-                telemetry.addData(">", "Actual Power: %5.2f, %5.2f", rightFrontDrive.getPower(), leftFrontDrive.getPower());
-                telemetry.addData(">", "%s", imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES).toString());
-                telemetry.addData(">", "%s", imu.getRobotYawPitchRollAngles().toString());
+                telemetry.addData("", "");
+                telemetry.addData(">", "Movement: %5.2f, %5.2f", rightFrontDrive.getPower(), leftFrontDrive.getPower());
+                // telemetry.addData(">", "%s", imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES).toString());
+                // telemetry.addData(">", "%s", imu.getRobotYawPitchRollAngles().toString());
                 telemetry.update();
 
                 // Share the CPU
