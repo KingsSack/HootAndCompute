@@ -119,7 +119,7 @@ public class ElManual extends OpMode {
        leftRearDrive.setPower(leftRearPower);
 
        intake.setPower(intakeOn ? -.7 : 0);
-       conveyor.setPower(intakeOn ? -1 : 0);
+       conveyor.setPower(intakeOn ? -.7 : 0);
 
        telemetry.addData("Movement", "RF %5.2f, LF %5.2f, RR %5.2f, LR %5.2f",
                rightFrontPower,

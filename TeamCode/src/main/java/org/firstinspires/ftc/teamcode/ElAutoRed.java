@@ -16,8 +16,8 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
 
-@Autonomous(name = "El Auto Blue", group = "Competition")
-public class ElAutoBlue extends LinearOpMode {
+@Autonomous(name = "El Auto Red", group = "Competition")
+public class ElAutoRed extends LinearOpMode {
     IMU imu;
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
@@ -30,9 +30,9 @@ public class ElAutoBlue extends LinearOpMode {
     CRServo launcher;
 
     // Constants
-    private String TFOD_MODEL_NAME = "blue_prop";
+    private String TFOD_MODEL_NAME = "red_prop.tflite";
     private String[] LABELS = {
-            "blue"
+            "prop"
     };
 
     // Robot Variables
@@ -43,6 +43,7 @@ public class ElAutoBlue extends LinearOpMode {
         DETECT,
         NO_DETECT,
         DROP_PIXEL,
+        TURN_TOWARDS_BACKSTAGE,
         MOVE_TO_BACKSTAGE,
         STOP
     }
@@ -115,22 +116,45 @@ public class ElAutoBlue extends LinearOpMode {
                         }
                         break;
                     case NO_DETECT:
+                        // Move forward a bit
+                        move(MAX_SPEED, MAX_SPEED);
+                        try {
+                            Thread.sleep(200);
+                        } catch(InterruptedException e) {
+                            // Do nothing
+                        }
                         Recognition prop = propDetected();
                         if (prop != null) {
                             // If detected, go to DETECT state
                             state = states.DETECT;
                             break;
                         }
-                        break;
+                        else {
+                            // Else, go to backstage
+                            state = states.TURN_TOWARDS_BACKSTAGE;
+                            break;
+                        }
                     case DROP_PIXEL:
                         // Move backwards
                         move(-MAX_SPEED, -MAX_SPEED);
                         try {
-                            Thread.sleep(500);
+                            Thread.sleep(1000);
                         } catch(InterruptedException e) {
                             // Do nothing
                         }
-                        state = states.STOP;
+                        state = states.TURN_TOWARDS_BACKSTAGE;
+                        break;
+                    case TURN_TOWARDS_BACKSTAGE:
+                        double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+                        if (yaw > 260) {
+                            // Set state to MOVE_TO_BACKSTAGE
+                            state = states.MOVE_TO_BACKSTAGE;
+                            break;
+                        }
+                        else {
+                            // Spin towards backstage
+                            spin(270);
+                        }
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Move towards backstage
@@ -144,8 +168,7 @@ public class ElAutoBlue extends LinearOpMode {
                 // Telemetry data
                 telemetry.addData("", "");
                 telemetry.addData(">", "Movement: %5.2f, %5.2f", rightFrontDrive.getPower(), leftFrontDrive.getPower());
-                // telemetry.addData(">", "%s", imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES).toString());
-                // telemetry.addData(">", "%s", imu.getRobotYawPitchRollAngles().toString());
+                telemetry.addData(">", "%s", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
                 telemetry.update();
 
                 // Share the CPU
@@ -198,7 +221,7 @@ public class ElAutoBlue extends LinearOpMode {
         double prop_height = 0;
 
         for (Recognition recognition : currentRecognitions) {
-            if (recognition.getLabel().equals("blue")) {
+            if (recognition.getLabel().equals("prop")) {
                 telemetry.addData(">", "Prop Detected");
                 telemetry.update();
 
