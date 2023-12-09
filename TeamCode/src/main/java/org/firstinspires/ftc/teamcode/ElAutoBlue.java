@@ -30,19 +30,20 @@ public class ElAutoBlue extends LinearOpMode {
     CRServo launcher;
 
     // Constants
-    private String TFOD_MODEL_NAME = "blue_prop";
+    private String TFOD_MODEL_NAME = "red_prop.tflite";
     private String[] LABELS = {
-            "blue"
+            "prop"
     };
 
     // Robot Variables
     private double MAX_SPEED = .75;
-    private double TURN_GAIN = .04;
+    private double TURN_GAIN = .02;
     public enum states
     {
         DETECT,
         NO_DETECT,
         DROP_PIXEL,
+        TURN_TOWARDS_BACKSTAGE,
         MOVE_TO_BACKSTAGE,
         STOP
     }
@@ -92,11 +93,12 @@ public class ElAutoBlue extends LinearOpMode {
                 telemetry.addData("Status", "Running");
                 telemetry.addData("State", "%s", state.toString());
 
+                Recognition prop = propDetected();
+
                 // State machine
                 switch (state) {
                     case DETECT:
-                        Recognition detectedProp = propDetected();
-                        if (detectedProp == null) {
+                        if (prop == null) {
                             // If not detected, go to NO_DETECT state
                             resetPower();
                             state = states.NO_DETECT;
@@ -104,10 +106,10 @@ public class ElAutoBlue extends LinearOpMode {
                         }
                         else {
                             // If detected, move towards the prop
-                            double x = (detectedProp.getLeft() + detectedProp.getRight()) / 2;
+                            double x = (prop.getLeft() + prop.getRight()) / 2;
                             move(MAX_SPEED, MAX_SPEED);
                         }
-                        if (detectedProp.getHeight() > 280) {
+                        if (prop.getHeight() > 288) {
                             // When close to the prop, go to DROP_PIXEL state
                             resetPower();
                             state = states.DROP_PIXEL;
@@ -115,22 +117,40 @@ public class ElAutoBlue extends LinearOpMode {
                         }
                         break;
                     case NO_DETECT:
-                        Recognition prop = propDetected();
+                        // Move forward a bit
+                        move(MAX_SPEED, MAX_SPEED);
+                        sleep(500);
                         if (prop != null) {
                             // If detected, go to DETECT state
+                            resetPower();
                             state = states.DETECT;
                             break;
                         }
-                        break;
+                        else {
+                            // Else, go to backstage
+                            resetPower();
+                            state = states.TURN_TOWARDS_BACKSTAGE;
+                            break;
+                        }
                     case DROP_PIXEL:
                         // Move backwards
                         move(-MAX_SPEED, -MAX_SPEED);
-                        try {
-                            Thread.sleep(500);
-                        } catch(InterruptedException e) {
-                            // Do nothing
+                        sleep(900);
+                        resetPower();
+                        state = states.TURN_TOWARDS_BACKSTAGE;
+                        break;
+                    case TURN_TOWARDS_BACKSTAGE:
+                        double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+                        if (yaw > 80) {
+                            // Set state to MOVE_TO_BACKSTAGE
+                            resetPower();
+                            state = states.MOVE_TO_BACKSTAGE;
+                            break;
                         }
-                        state = states.STOP;
+                        else {
+                            // Spin towards backstage
+                            spin(90);
+                        }
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Move towards backstage
@@ -144,8 +164,10 @@ public class ElAutoBlue extends LinearOpMode {
                 // Telemetry data
                 telemetry.addData("", "");
                 telemetry.addData(">", "Movement: %5.2f, %5.2f", rightFrontDrive.getPower(), leftFrontDrive.getPower());
-                // telemetry.addData(">", "%s", imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES).toString());
-                // telemetry.addData(">", "%s", imu.getRobotYawPitchRollAngles().toString());
+                telemetry.addData(">", "%s", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
+                if (prop != null) {
+                    telemetry.addData(">", "%s", prop.toString());
+                }
                 telemetry.update();
 
                 // Share the CPU
@@ -163,7 +185,7 @@ public class ElAutoBlue extends LinearOpMode {
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
         double error = expectedHeading - heading;
 
-        move(error * TURN_GAIN, -error * TURN_GAIN);
+        move(-error * TURN_GAIN, error * TURN_GAIN);
     }
 
     void move(double leftPower, double rightPower) {
@@ -192,13 +214,8 @@ public class ElAutoBlue extends LinearOpMode {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
 
-        double prop_x = 0;
-        double prop_y = 0;
-        double prop_width = 0;
-        double prop_height = 0;
-
         for (Recognition recognition : currentRecognitions) {
-            if (recognition.getLabel().equals("blue")) {
+            if (recognition.getLabel().equals("prop")) {
                 telemetry.addData(">", "Prop Detected");
                 telemetry.update();
 
