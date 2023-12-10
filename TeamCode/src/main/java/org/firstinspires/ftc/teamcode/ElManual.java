@@ -58,9 +58,9 @@ public class ElManual extends OpMode {
     @Override
     public void loop() {
         // Get joystick inputs
-        double x = gamepad1.left_stick_x;
-        double y = -gamepad1.left_stick_y; // Invert y-axis for forward/backward movement
-        double rx = gamepad1.right_stick_x;
+        double x = gamepad1.left_stick_x; // Drive
+        double y = -gamepad1.left_stick_y; // Strafe
+        double rx = gamepad1.right_stick_x; // Spin
 
         double rightFrontPower = y - x - rx;
         double leftFrontPower = y + x + rx;
