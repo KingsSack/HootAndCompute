@@ -44,6 +44,7 @@ public class ElManual extends OpMode {
        hook = hardwareMap.get(DcMotor.class, "Hook");
 
        conveyor = hardwareMap.get(CRServo.class, "Conveyor");
+       conveyor.setDirection(DcMotorSimple.Direction.REVERSE);
    }
 
    // Robot Loop
@@ -74,11 +75,13 @@ public class ElManual extends OpMode {
            intakeOn = !intakeOn;
        }
 
-       if (gamepad2.b) {
-           int pos = hookLift.getCurrentPosition();
+       if (gamepad2.right_bumper) {
+           telemetry.addData(">", "Right Bumper Pressed");
+       }
 
+       if (gamepad2.b) {
            if (gamepad2.right_bumper) {
-               if (hookLift.getCurrentPosition() < 640) {
+               if (hookLift.getCurrentPosition() < 600) {
                    hookLift.setPower(.6);
                }
                else {
@@ -86,7 +89,7 @@ public class ElManual extends OpMode {
                }
            }
            else {
-               if (hookLift.getCurrentPosition() < 180) {
+               if (hookLift.getCurrentPosition() < 200) {
                    hookLift.setPower(.75);
                }
                else {
@@ -119,7 +122,7 @@ public class ElManual extends OpMode {
        leftRearDrive.setPower(leftRearPower);
 
        intake.setPower(intakeOn ? -.7 : 0);
-       conveyor.setPower(intakeOn ? -.5 : 0);
+       conveyor.setPower(intakeOn ? .7 : 0);
 
        telemetry.addData("Movement", "RF %5.2f, LF %5.2f, RR %5.2f, LR %5.2f",
                rightFrontPower,
@@ -127,6 +130,7 @@ public class ElManual extends OpMode {
                rightRearPower,
                leftRearPower);
        telemetry.addData("Intake", "On: %b, Power: %5.2f", intakeOn, intake.getPower());
+       telemetry.addData("Conveyor", "On: %b, Power: %5.2f", intakeOn, conveyor.getPower());
        telemetry.addData("Hook", "Position: %s, Power: %5.2f", hookLift.getCurrentPosition(), hookLift.getPower());
        telemetry.update();
    }

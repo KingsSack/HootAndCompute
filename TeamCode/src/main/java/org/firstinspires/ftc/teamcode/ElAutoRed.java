@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -155,8 +156,10 @@ public class ElAutoRed extends LinearOpMode {
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Move towards backstage
-                        move(MAX_SPEED / 2, MAX_SPEED / 2);
-                        /* if (imu.getRobotAngularVelocity(AngleUnit.DEGREES).xRotationRate < 5) {
+                        move(MAX_SPEED / 3, MAX_SPEED / 3);
+                        sleep(1000);
+                        /* AngularVelocity angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
+                        if (angularVelocity.xRotationRate + angularVelocity.yRotationRate < 2) {
                             resetPower();
                             state = states.STOP;
                             break;
@@ -219,16 +222,11 @@ public class ElAutoRed extends LinearOpMode {
     private Recognition propDetected() {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
-
         for (Recognition recognition : currentRecognitions) {
             if (recognition.getLabel().equals("prop")) {
-                telemetry.addData(">", "Prop Detected");
-                telemetry.update();
-
                 return recognition;
             }
         }
-
         return null;
     }
 
@@ -246,10 +244,6 @@ public class ElAutoRed extends LinearOpMode {
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
-
-                if (detection.id == 0) {
-
-                }
             }
         }
 
