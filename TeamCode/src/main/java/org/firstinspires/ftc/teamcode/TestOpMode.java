@@ -4,76 +4,84 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.*;
 
-@TeleOp(name = "Test OpMode", group = "Testing")
+@TeleOp(name = "Test Movement", group = "Testing")
 public class TestOpMode extends OpMode {
     // Connected Devices
     private Blinker debug_light;
     private HardwareDevice robot;
     private IMU imu;
 
-    // Constants
-    static final double MAX_POS = 1.0;
-    static final double MIN_POS =  0.0;
-
     // Motors
-    DcMotor leftFrontDrive;
-    DcMotor rightFrontDrive;
-    DcMotor leftRearDrive;
-    DcMotor rightRearDrive;
+    DcMotor motorRF;
+    DcMotor motorLF;
+    DcMotor motorRR;
+    DcMotor motorLR;
 
-    // Servos
-    Servo arm;
-    Servo claw;
-    double arm_position = (MAX_POS - MIN_POS) / 2;
-    double claw_position = (MAX_POS - MIN_POS) / 2;
+    // Variables
+    enum Quadrant {
+        CENTER,
+        LEFT,
+        RIGHT,
+        TOP,
+        BOTTOM
+    }
+    Quadrant getQuadrant(double x, double y) {
+        if (y > 0) {
+            return Quadrant.BOTTOM;
+        } else if (y < 0) {
+            return Quadrant.TOP;
+        } else if (x > 0) {
+            return Quadrant.RIGHT;
+        } else if (x < 0) {
+            return Quadrant.LEFT;
+        } else {
+            return Quadrant.CENTER;
+        }
+    }
+    Quadrant quadrant = Quadrant.CENTER;
 
     // Initialize
     @Override
     public void init() {
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "MotorRF");
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "MotorLF");
-        rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
-        leftRearDrive = hardwareMap.get(DcMotor.class, "MotorLR");
+        motorRF = hardwareMap.get(DcMotor.class, "MotorRF");
+        motorLF = hardwareMap.get(DcMotor.class, "MotorLF");
+        motorRR = hardwareMap.get(DcMotor.class, "MotorRR");
+        motorLR = hardwareMap.get(DcMotor.class, "MotorLR");
 
-        arm = hardwareMap.get(Servo.class, "Arm");
-        claw = hardwareMap.get(Servo.class, "Claw");
+        motorLF.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorLR.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     // Robot Loop
     @Override
     public void loop() {
-        rightFrontDrive.setPower(gamepad1.left_stick_y-gamepad1.left_stick_x);
-        leftFrontDrive.setPower(-gamepad1.left_stick_y-gamepad1.left_stick_x);
-        rightRearDrive.setPower(gamepad1.left_stick_y-gamepad1.left_stick_x);
-        leftRearDrive.setPower(-gamepad1.left_stick_y-gamepad1.left_stick_x);
+        quadrant = getQuadrant(gamepad1.left_stick_x, gamepad1.left_stick_y);
 
-        if (gamepad1.y) {
-            if (arm_position < 1) {
-                arm_position += .01;
-            }
+        switch (quadrant) {
+            case CENTER:
+                move(0, 0);
+                break;
+            case LEFT:
+                move(-1, 0);
+                break;
+            case RIGHT:
+                move(1, 0);
+                break;
+            case TOP:
+                move(0, 1);
+                break;
+            case BOTTOM:
+                move(0, -1);
+                break;
         }
-        if (gamepad1.a) {
-            if (arm_position > 0) {
-                arm_position -= .01;
-            }
-        }
+    }
 
-        if (gamepad1.x) {
-            if (claw_position < 1) {
-                claw_position += .01;
-            }
-        }
-        if (gamepad1.b) {
-            if (claw_position > 0) {
-                claw_position -= .01;
-            }
-        }
+    void move(double leftPower, double rightPower) {
+        telemetry.addData(">", "Moving, Left: %5.2f, Right: %5.2f", leftPower, rightPower);
 
-        telemetry.addData("Arm Servo Value", "Value: %s", arm.getPosition());
-        telemetry.addData("Claw Servo Value", "Value: %s", claw.getPosition());
-        telemetry.update();
-
-        arm.setPosition(arm_position);
-        claw.setPosition(claw_position);
+        motorLF.setPower(leftPower);
+        motorRF.setPower(rightPower);
+        motorLR.setPower(leftPower);
+        motorRR.setPower(rightPower);
     }
 }
