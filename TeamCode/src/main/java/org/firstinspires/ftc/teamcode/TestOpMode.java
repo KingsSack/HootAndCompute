@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.*;
 
+import static java.lang.Math.abs;
+
+
 @TeleOp(name = "Test Movement", group = "Testing")
 public class TestOpMode extends OpMode {
     // Connected Devices
@@ -16,29 +19,6 @@ public class TestOpMode extends OpMode {
     DcMotor motorLF;
     DcMotor motorRR;
     DcMotor motorLR;
-
-    // Variables
-    enum Quadrant {
-        CENTER,
-        LEFT,
-        RIGHT,
-        TOP,
-        BOTTOM
-    }
-    Quadrant getQuadrant(double x, double y) {
-        if (y > 0) {
-            return Quadrant.BOTTOM;
-        } else if (y < 0) {
-            return Quadrant.TOP;
-        } else if (x > 0) {
-            return Quadrant.RIGHT;
-        } else if (x < 0) {
-            return Quadrant.LEFT;
-        } else {
-            return Quadrant.CENTER;
-        }
-    }
-    Quadrant quadrant = Quadrant.CENTER;
 
     // Initialize
     @Override
@@ -55,33 +35,20 @@ public class TestOpMode extends OpMode {
     // Robot Loop
     @Override
     public void loop() {
-        quadrant = getQuadrant(gamepad1.left_stick_x, gamepad1.left_stick_y);
-
-        switch (quadrant) {
-            case CENTER:
-                move(0, 0);
-                break;
-            case LEFT:
-                move(-1, 0);
-                break;
-            case RIGHT:
-                move(1, 0);
-                break;
-            case TOP:
-                move(0, 1);
-                break;
-            case BOTTOM:
-                move(0, -1);
-                break;
+        if (abs(gamepad1.left_stick_x) > abs(gamepad1.left_stick_y)) {
+            move(gamepad1.left_stick_x,-gamepad1.left_stick_x );
+        }
+        else {
+            move(gamepad1.left_stick_y, gamepad1.left_stick_y);
         }
     }
 
-    void move(double leftPower, double rightPower) {
-        telemetry.addData(">", "Moving, Left: %5.2f, Right: %5.2f", leftPower, rightPower);
+    void move(double frontPower, double backPower) {
+        telemetry.addData(">", "Moving, Front: %5.2f, Back: %5.2f", frontPower, backPower);
 
-        motorLF.setPower(leftPower);
-        motorRF.setPower(rightPower);
-        motorLR.setPower(leftPower);
-        motorRR.setPower(rightPower);
+        motorLF.setPower(frontPower);
+        motorRF.setPower(frontPower);
+        motorLR.setPower(backPower);
+        motorRR.setPower(backPower);
     }
 }

@@ -99,6 +99,15 @@ public class ElManual extends OpMode {
             }
         }
 
+        if (gamepad1.x) {
+            if (hookLift.getCurrentPosition() > 0) {
+                hookLift.setPower(-.6);
+            }
+            else {
+                hookLift.setPower(0);
+            }
+        }
+
         if (gamepad2.y) {
             hook.setPower(.75);
         } else if (gamepad2.a) {

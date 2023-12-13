@@ -107,12 +107,12 @@ public class ElAutoRed extends LinearOpMode {
                         else {
                             // If detected, find where the prop is
                             double x = (prop.getLeft() + prop.getRight()) / 2;
-                            if (x > 45) {
+                            if (x > 400) {
                                 // If prop is on the right, set state to PROP_RIGHT
                                 state = State.PROP_RIGHT;
                                 break;
                             }
-                            else if (x < -45) {
+                            else if (x < 240) {
                                 // If prop is on the left, set state to PROP_LEFT
                                 state = State.PROP_LEFT;
                                 break;
@@ -140,7 +140,7 @@ public class ElAutoRed extends LinearOpMode {
                         // Set state to LEAVE_PIXEL
                         break;
                     case PROP_LEFT:
-                        // Strafe left a specific number of rotations
+                        // Rotate left towards prop
                         // Move forward a specific number of rotations
                         // Set state to LEAVE_PIXEL
                         break;
