@@ -28,15 +28,15 @@ public class TestOpMode extends OpMode {
         motorRR = hardwareMap.get(DcMotor.class, "MotorRR");
         motorLR = hardwareMap.get(DcMotor.class, "MotorLR");
 
-        motorLF.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorLR.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorRF.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorRR.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     // Robot Loop
     @Override
     public void loop() {
         if (abs(gamepad1.left_stick_x) > abs(gamepad1.left_stick_y)) {
-            move(gamepad1.left_stick_x,-gamepad1.left_stick_x );
+            move(-gamepad1.left_stick_x, gamepad1.left_stick_x );
         }
         else {
             move(gamepad1.left_stick_y, gamepad1.left_stick_y);
@@ -47,8 +47,8 @@ public class TestOpMode extends OpMode {
         telemetry.addData(">", "Moving, Front: %5.2f, Back: %5.2f", frontPower, backPower);
 
         motorLF.setPower(frontPower);
-        motorRF.setPower(frontPower);
+        motorRF.setPower(backPower);
         motorLR.setPower(backPower);
-        motorRR.setPower(backPower);
+        motorRR.setPower(frontPower);
     }
 }
