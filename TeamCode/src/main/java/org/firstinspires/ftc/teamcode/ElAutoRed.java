@@ -1,17 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
@@ -19,7 +16,6 @@ import java.util.List;
 
 @Autonomous(name = "El Auto Red", group = "Competition")
 public class ElAutoRed extends LinearOpMode {
-    IMU imu;
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
     DcMotor leftRearDrive;
@@ -27,6 +23,7 @@ public class ElAutoRed extends LinearOpMode {
     TfodProcessor tfod;
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
+    IMU imu;
 
     // Constants
     private String TFOD_MODEL_NAME = "red_prop.tflite";
@@ -35,12 +32,17 @@ public class ElAutoRed extends LinearOpMode {
     };
 
     // Robot Variables
-    private double MAX_SPEED = .75;
-    private double TURN_GAIN = .02;
+    private ElapsedTime runtime = new ElapsedTime();
+    static final double COUNTS_PER_MOTOR_REV = 1440; // eg: TETRIX Motor Encoder
+    static final double DRIVE_GEAR_REDUCTION = 1.0; // No external gearing
+    static final double WHEEL_DIAMETER_INCHES = 4.0; // For circumference
+    static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double DRIVE_SPEED = 1;
     public enum State
     {
         DETECT,
         NO_DETECT,
+        MOVE_FORWARD,
         PROP_LEFT,
         PROP_RIGHT,
         PROP_CENTER,
@@ -49,14 +51,39 @@ public class ElAutoRed extends LinearOpMode {
         STOP
     }
     public State state = State.DETECT;
+    public enum Locations
+    {
+        RIGHT,
+        LEFT,
+        CENTER
+    }
+    public Locations propLocation = Locations.CENTER;
 
-    void Init() {
+    void initialize() {
         // Initialize
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "MotorRF");
         leftFrontDrive = hardwareMap.get(DcMotor.class, "MotorLF");
-        rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "MotorRF");
         leftRearDrive = hardwareMap.get(DcMotor.class, "MotorLR");
+        rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
         imu = hardwareMap.get(IMU.class, "imu");
+
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftRearDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightRearDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        telemetry.addData("Starting at", "%7d, %7d, %7d, %7d",
+                leftFrontDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(),
+                leftRearDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()
+        );
 
         imu.resetYaw();
 
@@ -83,7 +110,7 @@ public class ElAutoRed extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Init();
+        initialize();
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -109,19 +136,18 @@ public class ElAutoRed extends LinearOpMode {
                             double x = (prop.getLeft() + prop.getRight()) / 2;
                             if (x > 400) {
                                 // If prop is on the right, set state to PROP_RIGHT
-                                state = State.PROP_RIGHT;
-                                break;
+                                propLocation = Locations.RIGHT;
                             }
                             else if (x < 240) {
                                 // If prop is on the left, set state to PROP_LEFT
-                                state = State.PROP_LEFT;
-                                break;
+                                propLocation = Locations.LEFT;
                             }
                             else {
                                 // If prop is in the center, set state to PROP_CENTER
-                                state = State.PROP_CENTER;
-                                break;
+                                propLocation = Locations.CENTER;
                             }
+                            state = State.MOVE_FORWARD;
+                            break;
                         }
                     case NO_DETECT:
                         if (prop != null) {
@@ -134,31 +160,51 @@ public class ElAutoRed extends LinearOpMode {
                             state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
+                    case MOVE_FORWARD:
+                        move(DRIVE_SPEED, 20);
+                        switch (propLocation) {
+                            case RIGHT:
+                                state = State.PROP_RIGHT;
+                                break;
+                            case LEFT:
+                                state = State.PROP_LEFT;
+                                break;
+                            case CENTER:
+                                state = State.PROP_CENTER;
+                                break;
+                        }
+                        break;
                     case PROP_RIGHT:
                         // Strafe right a specific number of rotations
                         // Move forward a specific number of rotations
                         // Set state to LEAVE_PIXEL
+                        state = State.LEAVE_PIXEL;
                         break;
                     case PROP_LEFT:
                         // Rotate left towards prop
                         // Move forward a specific number of rotations
                         // Set state to LEAVE_PIXEL
+                        state = State.LEAVE_PIXEL;
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 4);
                         // Set state to LEAVE_PIXEL
+                        state = State.LEAVE_PIXEL;
                         break;
                     case LEAVE_PIXEL:
                         // Move backwards
-                        move(-MAX_SPEED);
-                        halt();
+                        move(DRIVE_SPEED, -24);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
+                        state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
-                        strafe(MAX_SPEED / 3);
+                        strafe(DRIVE_SPEED / 3, 24);
                         // If close to backstage, leave second pixel
+                        strafe(DRIVE_SPEED, -4);
                         // Set state to STOP
+                        state = State.STOP;
                         break;
                     case STOP:
                         // Stop the robot
@@ -178,18 +224,67 @@ public class ElAutoRed extends LinearOpMode {
         telemetry.update();
     }
 
-    void move(double power) {
-        leftFrontDrive.setPower(power);
-        rightFrontDrive.setPower(power);
-        leftRearDrive.setPower(power);
-        rightRearDrive.setPower(power);
+    void move(double power, double distance) {
+        encoderDrive(power, distance, distance, 5.0, 1);
     }
 
-    void strafe(double power) {
-        leftFrontDrive.setPower(power);
-        rightFrontDrive.setPower(power);
-        leftRearDrive.setPower(-power);
-        rightRearDrive.setPower(-power);
+    void strafe(double power, double distance) {
+        encoderDrive(power, -distance, distance, 5.0, (float) Math.sqrt(2));
+    }
+
+    public void encoderDrive(double speed, double leftInches, double rightInches, double timeoutS, float multiplier) {
+        int newRFTarget;
+        int newLFTarget;
+        int newRRTarget;
+        int newLRTarget;
+
+        // Determine new target position, and pass to motor controller
+        newLFTarget =  leftFrontDrive.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH / multiplier);
+        newRFTarget = rightFrontDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH / multiplier);
+        newLRTarget = leftRearDrive.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH / multiplier);
+        newRRTarget = rightRearDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH / multiplier);
+        leftFrontDrive.setTargetPosition(newLFTarget);
+        rightFrontDrive.setTargetPosition(newRFTarget);
+        leftRearDrive.setTargetPosition(newLRTarget);
+        rightRearDrive.setTargetPosition(newRRTarget);
+
+        // Turn On RUN_TO_POSITION
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftRearDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightRearDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Reset the timeout time and start motion
+        runtime.reset();
+        leftFrontDrive.setPower(Math.abs(speed));
+        rightFrontDrive.setPower(Math.abs(speed));
+        leftRearDrive.setPower(Math.abs(speed));
+        rightRearDrive.setPower(Math.abs(speed));
+
+        while (runtime.seconds() < timeoutS && leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
+            // Display it for the driver.
+            telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
+                    newRFTarget,  newLFTarget,
+                    newRRTarget, newLRTarget
+            );
+            telemetry.addData("Currently at",  " at %7d, %7d, %7d, %7d",
+                    leftFrontDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(),
+                    leftRearDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()
+            );
+            telemetry.update();
+        }
+
+        // Stop all motion;
+        leftFrontDrive.setPower(0);
+        rightFrontDrive.setPower(0);
+        leftRearDrive.setPower(0);
+        rightRearDrive.setPower(0);
+
+        // Turn off RUN_TO_POSITION
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     void halt() {
