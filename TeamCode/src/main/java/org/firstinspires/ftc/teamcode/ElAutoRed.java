@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -59,9 +60,6 @@ public class ElAutoRed extends LinearOpMode {
         leftRearDrive = hardwareMap.get(DcMotor.class, "MotorLR");
         rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
         imu = hardwareMap.get(IMU.class, "imu");
-
-        // leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        // leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -250,16 +248,26 @@ public class ElAutoRed extends LinearOpMode {
         // Reset the timeout time and start motion
         runtime.reset();
         if (strafe) {
-            leftFrontDrive.setPower(-Math.abs(speed));
-            rightFrontDrive.setPower(Math.abs(speed));
-            leftRearDrive.setPower(Math.abs(speed));
-            rightRearDrive.setPower(-Math.abs(speed));
+            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+            rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            leftRearDrive.setDirection(DcMotor.Direction.FORWARD);
+            rightRearDrive.setDirection(DcMotor.Direction.REVERSE);
+
+            leftFrontDrive.setPower(speed);
+            rightFrontDrive.setPower(speed);
+            leftRearDrive.setPower(speed);
+            rightRearDrive.setPower(speed);
         }
         else {
-            leftFrontDrive.setPower(-Math.abs(speed));
-            rightFrontDrive.setPower(Math.abs(speed));
-            leftRearDrive.setPower(-Math.abs(speed));
-            rightRearDrive.setPower(Math.abs(speed));
+            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+            rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
+            rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
+
+            leftFrontDrive.setPower(speed);
+            rightFrontDrive.setPower(speed);
+            leftRearDrive.setPower(speed);
+            rightRearDrive.setPower(speed);
         }
 
         while (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
