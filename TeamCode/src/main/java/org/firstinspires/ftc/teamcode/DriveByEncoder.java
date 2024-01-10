@@ -28,7 +28,7 @@ public class DriveByEncoder extends LinearOpMode {
     static final double DRIVE_GEAR_REDUCTION = 1.0; // No external gearing
     static final double WHEEL_DIAMETER_INCHES = 4.0; // For circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double DRIVE_SPEED = 1;
+    static final double DRIVE_SPEED = .8;
     static final double TURN_SPEED = 0.5;
 
     // Initialize
@@ -64,11 +64,11 @@ public class DriveByEncoder extends LinearOpMode {
 
         waitForStart();
 
-        encoderDrive(DRIVE_SPEED,  24,  24, 5.0);
+        encoderDrive(DRIVE_SPEED, 26);
     }
 
     // Encoder Drive
-    public void encoderDrive(double speed, double leftInches, double rightInches, double timeoutS) {
+    public void encoderDrive(double speed, double inches) {
         int newRFTarget;
         int newLFTarget;
         int newRRTarget;
@@ -77,10 +77,10 @@ public class DriveByEncoder extends LinearOpMode {
         // Ensure that the OpMode is still active
         if (opModeIsActive()) {
             // Determine new target position, and pass to motor controller
-            newRFTarget = motorRF.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
-            newLFTarget = motorLF.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
-            newRRTarget = motorRR.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
-            newLRTarget = motorLR.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
+            newRFTarget = motorRF.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+            newLFTarget = motorLF.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+            newRRTarget = motorRR.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+            newLRTarget = motorLR.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
             motorRF.setTargetPosition(newRFTarget);
             motorLF.setTargetPosition(newLFTarget);
             motorRR.setTargetPosition(newRRTarget);
@@ -105,7 +105,7 @@ public class DriveByEncoder extends LinearOpMode {
             // always end the motion as soon as possible.
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() && (runtime.seconds() < timeoutS) && (motorRF.isBusy() && motorLF.isBusy() && motorRR.isBusy() && motorLR.isBusy())) {
+            while (opModeIsActive() && (motorRF.isBusy() && motorLF.isBusy() && motorRR.isBusy() && motorLR.isBusy())) {
                 // Display it for the driver.
                 telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
                         newRFTarget,  newLFTarget,

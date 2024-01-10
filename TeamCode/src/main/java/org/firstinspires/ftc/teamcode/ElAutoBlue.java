@@ -31,9 +31,9 @@ public class ElAutoBlue extends LinearOpMode {
     CRServo launcher;
 
     // Constants
-    private String TFOD_MODEL_NAME = "red_prop.tflite";
+    private String TFOD_MODEL_NAME = "blue_prop.tflite";
     private String[] LABELS = {
-            "prop"
+            "blue"
     };
 
     // Robot Variables

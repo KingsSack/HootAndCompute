@@ -20,18 +20,11 @@ public class ElManual extends OpMode {
     DcMotor hookLift;
     DcMotor hook;
 
-    // Constants
-    private double deadzone = 0.1; // Deadzone for joystick input
-    private double scaleFactor = 2.0; // Exponential scaling factor
-
     // Booleans
     boolean slowDown = false;
-    boolean intakeOn = true;
 
     // Servos
-    CRServo intake;
     CRServo launcher;
-    CRServo conveyor;
 
     // Initialize
     @Override
@@ -44,14 +37,10 @@ public class ElManual extends OpMode {
         leftFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRearDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        intake = hardwareMap.get(CRServo.class, "Sweeper");
         launcher = hardwareMap.get(CRServo.class, "Launcher");
 
         hookLift = hardwareMap.get(DcMotor.class, "HookLift");
         hook = hardwareMap.get(DcMotor.class, "Hook");
-
-        conveyor = hardwareMap.get(CRServo.class, "Conveyor");
-        conveyor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     // Robot Loop
@@ -74,38 +63,35 @@ public class ElManual extends OpMode {
         }
 
         if (gamepad2.left_bumper) {
-            launcher.setPower(.7);
+            launcher.setPower(-.72);
         } else {
             launcher.setPower(0);
         }
 
-        if (gamepad2.x) {
-            intakeOn = !intakeOn;
-        }
-
         if (gamepad2.b) {
             if (gamepad2.right_bumper) {
-                if (hookLift.getCurrentPosition() < 600) {
+                if (hookLift.getCurrentPosition() < 500) {
                     hookLift.setPower(.6);
                 } else {
                     hookLift.setPower(0);
                 }
             } else {
-                if (hookLift.getCurrentPosition() < 200) {
+                if (hookLift.getCurrentPosition() < 260) {
                     hookLift.setPower(.75);
                 } else {
                     hookLift.setPower(0);
                 }
             }
         }
-
-        if (gamepad1.x) {
+        else if (gamepad2.x) {
             if (hookLift.getCurrentPosition() > 0) {
                 hookLift.setPower(-.6);
-            }
-            else {
+            } else {
                 hookLift.setPower(0);
             }
+        }
+        else {
+            hookLift.setPower(0);
         }
 
         if (gamepad2.y) {
@@ -128,16 +114,11 @@ public class ElManual extends OpMode {
         rightRearDrive.setPower(rightRearPower);
         leftRearDrive.setPower(leftRearPower);
 
-        intake.setPower(intakeOn ? -.7 : 0);
-        conveyor.setPower(intakeOn ? -.7 : 0);
-
         telemetry.addData("Movement", "RF %5.2f, LF %5.2f, RR %5.2f, LR %5.2f",
                 rightFrontPower,
                 leftFrontPower,
                 rightRearPower,
                 leftRearPower);
-        telemetry.addData("Intake", "On: %b, Power: %5.2f", intakeOn, intake.getPower());
-        telemetry.addData("Conveyor", "On: %b, Power: %5.2f", intakeOn, conveyor.getPower());
         telemetry.addData("Hook", "Position: %s, Power: %5.2f", hookLift.getCurrentPosition(), hookLift.getPower());
         telemetry.update();
     }

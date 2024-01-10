@@ -37,7 +37,7 @@ public class ElAutoRed extends LinearOpMode {
     static final double DRIVE_GEAR_REDUCTION = 1.0; // No external gearing
     static final double WHEEL_DIAMETER_INCHES = 4.0; // For circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double DRIVE_SPEED = 1;
+    static final double DRIVE_SPEED = .6;
     public enum State
     {
         DETECT,
@@ -51,13 +51,6 @@ public class ElAutoRed extends LinearOpMode {
         STOP
     }
     public State state = State.DETECT;
-    public enum Locations
-    {
-        RIGHT,
-        LEFT,
-        CENTER
-    }
-    public Locations propLocation = Locations.CENTER;
 
     void initialize() {
         // Initialize
@@ -67,8 +60,8 @@ public class ElAutoRed extends LinearOpMode {
         rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
         imu = hardwareMap.get(IMU.class, "imu");
 
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        // leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        // leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -136,17 +129,16 @@ public class ElAutoRed extends LinearOpMode {
                             double x = (prop.getLeft() + prop.getRight()) / 2;
                             if (x > 400) {
                                 // If prop is on the right, set state to PROP_RIGHT
-                                propLocation = Locations.RIGHT;
+                                state = State.PROP_RIGHT;
                             }
                             else if (x < 240) {
                                 // If prop is on the left, set state to PROP_LEFT
-                                propLocation = Locations.LEFT;
+                                state = State.PROP_LEFT;
                             }
                             else {
                                 // If prop is in the center, set state to PROP_CENTER
-                                propLocation = Locations.CENTER;
+                                state = State.PROP_CENTER;
                             }
-                            state = State.MOVE_FORWARD;
                             break;
                         }
                     case NO_DETECT:
@@ -162,7 +154,7 @@ public class ElAutoRed extends LinearOpMode {
                         }
                     case MOVE_FORWARD:
                         move(DRIVE_SPEED, 20);
-                        switch (propLocation) {
+                        /* switch (propLocation) {
                             case RIGHT:
                                 state = State.PROP_RIGHT;
                                 break;
@@ -172,7 +164,7 @@ public class ElAutoRed extends LinearOpMode {
                             case CENTER:
                                 state = State.PROP_CENTER;
                                 break;
-                        }
+                        } */
                         break;
                     case PROP_RIGHT:
                         // Strafe right a specific number of rotations
@@ -188,7 +180,7 @@ public class ElAutoRed extends LinearOpMode {
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 4);
+                        move(DRIVE_SPEED, 24);
                         // Set state to LEAVE_PIXEL
                         state = State.LEAVE_PIXEL;
                         break;
@@ -225,24 +217,25 @@ public class ElAutoRed extends LinearOpMode {
     }
 
     void move(double power, double distance) {
-        encoderDrive(power, distance, distance, 5.0, 1);
+        encoderDrive(power, distance, false);
     }
 
     void strafe(double power, double distance) {
-        encoderDrive(power, -distance, distance, 5.0, (float) Math.sqrt(2));
+        encoderDrive(power, distance, true);
     }
 
-    public void encoderDrive(double speed, double leftInches, double rightInches, double timeoutS, float multiplier) {
+    public void encoderDrive(double speed, double inches, boolean strafe) {
         int newRFTarget;
         int newLFTarget;
         int newRRTarget;
         int newLRTarget;
 
         // Determine new target position, and pass to motor controller
-        newLFTarget =  leftFrontDrive.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH / multiplier);
-        newRFTarget = rightFrontDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH / multiplier);
-        newLRTarget = leftRearDrive.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH / multiplier);
-        newRRTarget = rightRearDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH / multiplier);
+        newLFTarget =  leftFrontDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+        newRFTarget = rightFrontDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+        newLRTarget = leftRearDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+        newRRTarget = rightRearDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+
         leftFrontDrive.setTargetPosition(newLFTarget);
         rightFrontDrive.setTargetPosition(newRFTarget);
         leftRearDrive.setTargetPosition(newLRTarget);
@@ -256,13 +249,22 @@ public class ElAutoRed extends LinearOpMode {
 
         // Reset the timeout time and start motion
         runtime.reset();
-        leftFrontDrive.setPower(Math.abs(speed));
-        rightFrontDrive.setPower(Math.abs(speed));
-        leftRearDrive.setPower(Math.abs(speed));
-        rightRearDrive.setPower(Math.abs(speed));
+        if (strafe) {
+            leftFrontDrive.setPower(-Math.abs(speed));
+            rightFrontDrive.setPower(Math.abs(speed));
+            leftRearDrive.setPower(Math.abs(speed));
+            rightRearDrive.setPower(-Math.abs(speed));
+        }
+        else {
+            leftFrontDrive.setPower(-Math.abs(speed));
+            rightFrontDrive.setPower(Math.abs(speed));
+            leftRearDrive.setPower(-Math.abs(speed));
+            rightRearDrive.setPower(Math.abs(speed));
+        }
 
-        while (runtime.seconds() < timeoutS && leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
+        while (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
             // Display it for the driver.
+            telemetry.addData("State", "%s", state.toString());
             telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
                     newRFTarget,  newLFTarget,
                     newRRTarget, newLRTarget
@@ -275,10 +277,7 @@ public class ElAutoRed extends LinearOpMode {
         }
 
         // Stop all motion;
-        leftFrontDrive.setPower(0);
-        rightFrontDrive.setPower(0);
-        leftRearDrive.setPower(0);
-        rightRearDrive.setPower(0);
+        halt();
 
         // Turn off RUN_TO_POSITION
         leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
