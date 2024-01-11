@@ -43,7 +43,6 @@ public class ElAutoRed extends LinearOpMode {
     {
         DETECT,
         NO_DETECT,
-        MOVE_FORWARD,
         PROP_LEFT,
         PROP_RIGHT,
         PROP_CENTER,
@@ -60,6 +59,9 @@ public class ElAutoRed extends LinearOpMode {
         leftRearDrive = hardwareMap.get(DcMotor.class, "MotorLR");
         rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
         imu = hardwareMap.get(IMU.class, "imu");
+
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
 
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -150,49 +152,35 @@ public class ElAutoRed extends LinearOpMode {
                             state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
-                    case MOVE_FORWARD:
-                        move(DRIVE_SPEED, 20);
-                        /* switch (propLocation) {
-                            case RIGHT:
-                                state = State.PROP_RIGHT;
-                                break;
-                            case LEFT:
-                                state = State.PROP_LEFT;
-                                break;
-                            case CENTER:
-                                state = State.PROP_CENTER;
-                                break;
-                        } */
-                        break;
                     case PROP_RIGHT:
                         // Strafe right a specific number of rotations
+                        strafe(DRIVE_SPEED, 12);
                         // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 20);
                         // Set state to LEAVE_PIXEL
                         state = State.LEAVE_PIXEL;
                         break;
                     case PROP_LEFT:
-                        // Rotate left towards prop
-                        // Move forward a specific number of rotations
-                        // Set state to LEAVE_PIXEL
-                        state = State.LEAVE_PIXEL;
+                        // Skip
+                        state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 24);
+                        move(DRIVE_SPEED, 26);
                         // Set state to LEAVE_PIXEL
                         state = State.LEAVE_PIXEL;
                         break;
                     case LEAVE_PIXEL:
                         // Move backwards
-                        move(DRIVE_SPEED, -24);
+                        move(DRIVE_SPEED, -26);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED / 3, 24);
+                        strafe(DRIVE_SPEED, -40);
                         // If close to backstage, leave second pixel
-                        strafe(DRIVE_SPEED, -4);
+                        strafe(DRIVE_SPEED, -10);
                         // Set state to STOP
                         state = State.STOP;
                         break;
@@ -203,8 +191,6 @@ public class ElAutoRed extends LinearOpMode {
                 }
 
                 // Telemetry data
-                telemetry.addData(">", "Movement: %5.2f, %5.2f", rightFrontDrive.getPower(), leftFrontDrive.getPower());
-                telemetry.addData(">", "Angular Velocity: %s", imu.getRobotAngularVelocity(AngleUnit.DEGREES).xRotationRate + imu.getRobotAngularVelocity(AngleUnit.DEGREES).yRotationRate);
                 telemetry.update();
             }
         }
@@ -215,25 +201,21 @@ public class ElAutoRed extends LinearOpMode {
     }
 
     void move(double power, double distance) {
-        encoderDrive(power, distance, false);
+        // Use encoder drive to move forward a specified distance in inches
+        encoderDrive(power, distance, distance, distance, distance);
     }
 
     void strafe(double power, double distance) {
-        encoderDrive(power, distance, true);
+        // Use encoder drive to strafe a specified distance in inches
+        encoderDrive(power, -distance, distance, distance, -distance);
     }
 
-    public void encoderDrive(double speed, double inches, boolean strafe) {
-        int newRFTarget;
-        int newLFTarget;
-        int newRRTarget;
-        int newLRTarget;
-
+    public void encoderDrive(double speed, double inchesLF, double inchesRF, double inchesLR, double inchesRR) {
         // Determine new target position, and pass to motor controller
-        newLFTarget =  leftFrontDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-        newRFTarget = rightFrontDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-        newLRTarget = leftRearDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-        newRRTarget = rightRearDrive.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-
+        int newLFTarget = leftFrontDrive.getCurrentPosition() + (int)(inchesLF * COUNTS_PER_INCH);
+        int newRFTarget = rightFrontDrive.getCurrentPosition() + (int)(inchesRF * COUNTS_PER_INCH);
+        int newLRTarget = leftRearDrive.getCurrentPosition() + (int)(inchesLR * COUNTS_PER_INCH);
+        int newRRTarget = rightRearDrive.getCurrentPosition() + (int)(inchesRR * COUNTS_PER_INCH);
         leftFrontDrive.setTargetPosition(newLFTarget);
         rightFrontDrive.setTargetPosition(newRFTarget);
         leftRearDrive.setTargetPosition(newLRTarget);
@@ -247,30 +229,12 @@ public class ElAutoRed extends LinearOpMode {
 
         // Reset the timeout time and start motion
         runtime.reset();
-        if (strafe) {
-            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-            rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-            leftRearDrive.setDirection(DcMotor.Direction.FORWARD);
-            rightRearDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setPower(Math.abs(speed));
+        rightFrontDrive.setPower(Math.abs(speed));
+        leftRearDrive.setPower(Math.abs(speed));
+        rightRearDrive.setPower(Math.abs(speed));
 
-            leftFrontDrive.setPower(speed);
-            rightFrontDrive.setPower(speed);
-            leftRearDrive.setPower(speed);
-            rightRearDrive.setPower(speed);
-        }
-        else {
-            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-            rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-            leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
-            rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
-
-            leftFrontDrive.setPower(speed);
-            rightFrontDrive.setPower(speed);
-            leftRearDrive.setPower(speed);
-            rightRearDrive.setPower(speed);
-        }
-
-        while (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
+        while (leftFrontDrive.isBusy()) {
             // Display it for the driver.
             telemetry.addData("State", "%s", state.toString());
             telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
@@ -295,6 +259,7 @@ public class ElAutoRed extends LinearOpMode {
     }
 
     void halt() {
+        // Stop all motors
         leftFrontDrive.setPower(0);
         rightFrontDrive.setPower(0);
         leftRearDrive.setPower(0);
@@ -302,10 +267,12 @@ public class ElAutoRed extends LinearOpMode {
     }
 
     private Recognition detectProp() {
+        // Create a list of current recognitions
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
         for (Recognition recognition : currentRecognitions) {
             if (recognition.getLabel().equals("prop")) {
+                // If it detects the prop, return it
                 return recognition;
             }
         }

@@ -34,8 +34,8 @@ public class ElManual extends OpMode {
         rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
         leftRearDrive = hardwareMap.get(DcMotor.class, "MotorLR");
 
-        leftFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftRearDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
 
         launcher = hardwareMap.get(CRServo.class, "Launcher");
 
@@ -122,4 +122,5 @@ public class ElManual extends OpMode {
         telemetry.addData("Hook", "Position: %s, Power: %5.2f", hookLift.getCurrentPosition(), hookLift.getPower());
         telemetry.update();
     }
+
 }
