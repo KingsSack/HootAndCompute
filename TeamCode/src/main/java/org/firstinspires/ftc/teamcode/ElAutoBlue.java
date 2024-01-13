@@ -1,16 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.annotation.SuppressLint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
@@ -18,7 +15,6 @@ import java.util.List;
 
 @Autonomous(name = "El Auto Blue", group = "Competition")
 public class ElAutoBlue extends LinearOpMode {
-    IMU imu;
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
     DcMotor leftRearDrive;
@@ -26,8 +22,7 @@ public class ElAutoBlue extends LinearOpMode {
     TfodProcessor tfod;
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
-    CRServo intake;
-    CRServo launcher;
+    IMU imu;
 
     // Constants
     private String TFOD_MODEL_NAME = "blue_prop.tflite";
@@ -36,26 +31,50 @@ public class ElAutoBlue extends LinearOpMode {
     };
 
     // Robot Variables
-    private double MAX_SPEED = .75;
-    private double TURN_GAIN = .02;
-    public enum states
+    private ElapsedTime runtime = new ElapsedTime();
+    static final double COUNTS_PER_MOTOR_REV = 1440; // eg: TETRIX Motor Encoder
+    static final double DRIVE_GEAR_REDUCTION = 1.0; // No external gearing
+    static final double WHEEL_DIAMETER_INCHES = 4.0; // For circumference
+    static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double DRIVE_SPEED = .6;
+    public enum State
     {
         DETECT,
         NO_DETECT,
-        DROP_PIXEL,
-        TURN_TOWARDS_BACKSTAGE,
+        PROP_LEFT,
+        PROP_RIGHT,
+        PROP_CENTER,
+        LEAVE_PIXEL,
         MOVE_TO_BACKSTAGE,
         STOP
     }
-    public states state = states.DETECT;
+    public State state = State.DETECT;
 
-    void Init() {
+    void initialize() {
         // Initialize
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "MotorRF");
         leftFrontDrive = hardwareMap.get(DcMotor.class, "MotorLF");
-        rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "MotorRF");
         leftRearDrive = hardwareMap.get(DcMotor.class, "MotorLR");
+        rightRearDrive = hardwareMap.get(DcMotor.class, "MotorRR");
         imu = hardwareMap.get(IMU.class, "imu");
+
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftRearDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightRearDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        telemetry.addData("Starting at", "%7d, %7d, %7d, %7d",
+                leftFrontDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(),
+                leftRearDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()
+        );
 
         imu.resetYaw();
 
@@ -82,7 +101,7 @@ public class ElAutoBlue extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Init();
+        initialize();
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -93,92 +112,85 @@ public class ElAutoBlue extends LinearOpMode {
                 telemetry.addData("Status", "Running");
                 telemetry.addData("State", "%s", state.toString());
 
-                Recognition prop = propDetected();
+                Recognition prop = detectProp();
 
                 // State machine
                 switch (state) {
                     case DETECT:
                         if (prop == null) {
                             // If not detected, go to NO_DETECT state
-                            resetPower();
-                            state = states.NO_DETECT;
+                            state = State.NO_DETECT;
                             break;
                         }
                         else {
-                            // If detected, move towards the prop
+                            // If detected, find where the prop is
                             double x = (prop.getLeft() + prop.getRight()) / 2;
-                            move(MAX_SPEED, MAX_SPEED);
-                        }
-                        if (prop.getHeight() > 288) {
-                            // When close to the prop, go to DROP_PIXEL state
-                            resetPower();
-                            state = states.DROP_PIXEL;
+                            telemetry.addData("Prop X", "%5.2f", x);
+                            if (x > 400) {
+                                // If prop is on the right, set state to PROP_RIGHT
+                                state = State.PROP_RIGHT;
+                            }
+                            else if (x < 240) {
+                                // If prop is on the left, set state to PROP_LEFT
+                                state = State.PROP_LEFT;
+                            }
+                            else {
+                                // If prop is in the center, set state to PROP_CENTER
+                                state = State.PROP_CENTER;
+                            }
                             break;
                         }
-                        break;
                     case NO_DETECT:
-                        // Move forward a bit
-                        move(MAX_SPEED, MAX_SPEED);
-                        sleep(500);
                         if (prop != null) {
-                            // If detected, go to DETECT state
-                            resetPower();
-                            state = states.DETECT;
+                            // If detected, set state to DETECT
+                            state = State.DETECT;
                             break;
                         }
                         else {
-                            // Else, go to backstage
-                            resetPower();
-                            state = states.TURN_TOWARDS_BACKSTAGE;
+                            // Else, set state to MOVE_TO_BACKSTAGE
+                            state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
-                    case DROP_PIXEL:
-                        // Move backwards
-                        move(-MAX_SPEED, -MAX_SPEED);
-                        sleep(900);
-                        resetPower();
-                        state = states.TURN_TOWARDS_BACKSTAGE;
+                    case PROP_RIGHT:
+                        // Skip
+                        state = State.MOVE_TO_BACKSTAGE;
                         break;
-                    case TURN_TOWARDS_BACKSTAGE:
-                        double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-                        if (yaw > 80) {
-                            // Set state to MOVE_TO_BACKSTAGE
-                            resetPower();
-                            state = states.MOVE_TO_BACKSTAGE;
-                            break;
-                        }
-                        else {
-                            // Spin towards backstage
-                            spin(90);
-                        }
+                    case PROP_LEFT:
+                        // Strafe right a specific number of rotations
+                        strafe(DRIVE_SPEED, 10);
+                        // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 28);
+                        // Set state to LEAVE_PIXEL
+                        state = State.LEAVE_PIXEL;
+                        break;
+                    case PROP_CENTER:
+                        // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 28);
+                        // Set state to LEAVE_PIXEL
+                        state = State.LEAVE_PIXEL;
+                        break;
+                    case LEAVE_PIXEL:
+                        // Move backwards
+                        move(DRIVE_SPEED, -28);
+                        // When back at starting position, set state to MOVE_TO_BACKSTAGE
+                        state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
-                        // Move towards backstage
-                        move(MAX_SPEED / 3, MAX_SPEED / 3);
-                        sleep(1000);
-                        /* AngularVelocity angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
-                        if (angularVelocity.xRotationRate + angularVelocity.yRotationRate < 2) {
-                            resetPower();
-                            state = states.STOP;
-                            break;
-                        } */
+                        // Strafe towards backstage
+                        strafe(DRIVE_SPEED, 45);
+                        // If close to backstage, leave second pixel
+                        strafe(DRIVE_SPEED, -10);
+                        // Set state to STOP
+                        state = State.STOP;
                         break;
                     case STOP:
-                        resetPower();
+                        // Stop the robot
+                        halt();
                         break;
                 }
 
                 // Telemetry data
-                telemetry.addData("", "");
-                telemetry.addData(">", "Movement: %5.2f, %5.2f", rightFrontDrive.getPower(), leftFrontDrive.getPower());
-                telemetry.addData(">", "%s", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
-                if (prop != null) {
-                    telemetry.addData(">", "%s", prop.toString());
-                }
                 telemetry.update();
-
-                // Share the CPU
-                sleep(20);
             }
         }
 
@@ -187,66 +199,82 @@ public class ElAutoBlue extends LinearOpMode {
         telemetry.update();
     }
 
-    void spin(double expectedHeading) {
-        // Spin
-        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        double error = expectedHeading - heading;
-
-        move(-error * TURN_GAIN, error * TURN_GAIN);
+    void move(double power, double distance) {
+        // Use encoder drive to move forward a specified distance in inches
+        encoderDrive(power, distance, distance, distance, distance);
     }
 
-    void move(double leftPower, double rightPower) {
-        double max = Math.max(Math.abs(rightPower), Math.abs(leftPower));
-        if (max > MAX_SPEED) {
-            rightPower /= max;
-            leftPower /= max;
+    void strafe(double power, double distance) {
+        // Use encoder drive to strafe a specified distance in inches
+        encoderDrive(power, -distance, distance, distance, -distance);
+    }
+
+    public void encoderDrive(double speed, double inchesLF, double inchesRF, double inchesLR, double inchesRR) {
+        // Determine new target position, and pass to motor controller
+        int newLFTarget = leftFrontDrive.getCurrentPosition() + (int)(inchesLF * COUNTS_PER_INCH);
+        int newRFTarget = rightFrontDrive.getCurrentPosition() + (int)(inchesRF * COUNTS_PER_INCH);
+        int newLRTarget = leftRearDrive.getCurrentPosition() + (int)(inchesLR * COUNTS_PER_INCH);
+        int newRRTarget = rightRearDrive.getCurrentPosition() + (int)(inchesRR * COUNTS_PER_INCH);
+        leftFrontDrive.setTargetPosition(newLFTarget);
+        rightFrontDrive.setTargetPosition(newRFTarget);
+        leftRearDrive.setTargetPosition(newLRTarget);
+        rightRearDrive.setTargetPosition(newRRTarget);
+
+        // Turn On RUN_TO_POSITION
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftRearDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightRearDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Reset the timeout time and start motion
+        runtime.reset();
+        leftFrontDrive.setPower(Math.abs(speed));
+        rightFrontDrive.setPower(Math.abs(speed));
+        leftRearDrive.setPower(Math.abs(speed));
+        rightRearDrive.setPower(Math.abs(speed));
+
+        while (leftFrontDrive.isBusy()) {
+            // Display it for the driver.
+            telemetry.addData("State", "%s", state.toString());
+            telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
+                    newRFTarget,  newLFTarget,
+                    newRRTarget, newLRTarget
+            );
+            telemetry.addData("Currently at",  " at %7d, %7d, %7d, %7d",
+                    leftFrontDrive.getCurrentPosition(), rightFrontDrive.getCurrentPosition(),
+                    leftRearDrive.getCurrentPosition(), rightRearDrive.getCurrentPosition()
+            );
+            telemetry.update();
         }
 
-        telemetry.addData(">", "Moving, Left: %5.2f, Right: %5.2f", leftPower, rightPower);
+        // Stop all motion;
+        halt();
 
-        leftFrontDrive.setPower(-leftPower);
-        rightFrontDrive.setPower(rightPower);
-        leftRearDrive.setPower(-leftPower);
-        rightRearDrive.setPower(rightPower);
+        // Turn off RUN_TO_POSITION
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    void resetPower() {
+    void halt() {
+        // Stop all motors
         leftFrontDrive.setPower(0);
         rightFrontDrive.setPower(0);
         leftRearDrive.setPower(0);
         rightRearDrive.setPower(0);
     }
 
-    private Recognition propDetected() {
+    private Recognition detectProp() {
+        // Create a list of current recognitions
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
         for (Recognition recognition : currentRecognitions) {
             if (recognition.getLabel().equals("prop")) {
+                // If it detects the prop, return it
                 return recognition;
             }
         }
         return null;
-    }
-
-    @SuppressLint("DefaultLocale")
-    private void detectAprilTag() {
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        telemetry.addData("# AprilTags Detected", currentDetections.size());
-
-        for (AprilTagDetection detection : currentDetections) {
-            if (detection.metadata != null) {
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
-            } else {
-                telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
-            }
-        }
-
-        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
-        telemetry.addLine("RBE = Range, Bearing & Elevation");
     }
 }

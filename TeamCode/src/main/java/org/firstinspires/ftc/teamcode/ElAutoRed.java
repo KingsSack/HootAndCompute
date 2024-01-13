@@ -3,11 +3,9 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -88,7 +86,7 @@ public class ElAutoRed extends LinearOpMode {
                 .setModelInputSize(300)
                 .setModelAspectRatio(16.0 / 9.0)
                 .build();
-        tfod.setMinResultConfidence(0.8f);
+        tfod.setMinResultConfidence(0.85f);
 
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
 
@@ -127,6 +125,7 @@ public class ElAutoRed extends LinearOpMode {
                         else {
                             // If detected, find where the prop is
                             double x = (prop.getLeft() + prop.getRight()) / 2;
+                            telemetry.addData("Prop X", "%5.2f", x);
                             if (x > 400) {
                                 // If prop is on the right, set state to PROP_RIGHT
                                 state = State.PROP_RIGHT;
@@ -154,9 +153,9 @@ public class ElAutoRed extends LinearOpMode {
                         }
                     case PROP_RIGHT:
                         // Strafe right a specific number of rotations
-                        strafe(DRIVE_SPEED, 12);
+                        strafe(DRIVE_SPEED, -10);
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 20);
+                        move(DRIVE_SPEED, 28);
                         // Set state to LEAVE_PIXEL
                         state = State.LEAVE_PIXEL;
                         break;
@@ -166,21 +165,21 @@ public class ElAutoRed extends LinearOpMode {
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 26);
+                        move(DRIVE_SPEED, 28);
                         // Set state to LEAVE_PIXEL
                         state = State.LEAVE_PIXEL;
                         break;
                     case LEAVE_PIXEL:
                         // Move backwards
-                        move(DRIVE_SPEED, -26);
+                        move(DRIVE_SPEED, -28);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, -40);
+                        strafe(DRIVE_SPEED, -45);
                         // If close to backstage, leave second pixel
-                        strafe(DRIVE_SPEED, -10);
+                        strafe(DRIVE_SPEED, 10);
                         // Set state to STOP
                         state = State.STOP;
                         break;

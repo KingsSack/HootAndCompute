@@ -57,25 +57,30 @@ public class ElManual extends OpMode {
         double leftRearPower = y - x + rx;
 
         if (gamepad1.left_bumper) {
+            // Slow down the robot while driver one holds the left bumper
             slowDown = true;
         } else {
             slowDown = false;
         }
 
         if (gamepad2.left_bumper) {
+            // If driver two holds the left bumper, launch the airplane
             launcher.setPower(-.72);
         } else {
             launcher.setPower(0);
         }
 
         if (gamepad2.b) {
+            // If driver two holds b, move the arm up
             if (gamepad2.right_bumper) {
+                // If they hold the right bumper as well, lift it all the way
                 if (hookLift.getCurrentPosition() < 500) {
                     hookLift.setPower(.6);
                 } else {
                     hookLift.setPower(0);
                 }
             } else {
+                // Otherwise, lift it a little bit
                 if (hookLift.getCurrentPosition() < 260) {
                     hookLift.setPower(.75);
                 } else {
@@ -84,6 +89,7 @@ public class ElManual extends OpMode {
             }
         }
         else if (gamepad2.x) {
+            // If driver two holds x, move the arm down
             if (hookLift.getCurrentPosition() > 0) {
                 hookLift.setPower(-.6);
             } else {
@@ -95,25 +101,30 @@ public class ElManual extends OpMode {
         }
 
         if (gamepad2.y) {
+            // If driver two holds y, move the hook up
             hook.setPower(.75);
         } else if (gamepad2.a) {
+            // If driver two holds a, move the hook down
             hook.setPower(-1);
         } else {
             hook.setPower(0);
         }
 
         if (slowDown) {
+            // If slow down is enabled, divide the power by 3
             rightFrontPower /= 3;
             leftFrontPower /= 3;
             rightRearPower /= 3;
             leftRearPower /= 3;
         }
 
+        // Move the robot
         rightFrontDrive.setPower(rightFrontPower);
         leftFrontDrive.setPower(leftFrontPower);
         rightRearDrive.setPower(rightRearPower);
         leftRearDrive.setPower(leftRearPower);
 
+        // Telemetry data
         telemetry.addData("Movement", "RF %5.2f, LF %5.2f, RR %5.2f, LR %5.2f",
                 rightFrontPower,
                 leftFrontPower,
