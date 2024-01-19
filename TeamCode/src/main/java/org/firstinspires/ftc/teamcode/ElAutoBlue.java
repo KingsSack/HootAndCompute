@@ -36,7 +36,7 @@ public class ElAutoBlue extends LinearOpMode {
     static final double DRIVE_GEAR_REDUCTION = 1.0; // No external gearing
     static final double WHEEL_DIAMETER_INCHES = 4.0; // For circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double DRIVE_SPEED = .6;
+    static final double DRIVE_SPEED = .8;
     public enum State
     {
         DETECT,
@@ -44,7 +44,6 @@ public class ElAutoBlue extends LinearOpMode {
         PROP_LEFT,
         PROP_RIGHT,
         PROP_CENTER,
-        LEAVE_PIXEL,
         MOVE_TO_BACKSTAGE,
         STOP
     }
@@ -156,30 +155,22 @@ public class ElAutoBlue extends LinearOpMode {
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_LEFT:
-                        // Strafe right a specific number of rotations
-                        strafe(DRIVE_SPEED, 10);
-                        // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 28);
-                        // Set state to LEAVE_PIXEL
-                        state = State.LEAVE_PIXEL;
+                        // Skip
+                        state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 28);
-                        // Set state to LEAVE_PIXEL
-                        state = State.LEAVE_PIXEL;
-                        break;
-                    case LEAVE_PIXEL:
-                        // Move backwards
-                        move(DRIVE_SPEED, -28);
+                        move(DRIVE_SPEED, 36);
+                        // Move backward a specific number of rotations
+                        move(DRIVE_SPEED, -32);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, 45);
+                        strafe(DRIVE_SPEED, 48);
                         // If close to backstage, leave second pixel
-                        strafe(DRIVE_SPEED, -10);
+                        strafe(DRIVE_SPEED, -16);
                         // Set state to STOP
                         state = State.STOP;
                         break;

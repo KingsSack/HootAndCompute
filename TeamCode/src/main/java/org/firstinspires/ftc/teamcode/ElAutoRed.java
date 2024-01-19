@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.PtzControl;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -36,7 +37,7 @@ public class ElAutoRed extends LinearOpMode {
     static final double DRIVE_GEAR_REDUCTION = 1.0; // No external gearing
     static final double WHEEL_DIAMETER_INCHES = 4.0; // For circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double DRIVE_SPEED = .6;
+    static final double DRIVE_SPEED = .8;
     public enum State
     {
         DETECT,
@@ -44,7 +45,6 @@ public class ElAutoRed extends LinearOpMode {
         PROP_LEFT,
         PROP_RIGHT,
         PROP_CENTER,
-        LEAVE_PIXEL,
         MOVE_TO_BACKSTAGE,
         STOP
     }
@@ -94,6 +94,9 @@ public class ElAutoRed extends LinearOpMode {
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
                 .addProcessors(tfod, aprilTag)
                 .build();
+
+        // PtzControl ptzControl = visionPortal.getCameraControl();
+        // ptzControl.setZoom(100);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -153,11 +156,13 @@ public class ElAutoRed extends LinearOpMode {
                         }
                     case PROP_RIGHT:
                         // Strafe right a specific number of rotations
-                        strafe(DRIVE_SPEED, -10);
+                        strafe(DRIVE_SPEED, -14);
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 28);
-                        // Set state to LEAVE_PIXEL
-                        state = State.LEAVE_PIXEL;
+                        move(DRIVE_SPEED, 30);
+                        // Move backward a specific number of rotations
+                        move(DRIVE_SPEED, -26);
+                        // When back at starting position, set state to MOVE_TO_BACKSTAGE
+                        state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_LEFT:
                         // Skip
@@ -165,21 +170,17 @@ public class ElAutoRed extends LinearOpMode {
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 28);
-                        // Set state to LEAVE_PIXEL
-                        state = State.LEAVE_PIXEL;
-                        break;
-                    case LEAVE_PIXEL:
-                        // Move backwards
-                        move(DRIVE_SPEED, -28);
+                        move(DRIVE_SPEED, 36);
+                        // Move backward a specific number of rotations
+                        move(DRIVE_SPEED, -32);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, -45);
+                        strafe(DRIVE_SPEED, -48);
                         // If close to backstage, leave second pixel
-                        strafe(DRIVE_SPEED, 10);
+                        strafe(DRIVE_SPEED, 16);
                         // Set state to STOP
                         state = State.STOP;
                         break;

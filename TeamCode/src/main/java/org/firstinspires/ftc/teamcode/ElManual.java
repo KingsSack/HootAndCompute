@@ -7,11 +7,6 @@ import com.qualcomm.robotcore.hardware.*;
 @TeleOp(name = "El Manual", group = "Competition")
 public class ElManual extends OpMode {
 
-    // Connected Devices
-    private Blinker debug_light;
-    private HardwareDevice robot;
-    private IMU imu;
-
     // Motors
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
@@ -75,14 +70,14 @@ public class ElManual extends OpMode {
             if (gamepad2.right_bumper) {
                 // If they hold the right bumper as well, lift it all the way
                 if (hookLift.getCurrentPosition() < 500) {
-                    hookLift.setPower(.6);
+                    hookLift.setPower(.5);
                 } else {
                     hookLift.setPower(0);
                 }
             } else {
                 // Otherwise, lift it a little bit
                 if (hookLift.getCurrentPosition() < 260) {
-                    hookLift.setPower(.75);
+                    hookLift.setPower(.5);
                 } else {
                     hookLift.setPower(0);
                 }
@@ -91,7 +86,7 @@ public class ElManual extends OpMode {
         else if (gamepad2.x) {
             // If driver two holds x, move the arm down
             if (hookLift.getCurrentPosition() > 0) {
-                hookLift.setPower(-.6);
+                hookLift.setPower(-.5);
             } else {
                 hookLift.setPower(0);
             }
