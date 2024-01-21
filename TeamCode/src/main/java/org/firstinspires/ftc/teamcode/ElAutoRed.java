@@ -95,8 +95,8 @@ public class ElAutoRed extends LinearOpMode {
                 .addProcessors(tfod, aprilTag)
                 .build();
 
-        // PtzControl ptzControl = visionPortal.getCameraControl();
-        // ptzControl.setZoom(100);
+        /* PtzControl ptzControl = visionPortal.getCameraControl(PtzControl.class);
+        ptzControl.setZoom(100); */
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -144,6 +144,9 @@ public class ElAutoRed extends LinearOpMode {
                             break;
                         }
                     case NO_DETECT:
+                        // Move forward a tiny bit at a slow speed
+                        move(.05, 4);
+                        // Check if it sees prop
                         if (prop != null) {
                             // If detected, set state to DETECT
                             state = State.DETECT;
@@ -151,7 +154,7 @@ public class ElAutoRed extends LinearOpMode {
                         }
                         else {
                             // Else, set state to MOVE_TO_BACKSTAGE
-                            state = State.MOVE_TO_BACKSTAGE;
+                            state = State.STOP;
                             break;
                         }
                     case PROP_RIGHT:
@@ -180,7 +183,7 @@ public class ElAutoRed extends LinearOpMode {
                         // Strafe towards backstage
                         strafe(DRIVE_SPEED, -48);
                         // If close to backstage, leave second pixel
-                        strafe(DRIVE_SPEED, 16);
+                        strafe(DRIVE_SPEED, 8);
                         // Set state to STOP
                         state = State.STOP;
                         break;
@@ -235,7 +238,9 @@ public class ElAutoRed extends LinearOpMode {
         rightRearDrive.setPower(Math.abs(speed));
 
         while (leftFrontDrive.isBusy()) {
-            // Display it for the driver.
+            // Keep the camera alive
+            Recognition prop = detectProp();
+            // Display info for the drivers
             telemetry.addData("State", "%s", state.toString());
             telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
                     newRFTarget,  newLFTarget,
