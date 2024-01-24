@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.PtzControl;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -20,6 +21,7 @@ public class ElAutoRed extends LinearOpMode {
     DcMotor rightFrontDrive;
     DcMotor leftRearDrive;
     DcMotor rightRearDrive;
+    DcMotor hookLift;
     TfodProcessor tfod;
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
@@ -86,7 +88,7 @@ public class ElAutoRed extends LinearOpMode {
                 .setModelInputSize(300)
                 .setModelAspectRatio(16.0 / 9.0)
                 .build();
-        tfod.setMinResultConfidence(0.85f);
+        tfod.setMinResultConfidence(0.8f);
 
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
 
@@ -97,6 +99,8 @@ public class ElAutoRed extends LinearOpMode {
 
         /* PtzControl ptzControl = visionPortal.getCameraControl(PtzControl.class);
         ptzControl.setZoom(100); */
+
+        hookLift = hardwareMap.get(DcMotor.class, "HookLift");
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -129,17 +133,13 @@ public class ElAutoRed extends LinearOpMode {
                             // If detected, find where the prop is
                             double x = (prop.getLeft() + prop.getRight()) / 2;
                             telemetry.addData("Prop X", "%5.2f", x);
-                            if (x > 400) {
-                                // If prop is on the right, set state to PROP_RIGHT
-                                state = State.PROP_RIGHT;
-                            }
-                            else if (x < 240) {
-                                // If prop is on the left, set state to PROP_LEFT
-                                state = State.PROP_LEFT;
+                            if (x < 320) {
+                                // If prop is on the left, set state to PROP_CENTER
+                                state = State.PROP_CENTER;
                             }
                             else {
-                                // If prop is in the center, set state to PROP_CENTER
-                                state = State.PROP_CENTER;
+                                // If prop is on the right, set state to PROP_RIGHT
+                                state = State.PROP_RIGHT;
                             }
                             break;
                         }
@@ -154,26 +154,34 @@ public class ElAutoRed extends LinearOpMode {
                         }
                         else {
                             // Else, set state to MOVE_TO_BACKSTAGE
-                            state = State.STOP;
+                            state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
                     case PROP_RIGHT:
                         // Strafe right a specific number of rotations
-                        strafe(DRIVE_SPEED, -14);
+                        strafe(DRIVE_SPEED, -8);
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 30);
+                        move(DRIVE_SPEED, 26);
                         // Move backward a specific number of rotations
                         move(DRIVE_SPEED, -26);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_LEFT:
-                        // Skip
+                        // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 26);
+                        // Turn 90 degrees
+                        turn(90);
+                        // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 12);
+                        // Turn back -90 degrees
+                        turn(-90);
+                        // Set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 36);
+                        move(DRIVE_SPEED, 32);
                         // Move backward a specific number of rotations
                         move(DRIVE_SPEED, -32);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
@@ -182,8 +190,8 @@ public class ElAutoRed extends LinearOpMode {
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
                         strafe(DRIVE_SPEED, -48);
-                        // If close to backstage, leave second pixel
-                        strafe(DRIVE_SPEED, 8);
+                        // Release the yellow pixel
+                        lift();
                         // Set state to STOP
                         state = State.STOP;
                         break;
@@ -263,12 +271,47 @@ public class ElAutoRed extends LinearOpMode {
         rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
+    void turn(double degrees) {
+        double currentOrientation = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        double targetOrientation = currentOrientation + degrees;
+        double threshold = 0.5; // You can adjust this value as needed
+
+        while (Math.abs(currentOrientation - targetOrientation) > threshold) {
+            currentOrientation = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+            double difference = currentOrientation - targetOrientation;
+
+            if (difference > 0) {
+                // Turn right
+                leftFrontDrive.setPower(0.5);
+                rightFrontDrive.setPower(-0.5);
+                leftRearDrive.setPower(0.5);
+                rightRearDrive.setPower(-0.5);
+            } else {
+                // Turn left
+                leftFrontDrive.setPower(-0.5);
+                rightFrontDrive.setPower(0.5);
+                leftRearDrive.setPower(-0.5);
+                rightRearDrive.setPower(0.5);
+            }
+        }
+
+        // Stop the robot
+        halt();
+    }
+
     void halt() {
         // Stop all motors
         leftFrontDrive.setPower(0);
         rightFrontDrive.setPower(0);
         leftRearDrive.setPower(0);
         rightRearDrive.setPower(0);
+    }
+
+    void lift() {
+        while(hookLift.getCurrentPosition() < 260) {
+            hookLift.setPower(.8);
+        }
+        hookLift.setPower(0);
     }
 
     private Recognition detectProp() {
