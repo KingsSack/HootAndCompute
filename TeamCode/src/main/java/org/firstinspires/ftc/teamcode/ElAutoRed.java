@@ -181,17 +181,19 @@ public class ElAutoRed extends LinearOpMode {
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 32);
+                        move(DRIVE_SPEED, 31);
                         // Move backward a specific number of rotations
-                        move(DRIVE_SPEED, -32);
+                        move(DRIVE_SPEED, -31);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, -48);
-                        // Release the yellow pixel
+                        strafe(DRIVE_SPEED, -45);
+                        // Lift the arm to release the yellow pixel
                         lift();
+                        // Strafe a bit further
+                        strafe(DRIVE_SPEED, -5);
                         // Set state to STOP
                         state = State.STOP;
                         break;
@@ -245,7 +247,7 @@ public class ElAutoRed extends LinearOpMode {
         leftRearDrive.setPower(Math.abs(speed));
         rightRearDrive.setPower(Math.abs(speed));
 
-        while (leftFrontDrive.isBusy()) {
+        while (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
             // Keep the camera alive
             Recognition prop = detectProp();
             // Display info for the drivers
@@ -308,7 +310,11 @@ public class ElAutoRed extends LinearOpMode {
     }
 
     void lift() {
-        while(hookLift.getCurrentPosition() < 260) {
+        // Get initial arm position
+        double initialPos = hookLift.getCurrentPosition();
+
+        // Raise the arm
+        while(hookLift.getCurrentPosition() <= initialPos + 260) {
             hookLift.setPower(.8);
         }
         hookLift.setPower(0);
