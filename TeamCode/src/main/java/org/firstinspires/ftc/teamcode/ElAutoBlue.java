@@ -19,6 +19,7 @@ public class ElAutoBlue extends LinearOpMode {
     DcMotor rightFrontDrive;
     DcMotor leftRearDrive;
     DcMotor rightRearDrive;
+    DcMotor hookLift;
     TfodProcessor tfod;
     AprilTagProcessor aprilTag;
     VisionPortal visionPortal;
@@ -42,7 +43,6 @@ public class ElAutoBlue extends LinearOpMode {
         DETECT,
         NO_DETECT,
         PROP_LEFT,
-        PROP_RIGHT,
         PROP_CENTER,
         MOVE_TO_BACKSTAGE,
         STOP
@@ -94,6 +94,12 @@ public class ElAutoBlue extends LinearOpMode {
                 .addProcessors(tfod, aprilTag)
                 .build();
 
+        hookLift = hardwareMap.get(DcMotor.class, "HookLift");
+
+        hookLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        hookLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
     }
@@ -125,21 +131,20 @@ public class ElAutoBlue extends LinearOpMode {
                             // If detected, find where the prop is
                             double x = (prop.getLeft() + prop.getRight()) / 2;
                             telemetry.addData("Prop X", "%5.2f", x);
-                            if (x > 400) {
-                                // If prop is on the right, set state to PROP_RIGHT
-                                state = State.PROP_RIGHT;
-                            }
-                            else if (x < 240) {
-                                // If prop is on the left, set state to PROP_LEFT
-                                state = State.PROP_LEFT;
+                            if (x > 320) {
+                                // If prop is on the center, set state to PROP_RIGHT
+                                state = State.PROP_CENTER;
                             }
                             else {
-                                // If prop is in the center, set state to PROP_CENTER
-                                state = State.PROP_CENTER;
+                                // If prop is on the left, set state to PROP_LEFT
+                                state = State.PROP_LEFT;
                             }
                             break;
                         }
                     case NO_DETECT:
+                        // Move forward a tiny bit at a slow speed
+                        move(.05, 4);
+                        // Check if it sees prop
                         if (prop != null) {
                             // If detected, set state to DETECT
                             state = State.DETECT;
@@ -150,27 +155,31 @@ public class ElAutoBlue extends LinearOpMode {
                             state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
-                    case PROP_RIGHT:
-                        // Skip
-                        state = State.MOVE_TO_BACKSTAGE;
-                        break;
                     case PROP_LEFT:
-                        // Skip
+                        // Strafe right a specific number of rotations
+                        strafe(DRIVE_SPEED, 8);
+                        // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 26);
+                        // Move backward a specific number of rotations
+                        move(DRIVE_SPEED, -26);
+                        // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 36);
+                        move(DRIVE_SPEED, 31);
                         // Move backward a specific number of rotations
-                        move(DRIVE_SPEED, -32);
+                        move(DRIVE_SPEED, -31);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, 48);
-                        // If close to backstage, leave second pixel
-                        strafe(DRIVE_SPEED, -16);
+                        strafe(DRIVE_SPEED, 45);
+                        // Lift the arm to release the yellow pixel
+                        lift();
+                        // Strafe a bit further
+                        strafe(DRIVE_SPEED, -5);
                         // Set state to STOP
                         state = State.STOP;
                         break;
@@ -224,7 +233,9 @@ public class ElAutoBlue extends LinearOpMode {
         leftRearDrive.setPower(Math.abs(speed));
         rightRearDrive.setPower(Math.abs(speed));
 
-        while (leftFrontDrive.isBusy()) {
+        while (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
+            // Keep the camera alive
+            Recognition prop = detectProp();
             // Display it for the driver.
             telemetry.addData("State", "%s", state.toString());
             telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
@@ -256,12 +267,42 @@ public class ElAutoBlue extends LinearOpMode {
         rightRearDrive.setPower(0);
     }
 
+    void lift() {
+        // Determine new target position
+        int target = hookLift.getCurrentPosition() + 480;
+        hookLift.setTargetPosition(target);
+
+        // Turn On RUN_TO_POSITION
+        hookLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Reset the timeout time and start motion
+        runtime.reset();
+        hookLift.setPower(.8);
+
+        // Raise the arm
+        while(hookLift.isBusy()) {
+            telemetry.addData("Running to",  " %7d",
+                    target
+            );
+            telemetry.addData("Currently at",  " %7d",
+                    hookLift.getCurrentPosition()
+            );
+            telemetry.update();
+        }
+
+        // Stop
+        hookLift.setPower(0);
+
+        // Reset
+        hookLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
     private Recognition detectProp() {
         // Create a list of current recognitions
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
         for (Recognition recognition : currentRecognitions) {
-            if (recognition.getLabel().equals("prop")) {
+            if (recognition.getLabel().equals("blue")) {
                 // If it detects the prop, return it
                 return recognition;
             }

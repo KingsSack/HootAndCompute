@@ -69,14 +69,14 @@ public class ElManual extends OpMode {
             // If driver two holds b, move the arm up
             if (gamepad2.right_bumper) {
                 // If they hold the right bumper as well, lift it all the way
-                if (hookLift.getCurrentPosition() < 500) {
+                if (hookLift.getCurrentPosition() < 520) {
                     hookLift.setPower(.5);
                 } else {
                     hookLift.setPower(0);
                 }
             } else {
                 // Otherwise, lift it a little bit
-                if (hookLift.getCurrentPosition() < 260) {
+                if (hookLift.getCurrentPosition() < 425) {
                     hookLift.setPower(.5);
                 } else {
                     hookLift.setPower(0);

@@ -44,7 +44,6 @@ public class ElAutoRed extends LinearOpMode {
     {
         DETECT,
         NO_DETECT,
-        PROP_LEFT,
         PROP_RIGHT,
         PROP_CENTER,
         MOVE_TO_BACKSTAGE,
@@ -102,6 +101,10 @@ public class ElAutoRed extends LinearOpMode {
 
         hookLift = hardwareMap.get(DcMotor.class, "HookLift");
 
+        hookLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        hookLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
     }
@@ -136,8 +139,7 @@ public class ElAutoRed extends LinearOpMode {
                             if (x < 320) {
                                 // If prop is on the left, set state to PROP_CENTER
                                 state = State.PROP_CENTER;
-                            }
-                            else {
+                            } else {
                                 // If prop is on the right, set state to PROP_RIGHT
                                 state = State.PROP_RIGHT;
                             }
@@ -165,18 +167,6 @@ public class ElAutoRed extends LinearOpMode {
                         // Move backward a specific number of rotations
                         move(DRIVE_SPEED, -26);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
-                        state = State.MOVE_TO_BACKSTAGE;
-                        break;
-                    case PROP_LEFT:
-                        // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 26);
-                        // Turn 90 degrees
-                        turn(90);
-                        // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 12);
-                        // Turn back -90 degrees
-                        turn(-90);
-                        // Set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case PROP_CENTER:
@@ -273,34 +263,6 @@ public class ElAutoRed extends LinearOpMode {
         rightRearDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    void turn(double degrees) {
-        double currentOrientation = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        double targetOrientation = currentOrientation + degrees;
-        double threshold = 0.5; // You can adjust this value as needed
-
-        while (Math.abs(currentOrientation - targetOrientation) > threshold) {
-            currentOrientation = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-            double difference = currentOrientation - targetOrientation;
-
-            if (difference > 0) {
-                // Turn right
-                leftFrontDrive.setPower(0.5);
-                rightFrontDrive.setPower(-0.5);
-                leftRearDrive.setPower(0.5);
-                rightRearDrive.setPower(-0.5);
-            } else {
-                // Turn left
-                leftFrontDrive.setPower(-0.5);
-                rightFrontDrive.setPower(0.5);
-                leftRearDrive.setPower(-0.5);
-                rightRearDrive.setPower(0.5);
-            }
-        }
-
-        // Stop the robot
-        halt();
-    }
-
     void halt() {
         // Stop all motors
         leftFrontDrive.setPower(0);
@@ -310,14 +272,33 @@ public class ElAutoRed extends LinearOpMode {
     }
 
     void lift() {
-        // Get initial arm position
-        double initialPos = hookLift.getCurrentPosition();
+        // Determine new target position
+        int target = hookLift.getCurrentPosition() + 480;
+        hookLift.setTargetPosition(target);
+
+        // Turn On RUN_TO_POSITION
+        hookLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Reset the timeout time and start motion
+        runtime.reset();
+        hookLift.setPower(.8);
 
         // Raise the arm
-        while(hookLift.getCurrentPosition() <= initialPos + 260) {
-            hookLift.setPower(.8);
+        while(hookLift.isBusy()) {
+            telemetry.addData("Running to",  " %7d",
+                    target
+            );
+            telemetry.addData("Currently at",  " %7d",
+                    hookLift.getCurrentPosition()
+            );
+            telemetry.update();
         }
+
+        // Stop
         hookLift.setPower(0);
+
+        // Reset
+        hookLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     private Recognition detectProp() {
