@@ -13,8 +13,8 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
 
-@Autonomous(name = "El Auto Red", group = "Competition")
-public class ElAutoRed extends LinearOpMode {
+@Autonomous(name = "El Auto Red Stage", group = "Competition")
+public class ElAutoRedStage extends LinearOpMode {
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
     DcMotor leftRearDrive;
@@ -42,7 +42,7 @@ public class ElAutoRed extends LinearOpMode {
     {
         DETECT,
         NO_DETECT,
-        PROP_RIGHT,
+        PROP_LEFT,
         PROP_CENTER,
         MOVE_TO_BACKSTAGE,
         STOP
@@ -94,9 +94,6 @@ public class ElAutoRed extends LinearOpMode {
                 .addProcessors(tfod, aprilTag)
                 .build();
 
-        /* PtzControl ptzControl = visionPortal.getCameraControl(PtzControl.class);
-        ptzControl.setZoom(100); */
-
         hookLift = hardwareMap.get(DcMotor.class, "HookLift");
 
         hookLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -134,12 +131,13 @@ public class ElAutoRed extends LinearOpMode {
                             // If detected, find where the prop is
                             double x = (prop.getLeft() + prop.getRight()) / 2;
                             telemetry.addData("Prop X", "%5.2f", x);
-                            if (x < 320) {
-                                // If prop is on the left, set state to PROP_CENTER
+                            if (x > 320) {
+                                // If prop is in the center, set state to PROP_RIGHT
                                 state = State.PROP_CENTER;
-                            } else {
-                                // If prop is on the right, set state to PROP_RIGHT
-                                state = State.PROP_RIGHT;
+                            }
+                            else {
+                                // If prop is on the left, set state to PROP_LEFT
+                                state = State.PROP_LEFT;
                             }
                             break;
                         }
@@ -157,31 +155,37 @@ public class ElAutoRed extends LinearOpMode {
                             state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
-                    case PROP_RIGHT:
-                        // Strafe right a specific number of rotations
-                        strafe(DRIVE_SPEED, -8);
-                        // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 26);
-                        // Move backward a specific number of rotations
-                        move(DRIVE_SPEED, -26);
-                        // When back at starting position, set state to MOVE_TO_BACKSTAGE
-                        state = State.MOVE_TO_BACKSTAGE;
-                        break;
                     case PROP_CENTER:
                         // Move forward a specific number of rotations
                         move(DRIVE_SPEED, 31);
                         // Move backward a specific number of rotations
-                        move(DRIVE_SPEED, -31);
+                        move(DRIVE_SPEED, -10);
+                        // Strafe right a specific number of rotations
+                        strafe(DRIVE_SPEED, 8);
+                        // When back at starting position, set state to MOVE_TO_BACKSTAGE
+                        state = State.MOVE_TO_BACKSTAGE;
+                        break;
+                    case PROP_LEFT:
+                        // Strafe right a specific number of rotations
+                        strafe(DRIVE_SPEED, 8);
+                        // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 26);
+                        // Move backward a specific number of rotations
+                        move(DRIVE_SPEED, -5);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
+                        // Strafe to get out of the way
+                        strafe(DRIVE_SPEED, 20);
+                        // Move forward
+                        move(DRIVE_SPEED, 40);
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, -45);
+                        strafe(DRIVE_SPEED, -144);
                         // Lift the arm to release the yellow pixel
                         lift();
                         // Strafe a bit further
-                        strafe(DRIVE_SPEED, -5);
+                        strafe(DRIVE_SPEED, 5);
                         // Set state to STOP
                         state = State.STOP;
                         break;

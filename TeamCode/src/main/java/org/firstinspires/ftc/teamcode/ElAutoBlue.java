@@ -157,7 +157,7 @@ public class ElAutoBlue extends LinearOpMode {
                         }
                     case PROP_LEFT:
                         // Strafe right a specific number of rotations
-                        strafe(DRIVE_SPEED, 8);
+                        strafe(DRIVE_SPEED, 9);
                         // Move forward a specific number of rotations
                         move(DRIVE_SPEED, 26);
                         // Move backward a specific number of rotations
@@ -269,7 +269,7 @@ public class ElAutoBlue extends LinearOpMode {
 
     void lift() {
         // Determine new target position
-        int target = hookLift.getCurrentPosition() + 480;
+        int target = hookLift.getCurrentPosition() + 380;
         hookLift.setTargetPosition(target);
 
         // Turn On RUN_TO_POSITION
@@ -277,7 +277,7 @@ public class ElAutoBlue extends LinearOpMode {
 
         // Reset the timeout time and start motion
         runtime.reset();
-        hookLift.setPower(.8);
+        hookLift.setPower(.5);
 
         // Raise the arm
         while(hookLift.isBusy()) {

@@ -13,8 +13,8 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 import java.util.List;
 
-@Autonomous(name = "El Auto Red", group = "Competition")
-public class ElAutoRed extends LinearOpMode {
+@Autonomous(name = "El Auto Blue Stage", group = "Competition")
+public class ElAutoBlueStage extends LinearOpMode {
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
     DcMotor leftRearDrive;
@@ -26,9 +26,9 @@ public class ElAutoRed extends LinearOpMode {
     IMU imu;
 
     // Constants
-    private String TFOD_MODEL_NAME = "red_prop.tflite";
+    private String TFOD_MODEL_NAME = "blue_prop.tflite";
     private String[] LABELS = {
-            "prop"
+            "blue"
     };
 
     // Robot Variables
@@ -94,9 +94,6 @@ public class ElAutoRed extends LinearOpMode {
                 .addProcessors(tfod, aprilTag)
                 .build();
 
-        /* PtzControl ptzControl = visionPortal.getCameraControl(PtzControl.class);
-        ptzControl.setZoom(100); */
-
         hookLift = hardwareMap.get(DcMotor.class, "HookLift");
 
         hookLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -134,12 +131,13 @@ public class ElAutoRed extends LinearOpMode {
                             // If detected, find where the prop is
                             double x = (prop.getLeft() + prop.getRight()) / 2;
                             telemetry.addData("Prop X", "%5.2f", x);
-                            if (x < 320) {
-                                // If prop is on the left, set state to PROP_CENTER
-                                state = State.PROP_CENTER;
-                            } else {
-                                // If prop is on the right, set state to PROP_RIGHT
+                            if (x > 320) {
+                                // If prop is on the left, set state to PROP_LEFT
                                 state = State.PROP_RIGHT;
+                            }
+                            else {
+                                // If prop is in the center, set state to PROP_RIGHT
+                                state = State.PROP_CENTER;
                             }
                             break;
                         }
@@ -157,27 +155,33 @@ public class ElAutoRed extends LinearOpMode {
                             state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
+                    case PROP_CENTER:
+                        // Move forward a specific number of rotations
+                        move(DRIVE_SPEED, 31);
+                        // Move backward a specific number of rotations
+                        move(DRIVE_SPEED, -10);
+                        // Strafe right a specific number of rotations
+                        strafe(DRIVE_SPEED, -8);
+                        // When back at starting position, set state to MOVE_TO_BACKSTAGE
+                        state = State.MOVE_TO_BACKSTAGE;
+                        break;
                     case PROP_RIGHT:
                         // Strafe right a specific number of rotations
                         strafe(DRIVE_SPEED, -8);
                         // Move forward a specific number of rotations
                         move(DRIVE_SPEED, 26);
                         // Move backward a specific number of rotations
-                        move(DRIVE_SPEED, -26);
-                        // When back at starting position, set state to MOVE_TO_BACKSTAGE
-                        state = State.MOVE_TO_BACKSTAGE;
-                        break;
-                    case PROP_CENTER:
-                        // Move forward a specific number of rotations
-                        move(DRIVE_SPEED, 31);
-                        // Move backward a specific number of rotations
-                        move(DRIVE_SPEED, -31);
+                        move(DRIVE_SPEED, -5);
                         // When back at starting position, set state to MOVE_TO_BACKSTAGE
                         state = State.MOVE_TO_BACKSTAGE;
                         break;
                     case MOVE_TO_BACKSTAGE:
+                        // Strafe to get out of the way
+                        strafe(DRIVE_SPEED, -20);
+                        // Move forward
+                        move(DRIVE_SPEED, 40);
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, -45);
+                        strafe(DRIVE_SPEED, 144);
                         // Lift the arm to release the yellow pixel
                         lift();
                         // Strafe a bit further
@@ -238,7 +242,7 @@ public class ElAutoRed extends LinearOpMode {
         while (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftRearDrive.isBusy() && rightRearDrive.isBusy()) {
             // Keep the camera alive
             Recognition prop = detectProp();
-            // Display info for the drivers
+            // Display it for the driver.
             telemetry.addData("State", "%s", state.toString());
             telemetry.addData("Running to",  " %7d, %7d, %7d, %7d",
                     newRFTarget,  newLFTarget,
@@ -304,7 +308,7 @@ public class ElAutoRed extends LinearOpMode {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
         for (Recognition recognition : currentRecognitions) {
-            if (recognition.getLabel().equals("prop")) {
+            if (recognition.getLabel().equals("blue")) {
                 // If it detects the prop, return it
                 return recognition;
             }

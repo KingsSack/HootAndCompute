@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "El Manual", group = "Competition")
 public class ElManual extends OpMode {
-
     // Motors
     DcMotor leftFrontDrive;
     DcMotor rightFrontDrive;
@@ -20,6 +20,9 @@ public class ElManual extends OpMode {
 
     // Servos
     CRServo launcher;
+
+    // Runtime
+    private ElapsedTime runtime = new ElapsedTime();
 
     // Initialize
     @Override
@@ -35,6 +38,11 @@ public class ElManual extends OpMode {
         launcher = hardwareMap.get(CRServo.class, "Launcher");
 
         hookLift = hardwareMap.get(DcMotor.class, "HookLift");
+
+        // hookLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        hookLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         hook = hardwareMap.get(DcMotor.class, "Hook");
     }
 
@@ -60,7 +68,7 @@ public class ElManual extends OpMode {
 
         if (gamepad2.left_bumper) {
             // If driver two holds the left bumper, launch the airplane
-            launcher.setPower(-.72);
+            launcher.setPower(.72);
         } else {
             launcher.setPower(0);
         }
@@ -69,30 +77,15 @@ public class ElManual extends OpMode {
             // If driver two holds b, move the arm up
             if (gamepad2.right_bumper) {
                 // If they hold the right bumper as well, lift it all the way
-                if (hookLift.getCurrentPosition() < 520) {
-                    hookLift.setPower(.5);
-                } else {
-                    hookLift.setPower(0);
-                }
+                lift(500);
             } else {
                 // Otherwise, lift it a little bit
-                if (hookLift.getCurrentPosition() < 425) {
-                    hookLift.setPower(.5);
-                } else {
-                    hookLift.setPower(0);
-                }
+                lift(400);
             }
         }
         else if (gamepad2.x) {
             // If driver two holds x, move the arm down
-            if (hookLift.getCurrentPosition() > 0) {
-                hookLift.setPower(-.5);
-            } else {
-                hookLift.setPower(0);
-            }
-        }
-        else {
-            hookLift.setPower(0);
+            lift(0);
         }
 
         if (gamepad2.y) {
@@ -129,4 +122,33 @@ public class ElManual extends OpMode {
         telemetry.update();
     }
 
+    void lift(int rotations) {
+        // Determine new target position
+        int target = rotations;
+        hookLift.setTargetPosition(target);
+
+        // Turn On RUN_TO_POSITION
+        hookLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Reset the timeout time and start motion
+        runtime.reset();
+        hookLift.setPower(.5);
+
+        // Raise the arm
+        while(hookLift.isBusy()) {
+            telemetry.addData("Running to",  " %7d",
+                    target
+            );
+            telemetry.addData("Currently at",  " %7d",
+                    hookLift.getCurrentPosition()
+            );
+            telemetry.update();
+        }
+
+        // Stop
+        hookLift.setPower(0);
+
+        // Reset
+        hookLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
 }
