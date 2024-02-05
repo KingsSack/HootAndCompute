@@ -77,15 +77,15 @@ public class ElManual extends OpMode {
             // If driver two holds b, move the arm up
             if (gamepad2.right_bumper) {
                 // If they hold the right bumper as well, lift it all the way
-                lift(500);
+                lift(575, .5);
             } else {
                 // Otherwise, lift it a little bit
-                lift(400);
+                lift(425, .6);
             }
         }
         else if (gamepad2.x) {
             // If driver two holds x, move the arm down
-            lift(0);
+            lift(0, .2);
         }
 
         if (gamepad2.y) {
@@ -122,7 +122,7 @@ public class ElManual extends OpMode {
         telemetry.update();
     }
 
-    void lift(int rotations) {
+    void lift(int rotations, double speed) {
         // Determine new target position
         int target = rotations;
         hookLift.setTargetPosition(target);
@@ -132,7 +132,7 @@ public class ElManual extends OpMode {
 
         // Reset the timeout time and start motion
         runtime.reset();
-        hookLift.setPower(.5);
+        hookLift.setPower(speed);
 
         // Raise the arm
         while(hookLift.isBusy()) {

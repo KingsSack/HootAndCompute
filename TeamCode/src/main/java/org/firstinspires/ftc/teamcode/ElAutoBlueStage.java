@@ -152,6 +152,7 @@ public class ElAutoBlueStage extends LinearOpMode {
                         }
                         else {
                             // Else, set state to MOVE_TO_BACKSTAGE
+                            move(DRIVE_SPEED, 21);
                             state = State.MOVE_TO_BACKSTAGE;
                             break;
                         }
@@ -177,11 +178,11 @@ public class ElAutoBlueStage extends LinearOpMode {
                         break;
                     case MOVE_TO_BACKSTAGE:
                         // Strafe to get out of the way
-                        strafe(DRIVE_SPEED, -20);
+                        strafe(DRIVE_SPEED, -15);
                         // Move forward
-                        move(DRIVE_SPEED, 40);
+                        move(DRIVE_SPEED, 36);
                         // Strafe towards backstage
-                        strafe(DRIVE_SPEED, 144);
+                        strafe(DRIVE_SPEED, 130);
                         // Lift the arm to release the yellow pixel
                         lift();
                         // Strafe a bit further
