@@ -19,6 +19,8 @@ apply plugin: 'org.jetbrains.kotlin.android'
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
 
+    compileSdk 33
+
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
@@ -26,6 +28,6 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.core:core-ktx:1.9.0'
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
