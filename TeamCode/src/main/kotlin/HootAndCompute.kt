@@ -1,22 +1,41 @@
 package org.firstinspires.ftc.teamcode
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.*
+import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.teamcode.attachments.Arm
+import org.firstinspires.ftc.teamcode.attachments.Hook
+import org.firstinspires.ftc.teamcode.attachments.Launcher
 import kotlin.math.abs
 import kotlin.math.max
 
-@TeleOp(name = "El Manual", group = "Competition")
-class ElManualTest : OpMode() {
+class Bartholomew {
     // Motors
-    private lateinit var leftFrontDrive: DcMotor
-    private lateinit var rightFrontDrive: DcMotor
-    private lateinit var leftRearDrive: DcMotor
-    private lateinit var rightRearDrive: DcMotor
+    lateinit var testMotor: DcMotor
 
     // Initialize
-    override fun init() {
-        // Motor init
+    fun init(hardwareMap: HardwareMap) {
+        testMotor = hardwareMap.get(DcMotor::class.java, "Motor")
+    }
+}
+
+class Fredrick {
+    // Drive Motors
+    lateinit var leftFrontDrive: DcMotor
+    lateinit var rightFrontDrive: DcMotor
+    lateinit var leftRearDrive: DcMotor
+    lateinit var rightRearDrive: DcMotor
+
+    // Attachments
+    lateinit var arm: Arm
+    lateinit var hook: Hook
+    lateinit var launcher: Launcher
+
+    // Runtime
+    val runtime = ElapsedTime()
+
+    // Initialize
+    fun init(hardwareMap: HardwareMap) {
+        // Drive Motor init
         rightFrontDrive = hardwareMap.get(DcMotor::class.java, "MotorRF")
         leftFrontDrive = hardwareMap.get(DcMotor::class.java, "MotorLF")
         rightRearDrive = hardwareMap.get(DcMotor::class.java, "MotorRR")
@@ -25,14 +44,19 @@ class ElManualTest : OpMode() {
         // Direction
         leftFrontDrive.direction = DcMotorSimple.Direction.REVERSE
         leftRearDrive.direction = DcMotorSimple.Direction.REVERSE
+
+        // Attachments init
+        arm = Arm(hardwareMap)
+        hook = Hook(hardwareMap)
+        launcher = Launcher(hardwareMap)
     }
 
-    // Loop
-    override fun loop() {
+    // Drive
+    fun drive(gamepad: Gamepad) {
         // Drive
-        val x : Float = gamepad1.left_stick_x
-        val y : Float = -gamepad1.left_stick_y
-        val rx : Float = gamepad1.right_stick_x
+        val x : Float = gamepad.left_stick_x
+        val y : Float = -gamepad.left_stick_y
+        val rx : Float = gamepad.right_stick_x
 
         // Power
         var rfPower : Double = (y - x - rx).toDouble()
@@ -48,7 +72,7 @@ class ElManualTest : OpMode() {
         lrPower /= maxPower
 
         // Slow mode
-        if (gamepad1.right_bumper) {
+        if (gamepad.right_bumper) {
             rfPower *= 0.5
             lfPower *= 0.5
             rrPower *= 0.5
