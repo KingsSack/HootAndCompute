@@ -1,15 +1,10 @@
 ## NOTICE
 
-This repository contains the public FTC SDK for the CENTERSTAGE (2023-2024) competition season.
+This repository contains the public FTC SDK for the INTO THE DEEP (2024-2025) competition season.
 
 >[!Warning]
 >This repository is for the Hoot And Compute robotics team!
 
-## Our Scripts:
-- El Auto: Goes to the backstage slowly
-- El Auto Blue: Autonomous for blue team
-- El Auto Red: Autonomous for red team
-- El Manual: Manual mode
-- Reset Servos: Resets all servos to their default position
+The SDK has been *modified* to support kotlin development
 
-All other scripts are for testing purposes
+THINK **CRITICALLY** | DEBUG **CREATIVELY** | ACT **COMPASSIONATELY**
