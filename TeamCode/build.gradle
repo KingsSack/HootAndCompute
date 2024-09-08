@@ -29,5 +29,4 @@ android {
 dependencies {
     implementation project(':FtcRobotController')
     implementation 'androidx.core:core-ktx:1.9.0'
-    annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
