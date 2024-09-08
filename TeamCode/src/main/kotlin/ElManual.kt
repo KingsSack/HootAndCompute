@@ -2,10 +2,11 @@ package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import org.firstinspires.ftc.teamcode.robots.Fredrick
 
 @TeleOp(name = "El Manual", group = "Competition")
 class ElManual : OpMode() {
-    // Robot
+    // Choose active robot
     private val robot = Fredrick()
 
     // Initialize

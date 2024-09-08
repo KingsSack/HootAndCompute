@@ -1,40 +1,21 @@
-package org.firstinspires.ftc.teamcode
+package org.firstinspires.ftc.teamcode.robots
 
-import com.qualcomm.robotcore.hardware.*
-import com.qualcomm.robotcore.util.ElapsedTime
-import org.firstinspires.ftc.teamcode.attachments.Arm
-import org.firstinspires.ftc.teamcode.attachments.Hook
-import org.firstinspires.ftc.teamcode.attachments.Launcher
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.Gamepad
+import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlin.math.abs
 import kotlin.math.max
 
-class Bartholomew {
-    // Motors
-    lateinit var testMotor: DcMotor
-
-    // Initialize
-    fun init(hardwareMap: HardwareMap) {
-        testMotor = hardwareMap.get(DcMotor::class.java, "Motor")
-    }
-}
-
-class Fredrick {
+class Fredrick : Robot() {
     // Drive Motors
-    lateinit var leftFrontDrive: DcMotor
-    lateinit var rightFrontDrive: DcMotor
-    lateinit var leftRearDrive: DcMotor
-    lateinit var rightRearDrive: DcMotor
-
-    // Attachments
-    lateinit var arm: Arm
-    lateinit var hook: Hook
-    lateinit var launcher: Launcher
-
-    // Runtime
-    val runtime = ElapsedTime()
+    private lateinit var leftFrontDrive : DcMotor
+    private lateinit var rightFrontDrive : DcMotor
+    private lateinit var leftRearDrive : DcMotor
+    private lateinit var rightRearDrive : DcMotor
 
     // Initialize
-    fun init(hardwareMap: HardwareMap) {
+    override fun init(hardwareMap: HardwareMap) {
         // Drive Motor init
         rightFrontDrive = hardwareMap.get(DcMotor::class.java, "MotorRF")
         leftFrontDrive = hardwareMap.get(DcMotor::class.java, "MotorLF")
@@ -44,11 +25,6 @@ class Fredrick {
         // Direction
         leftFrontDrive.direction = DcMotorSimple.Direction.REVERSE
         leftRearDrive.direction = DcMotorSimple.Direction.REVERSE
-
-        // Attachments init
-        arm = Arm(hardwareMap)
-        hook = Hook(hardwareMap)
-        launcher = Launcher(hardwareMap)
     }
 
     // Drive
