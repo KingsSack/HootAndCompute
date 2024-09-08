@@ -14,12 +14,15 @@
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
     androidResources {
         noCompress 'tflite'
     }
+
+    compileSdk 33
 
     packagingOptions {
         jniLibs {
@@ -32,5 +35,5 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
-    annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    implementation 'androidx.core:core-ktx:1.9.0'
 }
