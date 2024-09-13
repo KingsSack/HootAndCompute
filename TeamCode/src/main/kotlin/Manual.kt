@@ -2,12 +2,12 @@ package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import org.firstinspires.ftc.teamcode.robots.Fredrick
+import org.firstinspires.ftc.teamcode.robots.Steve
 
-@TeleOp(name = "El Manual", group = "Competition")
-class ElManual : OpMode() {
-    // Choose active robot
-    private val robot = Fredrick()
+@TeleOp(name = "Manual - Whale", group = "Competition")
+class Manual : OpMode() {
+    // Robot
+    private val robot = Steve()
 
     // Initialize
     override fun init() {
@@ -17,6 +17,6 @@ class ElManual : OpMode() {
     // Loop
     override fun loop() {
         // Drive
-        robot.drive(gamepad1)
+        robot.manualControl(gamepad1)
     }
 }
