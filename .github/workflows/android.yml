@@ -22,10 +22,3 @@ jobs:
       run: chmod +x gradlew
     - name: Build TeamCode APK
       run: ./gradlew assembleRelease -Pmodule=TeamCode
-    - name: Deploy TeamCode APK
-      run: |
-        adb install -r app/build/outputs/apk/release/TeamCode-release.apk
-        if [ $? -ne 0 ]; then
-          echo "Error installing TeamCode APK"
-          exit 1
-        fi
