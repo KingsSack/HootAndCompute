@@ -1,4 +1,4 @@
-name: Android CI
+name: Test TeamCode Android APK
 
 on:
   push:
@@ -24,3 +24,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Build APK
+      run: ./gradlew assembleRelease
+    - name: Deploy APK
+      run: |
+        adb install -r app/build/outputs/apk/release/app-release.apk
