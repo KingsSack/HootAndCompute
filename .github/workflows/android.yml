@@ -19,13 +19,14 @@ jobs:
         java-version: '17'
         distribution: 'corretto'
         cache: gradle
-
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
-    - name: Build APK
-      run: ./gradlew assembleRelease
-    - name: Deploy APK
+    - name: Build TeamCode APK
+      run: ./gradlew assembleRelease -Pmodule=TeamCode
+    - name: Deploy TeamCode APK
       run: |
-        adb install -r app/build/outputs/apk/release/app-release.apk
+        adb install -r app/build/outputs/apk/release/TeamCode-release.apk
+        if [ $? -ne 0 ]; then
+          echo "Error installing TeamCode APK"
+          exit 1
+        fi
