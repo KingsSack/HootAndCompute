@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robots
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.teamcode.attachments.Arm
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -30,6 +31,9 @@ class Steve : Robot() {
 
         // Reset IMU
         imu.resetYaw()
+
+        // Set huskylens mode
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
     }
 
     override fun manualControl(gamepad: Gamepad) {
@@ -92,5 +96,14 @@ class Steve : Robot() {
         // Register sensors
         imu = hardwareMap.get(IMU::class.java, "imu")
         huskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+    }
+
+    fun detectObjects(telemetry: Telemetry) {
+        // Get objects
+        val blocks = huskyLens.blocks()
+        telemetry.addData("Block count", blocks.size)
+        for (block in blocks) {
+            telemetry.addData("Block", block.toString())
+        }
     }
 }
