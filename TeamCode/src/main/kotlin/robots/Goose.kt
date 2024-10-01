@@ -1,17 +1,27 @@
 package org.firstinspires.ftc.teamcode.robots
 
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.Gamepad
-import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.hardware.dfrobot.HuskyLens
+import com.qualcomm.robotcore.hardware.*
 import kotlin.math.abs
 import kotlin.math.max
 
 class Goose : Robot() {
     // Drive motors
-    private lateinit var testMotor : DcMotor
+    private lateinit var leftFrontDrive : DcMotor
+    private lateinit var rightFrontDrive : DcMotor
+    private lateinit var leftRearDrive : DcMotor
+    private lateinit var rightRearDrive : DcMotor
+
+    // Sensors
+    private lateinit var imu : IMU
 
     override fun init(hardwareMap: HardwareMap) {
-        testMotor = hardwareMap.get(DcMotor::class.java, "Test Motor")
+        // Register hardware
+        registerMotors(hardwareMap)
+        registerSensors(hardwareMap)
+
+        // Reset IMU
+        imu.resetYaw()
     }
 
     override fun manualControl(gamepad: Gamepad) {
@@ -21,18 +31,57 @@ class Goose : Robot() {
         val rx : Float = gamepad.right_stick_x
 
         // Calculate power
-        var testPower : Double = (y - x - rx).toDouble()
+        var rfPower : Double = (y - x - rx).toDouble()
+        var lfPower : Double = (y + x + rx).toDouble()
+        var rrPower : Double = (y + x - rx).toDouble()
+        var lrPower : Double = (y - x + rx).toDouble()
 
         // Normalize power
         val maxPower : Float = max(1.toFloat(), (abs(x) + abs(y) + abs(rx)))
-        testPower /= maxPower
+        rfPower /= maxPower
+        lfPower /= maxPower
+        rrPower /= maxPower
+        lrPower /= maxPower
+
+        // Slow mode logic
+        if (gamepad.right_bumper) {
+            rfPower *= 0.5
+            lfPower *= 0.5
+            rrPower *= 0.5
+            lrPower *= 0.5
+        }
 
         // Set power
-        testMotor.power = testPower
+        rightFrontDrive.power = rfPower
+        leftFrontDrive.power = lfPower
+        rightRearDrive.power = rrPower
+        leftRearDrive.power = lrPower
     }
 
     override fun halt() {
         // Stop all drive motors
-        testMotor.power = 0.0
+        leftFrontDrive.power = 0.0
+        rightFrontDrive.power = 0.0
+        leftRearDrive.power = 0.0
+        rightRearDrive.power = 0.0
+    }
+
+    private fun registerSensors(hardwareMap: HardwareMap) {
+        // Register sensors
+        imu = hardwareMap.get(IMU::class.java, "imu")
+    }
+
+    private fun registerMotors(hardwareMap: HardwareMap) {
+        // Register motors
+        leftFrontDrive = hardwareMap.get(DcMotor::class.java, "lf")
+        rightFrontDrive = hardwareMap.get(DcMotor::class.java, "rf")
+        leftRearDrive = hardwareMap.get(DcMotor::class.java, "lr")
+        rightRearDrive = hardwareMap.get(DcMotor::class.java, "rr")
+
+        // Set motor directions
+        leftFrontDrive.direction = DcMotorSimple.Direction.FORWARD
+        rightFrontDrive.direction = DcMotorSimple.Direction.REVERSE
+        leftRearDrive.direction = DcMotorSimple.Direction.FORWARD
+        rightRearDrive.direction = DcMotorSimple.Direction.REVERSE
     }
 }

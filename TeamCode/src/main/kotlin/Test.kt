@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode.robots.Goose
 
 @TeleOp(name = "Test - Seal", group = "Experimental")
-abstract class Test : OpMode() {
+class Test : OpMode() {
     private val robot = Goose()
 
     override fun init() {
