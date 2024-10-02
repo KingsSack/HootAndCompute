@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robots
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -100,5 +101,9 @@ class Steve : Robot() {
         for (block in blocks) {
             telemetry.addData("Block", block.toString())
         }
+    }
+
+    fun getDistanceToObject(telemetry: Telemetry) {
+        telemetry.addData("range", String.format("%.01f cm", distanceSensor.getDistance(DistanceUnit.CM)))
     }
 }
