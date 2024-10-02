@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.robots
 
-import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import kotlin.math.abs
 import kotlin.math.max

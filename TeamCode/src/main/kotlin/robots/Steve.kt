@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.robots
 
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
-import org.firstinspires.ftc.teamcode.attachments.Arm
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import kotlin.math.abs
 import kotlin.math.max
@@ -16,18 +15,13 @@ class Steve : Robot() {
 
     // Sensors
     private lateinit var imu : IMU
+    private lateinit var distanceSensor : DistanceSensor
     private lateinit var huskyLens : HuskyLens
-
-    // Attachments
-    private val arm : Arm = Arm()
 
     override fun init(hardwareMap: HardwareMap) {
         // Register hardware
         registerMotors(hardwareMap)
         registerSensors(hardwareMap)
-
-        // Initialize attachments
-        arm.init(hardwareMap)
 
         // Reset IMU
         imu.resetYaw()
@@ -95,6 +89,7 @@ class Steve : Robot() {
     private fun registerSensors(hardwareMap: HardwareMap) {
         // Register sensors
         imu = hardwareMap.get(IMU::class.java, "imu")
+        distanceSensor = hardwareMap.get(DistanceSensor::class.java, "lidar")
         huskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
     }
 
