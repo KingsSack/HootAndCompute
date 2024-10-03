@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode.robots.Steve
 
-@TeleOp(name = "test-distance", group = "Experimental")
-class Thingy : OpMode() {
+@TeleOp(name = "Test - Distance", group = "Experimental")
+class Distance : OpMode() {
     private val robot = Steve()
 
     override fun init() {
@@ -13,7 +13,7 @@ class Thingy : OpMode() {
     }
 
     override fun loop() {
-        robot.getDistanceToObject(telemetry)
+        robot.getDistanceToObstacle(telemetry)
         telemetry.update()
     }
 }

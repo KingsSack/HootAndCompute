@@ -13,6 +13,7 @@ class Detection : OpMode() {
     }
 
     override fun loop() {
-        robot.detectObjects(telemetry)
+        robot.getDetectedObjects(telemetry)
+        telemetry.update()
     }
 }

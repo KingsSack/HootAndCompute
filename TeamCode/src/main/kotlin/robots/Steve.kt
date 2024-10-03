@@ -94,16 +94,20 @@ class Steve : Robot() {
         huskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
     }
 
-    fun detectObjects(telemetry: Telemetry) {
+    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
         // Get objects
         val blocks = huskyLens.blocks()
         telemetry.addData("Block count", blocks.size)
         for (block in blocks) {
             telemetry.addData("Block", block.toString())
         }
+        return blocks
     }
 
-    fun getDistanceToObject(telemetry: Telemetry) {
-        telemetry.addData("range", String.format("%.01f cm", distanceSensor.getDistance(DistanceUnit.CM)))
+    fun getDistanceToObstacle(telemetry: Telemetry): Double {
+        // Get distance
+        val distance = distanceSensor.getDistance(DistanceUnit.CM)
+        telemetry.addData("range", "%.01f cm".format(distance))
+        return distance
     }
 }
