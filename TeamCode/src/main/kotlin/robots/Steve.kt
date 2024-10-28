@@ -5,24 +5,41 @@ import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import kotlin.math.abs
-import kotlin.math.max
+import kotlin.math.pow
 
 class Steve : Robot() {
     // Drive motors
-    private lateinit var leftFrontDrive : DcMotor
-    private lateinit var rightFrontDrive : DcMotor
-    private lateinit var leftRearDrive : DcMotor
-    private lateinit var rightRearDrive : DcMotor
+    private lateinit var leftFrontDrive: DcMotor
+    private lateinit var rightFrontDrive: DcMotor
+    private lateinit var leftRearDrive: DcMotor
+    private lateinit var rightRearDrive: DcMotor
 
     // Sensors
-    private lateinit var imu : IMU
-    private lateinit var distanceSensor : DistanceSensor
-    private lateinit var huskyLens : HuskyLens
+    private lateinit var imu: IMU
+    private lateinit var distanceSensor: DistanceSensor
+    private lateinit var huskyLens: HuskyLens
+
+    // Control parameters
+    private var deadzone = 0.05 // Minimum stick movement to register
+    private var minPower = 0.05 // Minimum power to move motors
+    private var turnScale = 0.8  // Reduce turn sensitivity
+    private var inputExp = 2.0   // Input exponential for fine control
+
+    // Speed modes
+    private val speedModes = mapOf(
+        "TURBO" to 1.0,
+        "NORMAL" to 0.8,
+        "PRECISE" to 0.4
+    )
+    private var currentSpeedMode = "NORMAL"
 
     override fun init(hardwareMap: HardwareMap) {
         // Register hardware
         registerMotors(hardwareMap)
         registerSensors(hardwareMap)
+
+        // Configure motors for better control
+        configureDriveMotors()
 
         // Reset IMU
         imu.resetYaw()
@@ -31,46 +48,86 @@ class Steve : Robot() {
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
     }
 
-    override fun manualControl(gamepad: Gamepad) {
-        // Get gamepad input
-        val x : Float = gamepad.left_stick_x
-        val y : Float = -gamepad.left_stick_y
-        val rx : Float = gamepad.right_stick_x
-
-        // Calculate power
-        var rfPower : Double = (y - x - rx).toDouble()
-        var lfPower : Double = (y + x + rx).toDouble()
-        var rrPower : Double = (y + x - rx).toDouble()
-        var lrPower : Double = (y - x + rx).toDouble()
-
-        // Normalize power
-        val maxPower : Float = max(1.toFloat(), (abs(x) + abs(y) + abs(rx)))
-        rfPower /= maxPower
-        lfPower /= maxPower
-        rrPower /= maxPower
-        lrPower /= maxPower
-
-        // Slow mode logic
-        if (gamepad.right_bumper) {
-            rfPower *= 0.5
-            lfPower *= 0.5
-            rrPower *= 0.5
-            lrPower *= 0.5
+    private fun configureDriveMotors() {
+        // Configure all drive motors
+        listOf(leftFrontDrive, rightFrontDrive, leftRearDrive, rightRearDrive).forEach { motor ->
+            motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE  // Better stopping
+            motor.mode = DcMotor.RunMode.RUN_USING_ENCODER  // Enable encoder feedback
         }
+    }
 
-        // Set power
-        rightFrontDrive.power = rfPower
-        leftFrontDrive.power = lfPower
-        rightRearDrive.power = rrPower
-        leftRearDrive.power = lrPower
+    override fun manualControl(gamepad: Gamepad) {
+        // Handle speed mode changes
+        updateSpeedMode(gamepad)
+
+        // Get gamepad input with deadzone and exponential scaling
+        val x = processInput(gamepad.left_stick_x.toDouble())
+        val y = processInput(-gamepad.left_stick_y.toDouble())  // Inverted Y
+        val rx = processInput(gamepad.right_stick_x.toDouble()) * turnScale
+
+        // Calculate mecanum drive powers
+        val powers = calculateMecanumPowers(x, y, rx)
+
+        // Apply current speed mode scaling
+        val scaledPowers = powers.map { it * speedModes[currentSpeedMode]!! }
+
+        // Set motor powers with minimum power threshold
+        setMotorPowers(scaledPowers)
+    }
+
+    private fun processInput(input: Double): Double {
+        // Apply deadzone
+        if (abs(input) < deadzone) return 0.0
+
+        // Normalize input
+        val normalizedInput = (input - deadzone) / (1 - deadzone)
+
+        // Apply exponential scaling for fine control
+        return normalizedInput.pow(inputExp) * if (input < 0) -1 else 1
+    }
+
+    private fun calculateMecanumPowers(x: Double, y: Double, rx: Double): List<Double> {
+        // Calculate raw powers
+        val rfPower = y - x - rx
+        val lfPower = y + x + rx
+        val rrPower = y + x - rx
+        val lrPower = y - x + rx
+
+        // Find maximum magnitude
+        val maxMagnitude = maxOf(abs(rfPower), abs(lfPower), abs(rrPower), abs(lrPower))
+
+        // Normalize powers
+        val normalizationFactor = if (maxMagnitude > 1.0) maxMagnitude else 1.0
+        return listOf(rfPower, lfPower, rrPower, lrPower).map { it / normalizationFactor }
+    }
+
+    private fun setMotorPowers(powers: List<Double>) {
+        // Apply minimum power threshold and set motors
+        rightFrontDrive.power = applyMinPower(powers[0])
+        leftFrontDrive.power = applyMinPower(powers[1])
+        rightRearDrive.power = applyMinPower(powers[2])
+        leftRearDrive.power = applyMinPower(powers[3])
+    }
+
+    private fun applyMinPower(power: Double): Double {
+        return when {
+            power > minPower -> power
+            power < -minPower -> power
+            else -> 0.0
+        }
+    }
+
+    private fun updateSpeedMode(gamepad: Gamepad) {
+        when {
+            gamepad.y -> currentSpeedMode = "TURBO"
+            gamepad.b -> currentSpeedMode = "NORMAL"
+            gamepad.a -> currentSpeedMode = "PRECISE"
+        }
     }
 
     override fun halt() {
         // Stop all drive motors
-        leftFrontDrive.power = 0.0
-        rightFrontDrive.power = 0.0
-        leftRearDrive.power = 0.0
-        rightRearDrive.power = 0.0
+        setMotorPowers(listOf(0.0, 0.0, 0.0, 0.0))
     }
 
     private fun registerMotors(hardwareMap: HardwareMap) {
