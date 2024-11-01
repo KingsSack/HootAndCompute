@@ -14,5 +14,6 @@ class Test : OpMode() {
 
     override fun loop() {
         robot.manualControl(gamepad1)
+        robot.armControl(gamepad2)
     }
 }

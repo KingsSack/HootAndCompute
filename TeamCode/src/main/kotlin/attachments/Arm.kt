@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.attachments
 
+import Attachment
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.HardwareMap
 
-class Arm : Attachment() {
+class Arm(hardwareMap: HardwareMap) : Attachment(hardwareMap) {
     // Motors
     private lateinit var liftMotor : DcMotor
 

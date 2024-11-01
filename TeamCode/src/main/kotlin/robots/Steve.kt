@@ -20,8 +20,8 @@ class Steve : Robot() {
     private lateinit var huskyLens: HuskyLens
 
     // Control parameters
-    private var deadzone = 0.05 // Minimum stick movement to register
-    private var minPower = 0.05 // Minimum power to move motors
+    private var deadzone = 0.05  // Minimum stick movement to register
+    private var minPower = 0.05  // Minimum power to move motors
     private var turnScale = 0.8  // Reduce turn sensitivity
     private var inputExp = 2.0   // Input exponential for fine control
 

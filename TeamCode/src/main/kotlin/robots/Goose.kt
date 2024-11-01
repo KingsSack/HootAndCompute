@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.robots
 
 import com.qualcomm.robotcore.hardware.*
+import org.firstinspires.ftc.teamcode.attachments.Arm
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -14,10 +15,14 @@ class Goose : Robot() {
     // Sensors
     private lateinit var imu : IMU
 
+    // Attachments
+    private lateinit var arm : Arm
+
     override fun init(hardwareMap: HardwareMap) {
         // Register hardware
         registerMotors(hardwareMap)
         registerSensors(hardwareMap)
+        registerAttachments(hardwareMap)
 
         // Reset IMU
         imu.resetYaw()
@@ -57,6 +62,11 @@ class Goose : Robot() {
         leftRearDrive.power = lrPower
     }
 
+    fun armControl(gamepad: Gamepad) {
+        // Control arm
+        arm.liftArm(gamepad.left_stick_y.toDouble())
+    }
+
     override fun halt() {
         // Stop all drive motors
         leftFrontDrive.power = 0.0
@@ -82,5 +92,10 @@ class Goose : Robot() {
         rightFrontDrive.direction = DcMotorSimple.Direction.REVERSE
         leftRearDrive.direction = DcMotorSimple.Direction.FORWARD
         rightRearDrive.direction = DcMotorSimple.Direction.REVERSE
+    }
+
+    private fun registerAttachments(hardwareMap: HardwareMap) {
+        // Register attachments
+        arm = Arm(hardwareMap)
     }
 }
