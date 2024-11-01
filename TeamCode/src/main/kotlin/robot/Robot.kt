@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.robots
+package robot
 
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -8,7 +8,7 @@ abstract class Robot {
     abstract fun init(hardwareMap: HardwareMap)
 
     // Drive
-    abstract fun manualControl(gamepad: Gamepad)
+    abstract fun driveWithGamepad(gamepad: Gamepad)
 
     // Stop
     abstract fun halt()

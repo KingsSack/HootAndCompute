@@ -1,16 +1,15 @@
-package org.firstinspires.ftc.teamcode.attachments
+package attachment
 
-import Attachment
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.HardwareMap
 
-class Arm(hardwareMap: HardwareMap) : Attachment(hardwareMap) {
+class Arm(hardwareMap: HardwareMap, private val liftMotorName: String) : Attachment(hardwareMap) {
     // Motors
     private lateinit var liftMotor : DcMotor
 
     override fun init(hardwareMap: HardwareMap) {
         // Initialize arm
-        liftMotor = hardwareMap.get(DcMotor::class.java, "lm")
+        liftMotor = hardwareMap.get(DcMotor::class.java, liftMotorName)
     }
 
     fun liftArm(power: Double) {

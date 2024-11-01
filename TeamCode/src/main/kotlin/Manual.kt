@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import org.firstinspires.ftc.teamcode.robots.Steve
+import robot.Steve
 
 @TeleOp(name = "Manual - Whale", group = "Competition")
 class Manual : OpMode() {
@@ -17,6 +17,6 @@ class Manual : OpMode() {
     // Loop
     override fun loop() {
         // Drive
-        robot.manualControl(gamepad1)
+        robot.driveWithGamepad(gamepad1)
     }
 }

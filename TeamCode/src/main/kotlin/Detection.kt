@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import org.firstinspires.ftc.teamcode.robots.Steve
+import robot.Steve
 
 @TeleOp(name = "Test - Detection", group = "Experimental")
 class Detection : OpMode() {

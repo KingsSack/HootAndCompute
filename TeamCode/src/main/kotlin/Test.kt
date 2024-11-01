@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import org.firstinspires.ftc.teamcode.robots.Goose
+import robot.Goose
 
 @TeleOp(name = "Test - Seal", group = "Experimental")
 class Test : OpMode() {
@@ -13,7 +13,7 @@ class Test : OpMode() {
     }
 
     override fun loop() {
-        robot.manualControl(gamepad1)
-        robot.armControl(gamepad2)
+        robot.driveWithGamepad(gamepad1)
+        robot.liftArmWithGamepad(gamepad2)
     }
 }

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.robots
+package robot
 
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
@@ -56,7 +56,7 @@ class Steve : Robot() {
         }
     }
 
-    override fun manualControl(gamepad: Gamepad) {
+    override fun driveWithGamepad(gamepad: Gamepad) {
         // Handle speed mode changes
         updateSpeedMode(gamepad)
 

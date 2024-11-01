@@ -1,7 +1,7 @@
-package org.firstinspires.ftc.teamcode.robots
+package robot
 
+import attachment.Arm
 import com.qualcomm.robotcore.hardware.*
-import org.firstinspires.ftc.teamcode.attachments.Arm
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -28,7 +28,7 @@ class Goose : Robot() {
         imu.resetYaw()
     }
 
-    override fun manualControl(gamepad: Gamepad) {
+    override fun driveWithGamepad(gamepad: Gamepad) {
         // Get gamepad input
         val x : Float = gamepad.left_stick_x
         val y : Float = -gamepad.left_stick_y
@@ -62,7 +62,7 @@ class Goose : Robot() {
         leftRearDrive.power = lrPower
     }
 
-    fun armControl(gamepad: Gamepad) {
+    fun liftArmWithGamepad(gamepad: Gamepad) {
         // Control arm
         arm.liftArm(gamepad.left_stick_y.toDouble())
     }
@@ -96,6 +96,6 @@ class Goose : Robot() {
 
     private fun registerAttachments(hardwareMap: HardwareMap) {
         // Register attachments
-        arm = Arm(hardwareMap)
+        arm = Arm(hardwareMap, "lm")
     }
 }
