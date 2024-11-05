@@ -3,13 +3,13 @@ package attachment
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.HardwareMap
 
-class Arm(hardwareMap: HardwareMap, private val liftMotorName: String) : Attachment(hardwareMap) {
+class Arm(hardwareMap: HardwareMap) : Attachment(hardwareMap) {
     // Motors
     private lateinit var liftMotor : DcMotor
 
     override fun init(hardwareMap: HardwareMap) {
         // Initialize arm
-        liftMotor = hardwareMap.get(DcMotor::class.java, liftMotorName)
+        liftMotor = hardwareMap.get(DcMotor::class.java, "lm")
     }
 
     fun liftArm(power: Double) {

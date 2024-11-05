@@ -64,7 +64,7 @@ class Goose : Robot() {
 
     fun liftArmWithGamepad(gamepad: Gamepad) {
         // Control arm
-        arm.liftArm(gamepad.left_stick_y.toDouble())
+        arm.liftArm(gamepad.left_stick_y.toDouble() *0.3)
     }
 
     override fun halt() {
@@ -96,6 +96,6 @@ class Goose : Robot() {
 
     private fun registerAttachments(hardwareMap: HardwareMap) {
         // Register attachments
-        arm = Arm(hardwareMap, "lm")
+        arm = Arm(hardwareMap)
     }
 }
