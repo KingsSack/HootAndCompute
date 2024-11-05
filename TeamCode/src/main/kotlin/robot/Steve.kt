@@ -138,9 +138,9 @@ class Steve : Robot() {
         rightRearDrive = hardwareMap.get(DcMotor::class.java, "rr")
 
         // Set motor directions
-        leftFrontDrive.direction = DcMotorSimple.Direction.REVERSE
-        rightFrontDrive.direction = DcMotorSimple.Direction.FORWARD
-        leftRearDrive.direction = DcMotorSimple.Direction.REVERSE
+        leftFrontDrive.direction = DcMotorSimple.Direction.FORWARD
+        rightFrontDrive.direction = DcMotorSimple.Direction.REVERSE
+        leftRearDrive.direction = DcMotorSimple.Direction.FORWARD
         rightRearDrive.direction = DcMotorSimple.Direction.REVERSE
     }
 
