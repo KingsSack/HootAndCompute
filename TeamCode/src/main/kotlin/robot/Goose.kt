@@ -96,6 +96,6 @@ class Goose : Robot() {
 
     private fun registerAttachments(hardwareMap: HardwareMap) {
         // Register attachments
-        arm = Arm(hardwareMap)
+        arm = Arm(hardwareMap, "lm")
     }
 }
