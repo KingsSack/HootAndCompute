@@ -3,20 +3,14 @@ package attachment
 import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 
-class Claw(hardwareMap: HardwareMap) : Attachment(hardwareMap) {
+class Claw(hardwareMap: HardwareMap, name: String) : Attachment(hardwareMap) {
     // Constants
-    public val maxPower = 0.69
+    val maxPower = 0.72
 
+    // Initialize claw
+    private var clawServo : CRServo = hardwareMap.get(CRServo::class.java, name)
 
-    // Motors
-    private lateinit var clawServo : CRServo
-
-    override fun init(hardwareMap: HardwareMap) {
-        // Initialize claw
-        clawServo = hardwareMap.get(CRServo::class.java, "claw")
-    }
-
-    public fun setPower(power: Double) {
+    fun setPower(power: Double) {
         // Set servo power
         clawServo.power = power
     }

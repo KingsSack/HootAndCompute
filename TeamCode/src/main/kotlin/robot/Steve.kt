@@ -158,7 +158,7 @@ class Steve : Robot() {
 
     private fun registerAttachments(hardwareMap: HardwareMap) {
         // Register attachments
-        claw = Claw(hardwareMap)
+        claw = Claw(hardwareMap, "claw")
     }
 
     private fun registerSensors(hardwareMap: HardwareMap) {
