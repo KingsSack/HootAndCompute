@@ -18,5 +18,6 @@ class Manual : OpMode() {
     override fun loop() {
         // Drive
         robot.driveWithGamepad(gamepad1)
+        robot.controlClawWithGamepad(gamepad2)
     }
 }

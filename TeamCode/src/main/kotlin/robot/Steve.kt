@@ -1,5 +1,6 @@
 package robot
 
+import attachment.Claw
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -19,6 +20,9 @@ class Steve : Robot() {
     private lateinit var distanceSensor: DistanceSensor
     private lateinit var huskyLens: HuskyLens
 
+    // Attachments
+    private lateinit var claw : Claw
+
     // Control parameters
     private var deadzone = 0.05  // Minimum stick movement to register
     private var minPower = 0.05  // Minimum power to move motors
@@ -37,6 +41,7 @@ class Steve : Robot() {
         // Register hardware
         registerMotors(hardwareMap)
         registerSensors(hardwareMap)
+        registerAttachments(hardwareMap)
 
         // Configure motors for better control
         configureDriveMotors()
@@ -130,6 +135,13 @@ class Steve : Robot() {
         setMotorPowers(listOf(0.0, 0.0, 0.0, 0.0))
     }
 
+    fun controlClawWithGamepad(gamepad: Gamepad) {
+        // Control arm
+        if (gamepad.a) claw.setPower(claw.maxPower)
+        else if (gamepad.b) claw.setPower(-claw.maxPower)
+        else claw.setPower(0.0)
+    }
+
     private fun registerMotors(hardwareMap: HardwareMap) {
         // Register motors
         leftFrontDrive = hardwareMap.get(DcMotor::class.java, "lf")
@@ -142,6 +154,11 @@ class Steve : Robot() {
         rightFrontDrive.direction = DcMotorSimple.Direction.REVERSE
         leftRearDrive.direction = DcMotorSimple.Direction.FORWARD
         rightRearDrive.direction = DcMotorSimple.Direction.REVERSE
+    }
+
+    private fun registerAttachments(hardwareMap: HardwareMap) {
+        // Register attachments
+        claw = Claw(hardwareMap)
     }
 
     private fun registerSensors(hardwareMap: HardwareMap) {
