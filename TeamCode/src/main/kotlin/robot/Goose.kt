@@ -2,6 +2,7 @@ package robot
 
 import attachment.Arm
 import com.qualcomm.robotcore.hardware.*
+import util.Encoder
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -18,6 +19,9 @@ class Goose : Robot() {
     // Attachments
     private lateinit var arm : Arm
 
+    // Other
+    private lateinit var robotEncoderDrive : Encoder
+
     override fun init(hardwareMap: HardwareMap) {
         // Register hardware
         registerMotors(hardwareMap)
@@ -26,6 +30,9 @@ class Goose : Robot() {
 
         // Reset IMU
         imu.resetYaw()
+
+        // Initialize encoder drive
+        robotEncoderDrive = Encoder(listOf(leftFrontDrive, rightFrontDrive, leftRearDrive, rightRearDrive), 28.0)
     }
 
     override fun driveWithGamepad(gamepad: Gamepad) {

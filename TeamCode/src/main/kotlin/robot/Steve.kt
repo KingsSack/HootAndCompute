@@ -1,10 +1,13 @@
 package robot
 
 import attachment.Claw
+import attachment.Extender
+import attachment.Lifters
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import util.Encoder
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -21,7 +24,17 @@ class Steve : Robot() {
     private lateinit var huskyLens: HuskyLens
 
     // Attachments
+    private lateinit var lifters: Lifters
     private lateinit var claw : Claw
+    private lateinit var extender : Extender
+
+    // Other
+    private lateinit var robotEncoderDrive : Encoder
+
+    // Drive parameters
+    private val countsPerMotorRev : Double = 560.0  // Encoder counts per motor revolution
+    private val driveGearReduction : Double = 1.0   // Gear reduction from external gears
+    private val wheelDiameterMM : Double = 96.0     // Wheel diameter in mm
 
     // Control parameters
     private var deadzone = 0.05  // Minimum stick movement to register
@@ -51,6 +64,14 @@ class Steve : Robot() {
 
         // Set huskylens mode
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
+
+        // Initialize encoder drive
+        robotEncoderDrive = Encoder(
+            listOf(leftFrontDrive, rightFrontDrive, leftRearDrive, rightRearDrive),
+            countsPerMotorRev,
+            driveGearReduction,
+            wheelDiameterMM
+        )
     }
 
     private fun configureDriveMotors() {
@@ -78,6 +99,11 @@ class Steve : Robot() {
 
         // Set motor powers with minimum power threshold
         setMotorPowers(scaledPowers)
+    }
+
+    fun driveWithEncoder(speed: Double, distance: Double) {
+        // Start encoder drive
+        robotEncoderDrive.startEncoderWithMM(speed, distance)
     }
 
     private fun processInput(input: Double): Double {
@@ -135,11 +161,37 @@ class Steve : Robot() {
         setMotorPowers(listOf(0.0, 0.0, 0.0, 0.0))
     }
 
+    fun controlLiftersWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
+        // Control lifters
+        for (position in lifters.currentPositions())
+            telemetry.addData("Extender current position", "%d", position)
+        for (position in lifters.targetPositions())
+            telemetry.addData("Extender target position", "%d", position)
+        if (gamepad.y) {
+            lifters.lift(1.0)
+            return
+        }
+        if (!lifters.moving()) {
+            val power = gamepad.left_trigger.toDouble() - gamepad.right_trigger.toDouble()
+            lifters.setPower(power)
+        }
+    }
+
     fun controlClawWithGamepad(gamepad: Gamepad) {
         // Control arm
         if (gamepad.a) claw.setPower(claw.maxPower)
         else if (gamepad.b) claw.setPower(-claw.maxPower)
         else claw.setPower(0.0)
+    }
+
+    fun controlExtenderWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
+        // Control extender
+        val position = extender.currentPosition
+        if (!gamepad.x)
+            return
+        telemetry.addData("Extender position", "%5.2f", position)
+        if (position == 0.0) extender.extend()
+        else if (position == 0.5) extender.retract()
     }
 
     private fun registerMotors(hardwareMap: HardwareMap) {
@@ -158,7 +210,12 @@ class Steve : Robot() {
 
     private fun registerAttachments(hardwareMap: HardwareMap) {
         // Register attachments
+        lifters = Lifters(hardwareMap, "liftr", "liftl")
         claw = Claw(hardwareMap, "claw")
+        extender = Extender(hardwareMap, "extend")
+
+        // Reset lifters encoder
+        lifters.resetEncoder()
     }
 
     private fun registerSensors(hardwareMap: HardwareMap) {
@@ -183,5 +240,9 @@ class Steve : Robot() {
         val distance = distanceSensor.getDistance(DistanceUnit.CM)
         telemetry.addData("range", "%.01f cm".format(distance))
         return distance
+    }
+
+    fun driving(): Boolean {
+        return robotEncoderDrive.moving(rightFrontDrive)
     }
 }
