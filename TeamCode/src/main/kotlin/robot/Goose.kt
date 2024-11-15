@@ -32,7 +32,7 @@ class Goose : Robot() {
         imu.resetYaw()
 
         // Initialize encoder drive
-        robotEncoderDrive = Encoder(listOf(leftFrontDrive, rightFrontDrive, leftRearDrive, rightRearDrive), 28.0)
+        robotEncoderDrive = Encoder(listOf(leftFrontDrive, rightFrontDrive, leftRearDrive, rightRearDrive), 28.0, 5)
     }
 
     override fun driveWithGamepad(gamepad: Gamepad) {

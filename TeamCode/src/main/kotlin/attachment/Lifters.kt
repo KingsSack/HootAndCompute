@@ -11,7 +11,7 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
     private val leftLifter = hardwareMap.get(DcMotor::class.java, leftName)
 
     // Encoder
-    private val lifterEncoder = Encoder(listOf(rightLifter, leftLifter), 383.6)
+    private val lifterEncoder = Encoder(listOf(rightLifter, leftLifter), 383.6, 2)
 
     init {
         // Reset encoders
@@ -30,20 +30,24 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
         if (moving())
             return
 
+        // Get current position
         var currentPosition = 0
         for (position in currentPositions())
             currentPosition += position
 
         if (currentPosition > 100) {
             // Retract
-            lifterEncoder.startEncoderWithRotations(power, -5.0)
+            lifterEncoder.startEncoderWithUnits(power, -5.6, Encoder.UnitType.ROTATIONS)
         } else {
+            // Reset because the lifter is at the bottom
+            lifterEncoder.resetEncoder()
             // Extend
-            lifterEncoder.startEncoderWithRotations(power, 5.0)
+            lifterEncoder.startEncoderWithUnits(power, 5.6, Encoder.UnitType.ROTATIONS)
         }
     }
 
     fun setPower(power: Double) {
+        // Set lifter power
         rightLifter.power = power
         leftLifter.power = power
     }
@@ -58,7 +62,20 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
         return lifterEncoder.targetPositions
     }
 
+    fun stopEncoder() {
+        // Stop the encoder
+        lifterEncoder.stopEncoder()
+    }
+
+    fun checkEncoderTimeout() {
+        // Check if the encoder should timeout
+        if (lifterEncoder.shouldTimeout()) {
+            stopEncoder()
+        }
+    }
+
     fun moving() : Boolean {
-        return lifterEncoder.moving(rightLifter) && lifterEncoder.moving(leftLifter)
+        // Check if the motors are moving
+        return rightLifter.isBusy && leftLifter.isBusy
     }
 }

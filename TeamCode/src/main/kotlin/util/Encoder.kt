@@ -1,17 +1,21 @@
 package util
 
 import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
-class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: Double, driveGearReduction: Double, wheelDiameterMM: Double) {
-    constructor(motors: List<DcMotor>, countsPerMotorRev: Double) : this(motors, countsPerMotorRev, 1.0, 96.0)
+class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: Double, driveGearReduction: Double, wheelDiameterMM: Double, private val timeout: Int) {
+    constructor(motors: List<DcMotor>, countsPerMotorRev: Double, timeout: Int) : this(motors, countsPerMotorRev, 1.0, 96.0, timeout)
 
     // Calculate counts per mm
     private val countsPerMM : Double = (countsPerMotorRev * driveGearReduction) / (wheelDiameterMM * Math.PI)
 
     // Target position
-    var targetPositions = mutableListOf(0, 0)
+    var targetPositions = MutableList(motors.size) { 0 }
+
+    // Runtime
+    private val runtime : ElapsedTime = ElapsedTime()
 
     fun resetEncoder() {
         for (motor in motors) {
@@ -21,30 +25,38 @@ class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: 
         }
     }
 
-    private fun startEncoder(speed: Double, counts: Double) {
+    private fun startEncoder(speed: Double, counts: Double, reversedMotors: List<Int>) {
+        // Reset runtime
+        runtime.reset()
         for ((i, motor) in motors.withIndex()) {
-            targetPositions[i] = motor.currentPosition + counts.toInt()
-            motor.targetPosition = targetPositions[i]
+            // Set target position
+            val adjustedCounts = if (reversedMotors.contains(i)) -counts.roundToInt() else counts.roundToInt()
+            targetPositions[i] = adjustedCounts
+            motor.targetPosition = adjustedCounts
 
-            // Set mode and power
+            // Set motor mode and power
             motor.mode = DcMotor.RunMode.RUN_TO_POSITION
             motor.power = abs(speed)
         }
     }
 
-    fun startEncoderWithMM(speed: Double, distance: Double) {
+    fun startEncoderWithUnits(speed: Double, value: Double, unitType: UnitType, reversedMotors: List<Int> = emptyList()) {
         // Calculate counts
-        startEncoder(speed, distance * countsPerMM)
+        val counts = when(unitType) {
+            UnitType.MM -> value * countsPerMM
+            UnitType.ROTATIONS -> value * countsPerMotorRev
+        }
+
+        // Start encoder
+        startEncoder(speed, counts, reversedMotors)
     }
 
-    fun startEncoderWithRotations(speed: Double, rotations: Double) {
-        // Calculate counts
-        startEncoder(speed, rotations * countsPerMotorRev)
-    }
-
-    fun moving(motor: DcMotor) : Boolean {
-        // Check if motor is busy
-        return motor.isBusy
+    fun stopEncoder() {
+        for (motor in motors) {
+            // Stop encoder
+            motor.power = 0.0
+            motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        }
     }
 
     fun currentPositions() : MutableList<Int> {
@@ -56,8 +68,13 @@ class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: 
         return positionList
     }
 
-    // fun targetPosition(motor: DcMotor) : Int {
-    //    // Get target position
-    //    return motor.targetPosition
-    // }
+    fun shouldTimeout() : Boolean {
+        // Check if runtime is greater than timeout
+        return runtime.seconds() > timeout
+    }
+
+    enum class UnitType {
+        MM,
+        ROTATIONS
+    }
 }

@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import robot.Steve
 
-@TeleOp(name = "Manual - Whale", group = "Competition")
+@TeleOp(name = "Whale", group = "Competition")
 class Manual : OpMode() {
     // Robot
     private val robot = Steve()

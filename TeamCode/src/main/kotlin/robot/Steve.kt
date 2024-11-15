@@ -25,22 +25,23 @@ class Steve : Robot() {
 
     // Attachments
     private lateinit var lifters: Lifters
-    private lateinit var claw : Claw
-    private lateinit var extender : Extender
+    private lateinit var claw: Claw
+    private lateinit var extender: Extender
 
     // Other
-    private lateinit var robotEncoderDrive : Encoder
+    private lateinit var robotEncoderDrive: Encoder
 
     // Drive parameters
-    private val countsPerMotorRev : Double = 560.0  // Encoder counts per motor revolution
-    private val driveGearReduction : Double = 1.0   // Gear reduction from external gears
-    private val wheelDiameterMM : Double = 96.0     // Wheel diameter in mm
+    private val countsPerMotorRev: Double = 560.0  // Encoder counts per motor revolution
+    private val driveGearReduction: Double = 1.0  // Gear reduction from external gears
+    private val wheelDiameterMM: Double = 96.0    // Wheel diameter in mm
+    private val wheelBaseWidthMM: Double = 460.0  // Wheelbase width in mm
 
     // Control parameters
-    private var deadzone = 0.05  // Minimum stick movement to register
-    private var minPower = 0.05  // Minimum power to move motors
-    private var turnScale = 0.8  // Reduce turn sensitivity
-    private var inputExp = 2.0   // Input exponential for fine control
+    private val deadzone = 0.05  // Minimum stick movement to register
+    private val minPower = 0.05  // Minimum power to move motors
+    private val turnScale = 0.8  // Reduce turn sensitivity
+    private val inputExp = 2.0   // Input exponential for fine control
 
     // Speed modes
     private val speedModes = mapOf(
@@ -70,7 +71,8 @@ class Steve : Robot() {
             listOf(leftFrontDrive, rightFrontDrive, leftRearDrive, rightRearDrive),
             countsPerMotorRev,
             driveGearReduction,
-            wheelDiameterMM
+            wheelDiameterMM,
+            6
         )
     }
 
@@ -97,13 +99,22 @@ class Steve : Robot() {
         // Apply current speed mode scaling
         val scaledPowers = powers.map { it * speedModes[currentSpeedMode]!! }
 
-        // Set motor powers with minimum power threshold
+        // Set motor powers with a minimum power threshold
         setMotorPowers(scaledPowers)
     }
 
-    fun driveWithEncoder(speed: Double, distance: Double) {
-        // Start encoder drive
-        robotEncoderDrive.startEncoderWithMM(speed, distance)
+    fun driveWithEncoder(speed: Double, distanceMM: Double) {
+        robotEncoderDrive.startEncoderWithUnits(speed, -distanceMM, Encoder.UnitType.MM)
+    }
+
+    fun strafeWithEncoder(speed: Double, distanceMM: Double) {
+        robotEncoderDrive.startEncoderWithUnits(speed, -distanceMM, Encoder.UnitType.MM, listOf(0, 1))
+    }
+
+    fun spinWithEncoder(speed: Double, angleDegrees: Double) {
+        val robotCircumferenceMM = wheelBaseWidthMM * Math.PI
+        val distanceMM = (angleDegrees / 360.0) * robotCircumferenceMM
+        robotEncoderDrive.startEncoderWithUnits(speed, -distanceMM, Encoder.UnitType.MM, listOf(1, 2))
     }
 
     private fun processInput(input: Double): Double {
@@ -150,9 +161,18 @@ class Steve : Robot() {
 
     private fun updateSpeedMode(gamepad: Gamepad) {
         when {
-            gamepad.y -> currentSpeedMode = "TURBO"
-            gamepad.b -> currentSpeedMode = "NORMAL"
-            gamepad.a -> currentSpeedMode = "PRECISE"
+            gamepad.y -> {
+                currentSpeedMode = "TURBO"
+                gamepad.rumble(1.0, 1.0, 50)
+            }
+            gamepad.b -> {
+                currentSpeedMode = "NORMAL"
+                gamepad.rumble(1.0, 1.0, 50)
+            }
+            gamepad.a -> {
+                currentSpeedMode = "PRECISE"
+                gamepad.rumble(1.0, 1.0, 50)
+            }
         }
     }
 
@@ -167,13 +187,20 @@ class Steve : Robot() {
             telemetry.addData("Extender current position", "%d", position)
         for (position in lifters.targetPositions())
             telemetry.addData("Extender target position", "%d", position)
+        telemetry.addData("Extender encoder moving", "%b", lifters.moving())
         if (gamepad.y) {
-            lifters.lift(1.0)
+            gamepad.rumble(1.0, 1.0, 50)
+            lifters.lift(0.86)
             return
         }
         if (!lifters.moving()) {
+            lifters.stopEncoder()
             val power = gamepad.left_trigger.toDouble() - gamepad.right_trigger.toDouble()
+            gamepad.rumble(power, power, 10)
             lifters.setPower(power)
+        }
+        else {
+            lifters.checkEncoderTimeout()
         }
     }
 
@@ -187,11 +214,12 @@ class Steve : Robot() {
     fun controlExtenderWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
         // Control extender
         val position = extender.currentPosition
+        telemetry.addData("Extender position", "%5.2f", position)
         if (!gamepad.x)
             return
-        telemetry.addData("Extender position", "%5.2f", position)
+        gamepad.rumble(1.0, 1.0, 50)
         if (position == 0.0) extender.extend()
-        else if (position == 0.5) extender.retract()
+        else if (position == 1.0) extender.retract()
     }
 
     private fun registerMotors(hardwareMap: HardwareMap) {
@@ -237,12 +265,49 @@ class Steve : Robot() {
 
     fun getDistanceToObstacle(telemetry: Telemetry): Double {
         // Get distance
-        val distance = distanceSensor.getDistance(DistanceUnit.CM)
-        telemetry.addData("range", "%.01f cm".format(distance))
+        val distance = distanceSensor.getDistance(DistanceUnit.MM)
+        telemetry.addData("range", "%.01f mm".format(distance))
         return distance
     }
 
     fun driving(): Boolean {
-        return robotEncoderDrive.moving(rightFrontDrive)
+        // Check if the robot is driving
+        val motorsBusy = listOf(rightFrontDrive, leftFrontDrive, rightRearDrive, leftRearDrive).any { it.isBusy }
+        if (motorsBusy) {
+            // Check for encoder timeout
+            if (robotEncoderDrive.shouldTimeout()) {
+                robotEncoderDrive.stopEncoder()
+                return false
+            }
+            return true
+        }
+        // Stop the encoder
+        robotEncoderDrive.stopEncoder()
+        return false
+    }
+
+    fun liftLifters(power: Double) {
+        // Lift
+        lifters.lift(power)
+    }
+
+    fun liftersMoving(): Boolean {
+        // Check if the lifters are moving
+        return lifters.moving()
+    }
+
+    fun extendExtender() : Boolean {
+        // Extend
+        return extender.extend()
+    }
+
+    fun retractExtender() : Boolean {
+        // Retract
+        return extender.retract()
+    }
+
+    fun openCloseClaw() : Boolean {
+        // Open or close the claw
+        return claw.openClose()
     }
 }
