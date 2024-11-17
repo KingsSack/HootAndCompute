@@ -13,6 +13,8 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
     // Encoder
     private val lifterEncoder = Encoder(listOf(rightLifter, leftLifter), 383.6, 2)
 
+
+    private var goalPos = 0.0;
     // Goal
     private var isAtGoal = true
     private var isAtBottom = true
@@ -25,23 +27,46 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
         rightLifter.direction = DcMotorSimple.Direction.REVERSE
     }
 
+
+    fun modifyGoal(difference: Double) {
+        // moves the goal up or down
+        goalPos += difference
+        if (goalPos>1)
+            goalPos = 1.0
+        if (goalPos<0)
+            goalPos = 0.0
+    }
+    fun actuate() {
+        // if it's at the bottom, tries to move to the top, otherwise tries to move to the bottom
+        // triggered by the y button
+        goalPos =
+            if (goalPos ==0.0)
+                1.0
+            else
+                0.0
+    }
+    fun moveToGoalPos() {
+
+    }
+
     fun resetEncoder() {
         lifterEncoder.resetEncoder()
     }
 
     fun lift(power: Double) {
         // Check if lifters are moving
-        if (!isAtGoal) return
-
+        // if (!isAtGoal) return
+        val currentPosition = lifterEncoder.currentPositions(Encoder.UnitType.ROTATIONS).sum()
         // Reset encoder if at bottom
-        if (isAtBottom)
-            resetEncoder()
+        if (lifterEncoder.shouldTimeout())
+            if (goalPos/5.6 <currentPosition)
+                resetEncoder()
+            else
+                goalPos -= 0.1
 
         // Get current position
-        var currentPosition = 0
-        for (position in currentPositions())
-            currentPosition += position
-
+        lifterEncoder.startEncoderWithUnits(power, goalPos*5.6-currentPosition, Encoder.UnitType.ROTATIONS)
+        /*
         if (currentPosition > 100) {
             // Retract
             lifterEncoder.startEncoderWithUnits(power, -5.6, Encoder.UnitType.ROTATIONS)
@@ -51,48 +76,8 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
             lifterEncoder.startEncoderWithUnits(power, 5.6, Encoder.UnitType.ROTATIONS)
             isAtBottom = false
         }
+         */
         isAtGoal = false
-    }
-
-    fun setPower(power: Double) {
-        // Set lifter power
-        rightLifter.power = power
-        leftLifter.power = power
-    }
-
-    fun currentPositions() : MutableList<Int> {
-        // Get current position
-        return lifterEncoder.currentPositions()
-    }
-
-    fun targetPositions() : MutableList<Int> {
-        // Get target position
-        return lifterEncoder.targetPositions
-    }
-
-    private fun stopEncoder() {
-        // Stop the encoder
-        lifterEncoder.stopEncoder()
-    }
-
-    fun checkForCompletion() {
-        // Check if the lifters are at the goal
-        if (lifterEncoder.checkEncoderTargets()) {
-            isAtGoal = true
-        }
-        else {
-            checkEncoderTimeout()
-        }
-    }
-
-    private fun checkEncoderTimeout() {
-        // Make sure the encoder is at the bottom
-        if (!isAtBottom) return
-
-        // Check if the encoder should timeout
-        if (lifterEncoder.shouldTimeout()) {
-            stopEncoder()
-        }
     }
 
     fun moving() : Boolean {

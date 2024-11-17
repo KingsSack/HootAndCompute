@@ -187,25 +187,25 @@ class Steve : Robot() {
     }
 
     fun controlLiftersWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
-        // Control lifters
+        // Control linear slides
+        // triggered every frame
+
+        // telemetry
         for (position in lifters.currentPositions())
             telemetry.addData("Lifter current position", "%d", position)
         for (position in lifters.targetPositions())
             telemetry.addData("Lifter target position", "%d", position)
         telemetry.addData("Lifter encoder moving", "%b", lifters.moving())
+
         if (gamepad.y) {
-            gamepad.rumble(1.0, 1.0, 100)
-            lifters.lift(0.86)
+            // retract or extend lifters
+            // gamepad.rumble(1.0, 1.0, 100)
+            lifters.actuate()
             return
         }
-        if (!lifters.moving()) {
-            val power = gamepad.left_trigger.toDouble() - gamepad.right_trigger.toDouble()
-            gamepad.rumble(power, power, 100)
-            lifters.setPower(power)
-        }
-        else {
-            lifters.checkForCompletion()
-        }
+        val power = gamepad.left_trigger.toDouble() - gamepad.right_trigger.toDouble()
+        lifters.modifyGoal(power/20)
+        lifters.lift(0.86)
     }
 
     fun controlClawWithGamepad(gamepad: Gamepad) {
@@ -308,15 +308,7 @@ class Steve : Robot() {
         return false
     }
 
-    fun liftLifters(power: Double) {
-        // Lift
-        lifters.lift(power)
-    }
 
-    fun liftersMoving() : Boolean {
-        // Check if the lifters are moving
-        return lifters.moving()
-    }
 
     fun extendExtender() : Boolean {
         // Extend

@@ -72,11 +72,15 @@ class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: 
         }
     }
 
-    fun currentPositions() : MutableList<Int> {
+    fun currentPositions(unitType: UnitType) : MutableList<Double> {
         // Get current position
-        val positionList : MutableList<Int> = mutableListOf()
+        val units = when(unitType) {
+            UnitType.MM ->  countsPerMM
+            UnitType.ROTATIONS -> countsPerMotorRev
+        }.toDouble()
+        val positionList : MutableList<Double> = mutableListOf()
         for (motor in motors) {
-            positionList.add(motor.currentPosition)
+            positionList.add(motor.currentPosition.toDouble()/units)
         }
         return positionList
     }
