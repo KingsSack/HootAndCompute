@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import robot.Steve
 import util.Position
 
-@Autonomous(name = "Otter - RL", group = "Competition")
-class OtterRL : LinearOpMode(){
+@Autonomous(name = "Otter - Left", group = "Competition")
+class OtterL : LinearOpMode(){
     // Robot
     private val robot = Steve()
 

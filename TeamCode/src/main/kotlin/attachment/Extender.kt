@@ -21,17 +21,21 @@ class Extender(hardwareMap: HardwareMap, name: String) : Attachment(hardwareMap)
 
     fun extend(): Boolean {
         // Set the servo position, servo moves automatically
-        setPos(servoMaxPosition)
+        setPos(servoMinPosition)
         return true
     }
 
     fun retract(): Boolean {
         // Set the servo position, servo moves automatically
-        setPos(servoMinPosition)
+        setPos(servoMaxPosition)
         return true
     }
 
-    private fun setPos(pos: Double) {
+    fun setPos(pos: Double) {
+        // Check if already at position
+        if (currentPosition == pos)
+            return
+
         // Set the servo position
         if (runtime.seconds() >= cooldown) {
             runtime.reset()

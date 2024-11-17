@@ -13,6 +13,10 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
     // Encoder
     private val lifterEncoder = Encoder(listOf(rightLifter, leftLifter), 383.6, 2)
 
+    // Goal
+    private var isAtGoal = true
+    private var isAtBottom = true
+
     init {
         // Reset encoders
         resetEncoder()
@@ -27,8 +31,11 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
 
     fun lift(power: Double) {
         // Check if lifters are moving
-        if (moving())
-            return
+        if (!isAtGoal) return
+
+        // Reset encoder if at bottom
+        if (isAtBottom)
+            resetEncoder()
 
         // Get current position
         var currentPosition = 0
@@ -38,12 +45,13 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
         if (currentPosition > 100) {
             // Retract
             lifterEncoder.startEncoderWithUnits(power, -5.6, Encoder.UnitType.ROTATIONS)
+            isAtBottom = true
         } else {
-            // Reset because the lifter is at the bottom
-            lifterEncoder.resetEncoder()
             // Extend
             lifterEncoder.startEncoderWithUnits(power, 5.6, Encoder.UnitType.ROTATIONS)
+            isAtBottom = false
         }
+        isAtGoal = false
     }
 
     fun setPower(power: Double) {
@@ -62,12 +70,25 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
         return lifterEncoder.targetPositions
     }
 
-    fun stopEncoder() {
+    private fun stopEncoder() {
         // Stop the encoder
         lifterEncoder.stopEncoder()
     }
 
-    fun checkEncoderTimeout() {
+    fun checkForCompletion() {
+        // Check if the lifters are at the goal
+        if (lifterEncoder.checkEncoderTargets()) {
+            isAtGoal = true
+        }
+        else {
+            checkEncoderTimeout()
+        }
+    }
+
+    private fun checkEncoderTimeout() {
+        // Make sure the encoder is at the bottom
+        if (!isAtBottom) return
+
         // Check if the encoder should timeout
         if (lifterEncoder.shouldTimeout()) {
             stopEncoder()

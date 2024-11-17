@@ -104,17 +104,22 @@ class Steve : Robot() {
     }
 
     fun driveWithEncoder(speed: Double, distanceMM: Double) {
-        robotEncoderDrive.startEncoderWithUnits(speed, -distanceMM, Encoder.UnitType.MM)
+        // Drive with encoder
+        robotEncoderDrive.startEncoderWithUnits(speed, distanceMM, Encoder.UnitType.MM)
     }
 
     fun strafeWithEncoder(speed: Double, distanceMM: Double) {
-        robotEncoderDrive.startEncoderWithUnits(speed, -distanceMM, Encoder.UnitType.MM, listOf(0, 1))
+        // Strafe with encoder
+        robotEncoderDrive.startEncoderWithUnits(speed, distanceMM, Encoder.UnitType.MM, listOf(1, 2))
     }
 
     fun spinWithEncoder(speed: Double, angleDegrees: Double) {
+        // Calculate the distance to spin
         val robotCircumferenceMM = wheelBaseWidthMM * Math.PI
         val distanceMM = (angleDegrees / 360.0) * robotCircumferenceMM
-        robotEncoderDrive.startEncoderWithUnits(speed, -distanceMM, Encoder.UnitType.MM, listOf(1, 2))
+
+        // Spin with encoder
+        robotEncoderDrive.startEncoderWithUnits(speed, distanceMM, Encoder.UnitType.MM, listOf(1, 2))
     }
 
     private fun processInput(input: Double): Double {
@@ -163,15 +168,15 @@ class Steve : Robot() {
         when {
             gamepad.y -> {
                 currentSpeedMode = "TURBO"
-                gamepad.rumble(1.0, 1.0, 50)
+                gamepad.rumble(0.8, 0.8, 100)
             }
             gamepad.b -> {
                 currentSpeedMode = "NORMAL"
-                gamepad.rumble(1.0, 1.0, 50)
+                gamepad.rumble(0.4, 0.4, 100)
             }
             gamepad.a -> {
                 currentSpeedMode = "PRECISE"
-                gamepad.rumble(1.0, 1.0, 50)
+                gamepad.rumble(0.2, 0.2, 100)
             }
         }
     }
@@ -184,23 +189,22 @@ class Steve : Robot() {
     fun controlLiftersWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
         // Control lifters
         for (position in lifters.currentPositions())
-            telemetry.addData("Extender current position", "%d", position)
+            telemetry.addData("Lifter current position", "%d", position)
         for (position in lifters.targetPositions())
-            telemetry.addData("Extender target position", "%d", position)
-        telemetry.addData("Extender encoder moving", "%b", lifters.moving())
+            telemetry.addData("Lifter target position", "%d", position)
+        telemetry.addData("Lifter encoder moving", "%b", lifters.moving())
         if (gamepad.y) {
-            gamepad.rumble(1.0, 1.0, 50)
+            gamepad.rumble(1.0, 1.0, 100)
             lifters.lift(0.86)
             return
         }
         if (!lifters.moving()) {
-            lifters.stopEncoder()
             val power = gamepad.left_trigger.toDouble() - gamepad.right_trigger.toDouble()
-            gamepad.rumble(power, power, 10)
+            gamepad.rumble(power, power, 100)
             lifters.setPower(power)
         }
         else {
-            lifters.checkEncoderTimeout()
+            lifters.checkForCompletion()
         }
     }
 
@@ -215,11 +219,15 @@ class Steve : Robot() {
         // Control extender
         val position = extender.currentPosition
         telemetry.addData("Extender position", "%5.2f", position)
-        if (!gamepad.x)
-            return
-        gamepad.rumble(1.0, 1.0, 50)
-        if (position == 0.0) extender.extend()
-        else if (position == 1.0) extender.retract()
+        if (gamepad.x) {
+            gamepad.rumble(1.0, 1.0, 100)
+            if (position == 0.0) extender.extend()
+            else extender.retract()
+        }
+        if (gamepad.right_bumper) {
+            gamepad.rumble(1.0, 1.0, 100)
+            extender.setPos(0.4)
+        }
     }
 
     private fun registerMotors(hardwareMap: HardwareMap) {
@@ -270,7 +278,21 @@ class Steve : Robot() {
         return distance
     }
 
-    fun driving(): Boolean {
+    fun getRobotEncoderPositions(telemetry: Telemetry): MutableList<Int> {
+        // Get encoder positions
+        val positions = robotEncoderDrive.currentPositions()
+        telemetry.addData("Encoder positions", positions.toString())
+        return positions
+    }
+
+    fun getRobotEncoderTargets(telemetry: Telemetry): MutableList<Int> {
+        // Get encoder targets
+        val targets = robotEncoderDrive.targetPositions
+        telemetry.addData("Encoder targets", targets.toString())
+        return targets
+    }
+
+    fun driving() : Boolean {
         // Check if the robot is driving
         val motorsBusy = listOf(rightFrontDrive, leftFrontDrive, rightRearDrive, leftRearDrive).any { it.isBusy }
         if (motorsBusy) {
@@ -291,7 +313,7 @@ class Steve : Robot() {
         lifters.lift(power)
     }
 
-    fun liftersMoving(): Boolean {
+    fun liftersMoving() : Boolean {
         // Check if the lifters are moving
         return lifters.moving()
     }

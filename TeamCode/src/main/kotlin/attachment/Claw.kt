@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 class Claw(hardwareMap: HardwareMap, name: String) : Attachment(hardwareMap) {
     // Constants
     val maxPower = 0.72
-    private val openCloseTime = 1
+    private val openCloseTime = 0.6
 
     // Initialize claw
     private var clawServo: CRServo = hardwareMap.get(CRServo::class.java, name)

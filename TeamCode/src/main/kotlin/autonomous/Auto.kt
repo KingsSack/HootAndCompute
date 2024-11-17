@@ -27,6 +27,8 @@ class Auto(
     private var currentSampleIndex = 0
 
     // Completion
+    private var verticalCompleted = true
+    private var horizontalCompleted = true
     private var extenderCompleted = true
     // private var clawCompleted = true
     private var liftersCompleted = true
@@ -35,17 +37,32 @@ class Auto(
     private var strikes = 0
 
     override fun run(telemetry: Telemetry) {
-        telemetry.addData("State", state.toString())
-        telemetry.addData("Current Sample", currentSampleIndex + 1)
+        // Display telemetry
+        telemetry.addData("Numnber of strikes", strikes)
+        telemetry.addData("Current state", state.toString())
+        telemetry.addData("Current sample", currentSampleIndex + 1)
 
         // Check for obstacles
         checkForObstacles(telemetry)
 
+        // State machine
+        runState(telemetry)
+
+        // Update the state
+        telemetry.update()
+    }
+
+    private fun runState(telemetry: Telemetry) {
         when (state) {
             State.GO_TO_SAMPLE -> {
+                // Check if the list is empty
+                if (samplePositions.isEmpty()) {
+                    state = State.GO_TO_OBSERVATION_ZONE
+                    return
+                }
                 // Move to the sample position
                 val position = samplePositions[currentSampleIndex]
-                if (!moveToPosition(position)) return
+                if (!moveToPosition(telemetry, position)) return
                 state = State.COLLECT_SAMPLE
             }
             State.COLLECT_SAMPLE -> {
@@ -55,7 +72,7 @@ class Auto(
             }
             State.GO_TO_BASKET -> {
                 // Move to the basket position
-                if (!moveToPosition(basketPosition)) return
+                if (!moveToPosition(telemetry, basketPosition)) return
                 state = State.DEPOSIT_SAMPLE
             }
             State.DEPOSIT_SAMPLE -> {
@@ -70,7 +87,7 @@ class Auto(
             }
             State.GO_TO_OBSERVATION_ZONE -> {
                 // Go to the observation zone
-                if (!moveToPosition(observationZonePosition)) return
+                if (!moveToPosition(telemetry, observationZonePosition)) return
                 state = State.STOP
             }
             State.STOP -> {
@@ -78,32 +95,16 @@ class Auto(
                 robot.halt()
             }
         }
-        telemetry.update()
     }
 
     private fun checkForObstacles(telemetry: Telemetry) {
         // Check for obstacles less than 300 mm away
         if (robot.getDistanceToObstacle(telemetry) < 300) {
             strikes++
-            telemetry.addData("Strikes", strikes)
             if (strikes >= 5) {
                 state = State.STOP
             }
         }
-    }
-
-    private fun moveToPosition(position: Position) : Boolean {
-        // Move the robot to the specified position
-        if (position.forwardDistance != 0.0) {
-            // Vertical movement (y-axis)
-            robot.driveWithEncoder(0.9, position.forwardDistance)
-        }
-        if (position.strafeDistance != 0.0) {
-            // Horizontal movement (x-axis)
-            robot.strafeWithEncoder(0.9, position.strafeDistance)
-        }
-        if (robot.driving()) return false  // Check for completion
-        return true
     }
 
     private fun collectSample() : Boolean {
@@ -132,13 +133,55 @@ class Auto(
         return !robot.driving()  // Check for completion
     }
 
+    private fun moveToPosition(telemetry: Telemetry, position: Position) : Boolean {
+        // Reset completion
+        if (verticalCompleted && horizontalCompleted) {
+            verticalCompleted = false
+            horizontalCompleted = false
+            return false
+        }
+
+        robot.getRobotEncoderPositions(telemetry)
+        robot.getRobotEncoderTargets(telemetry)
+
+        // Move to position
+        if (!verticalCompleted) {
+            verticalCompleted = moveToPositionVertical(position.forwardDistance)
+        }
+        if (verticalCompleted && !horizontalCompleted) {
+            horizontalCompleted = moveToPositionHorizontal(position.strafeDistance)
+        }
+        return verticalCompleted && horizontalCompleted
+    }
+
+    private fun moveToPositionVertical(forwardDistance: Double) : Boolean {
+        // Move the robot to the specified position
+        if (forwardDistance != 0.0 && !robot.driving()) {
+            // Vertical movement (y-axis)
+            robot.driveWithEncoder(0.6, forwardDistance)
+        }
+        return !robot.driving()  // Check for completion
+    }
+
+    private fun moveToPositionHorizontal(strafeDistance: Double) : Boolean {
+        if (strafeDistance != 0.0 && !robot.driving()) {
+            // Horizontal movement (x-axis)
+            robot.strafeWithEncoder(0.6, strafeDistance)
+        }
+        return !robot.driving()  // Check for completion
+    }
+
     private fun controlExtender(extend: Boolean) : Boolean {
+        // Reset completion
         if (extenderCompleted) {
             extenderCompleted = false
             return false
         }
-        
+
+        // Extend or retract the extender
         val completed = if (extend) robot.extendExtender() else robot.retractExtender()
+
+        // Wait for completion
         if (completed) {
             extenderCompleted = true
             return true
@@ -147,12 +190,14 @@ class Auto(
     }
 
     private fun liftLifters() : Boolean {
+        // Reset completion
         if (liftersCompleted) {
             liftersCompleted = false
-            robot.liftLifters(0.86)
+            robot.liftLifters(0.86)  // Lift the lifters
             return false
         }
 
+        // Wait for completion
         if (!robot.liftersMoving()) {
             liftersCompleted = true
             return true

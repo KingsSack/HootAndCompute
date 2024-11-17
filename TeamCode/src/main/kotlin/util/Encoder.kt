@@ -26,6 +26,9 @@ class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: 
     }
 
     private fun startEncoder(speed: Double, counts: Double, reversedMotors: List<Int>) {
+        // Make sure motors are not busy
+        stopEncoder()
+
         // Reset runtime
         runtime.reset()
         for ((i, motor) in motors.withIndex()) {
@@ -49,6 +52,16 @@ class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: 
 
         // Start encoder
         startEncoder(speed, counts, reversedMotors)
+    }
+
+    fun checkEncoderTargets() : Boolean {
+        // Check if motors are busy
+        for ((i, motor) in motors.withIndex()) {
+            if (targetPositions[i] - 100 <= motor.currentPosition
+                && motor.currentPosition <= targetPositions[i] + 100 )
+                return false
+        }
+        return true
     }
 
     fun stopEncoder() {
