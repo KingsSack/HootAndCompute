@@ -185,27 +185,39 @@ class Steve : Robot() {
         // Stop all drive motors
         setMotorPowers(listOf(0.0, 0.0, 0.0, 0.0))
     }
-
+    fun liftLifters() {
+        lifters.actuate()
+    }
+    fun controllLifters(power: Double) {
+        // lifters.lift(power)
+    }
+    private var yButtonDown = false
     fun controlLiftersWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
         // Control linear slides
         // triggered every frame
 
         // telemetry
-        for (position in lifters.currentPositions())
+        /* for (position in lifters.currentPositions())
             telemetry.addData("Lifter current position", "%d", position)
         for (position in lifters.targetPositions())
             telemetry.addData("Lifter target position", "%d", position)
         telemetry.addData("Lifter encoder moving", "%b", lifters.moving())
-
+*/
         if (gamepad.y) {
             // retract or extend lifters
             // gamepad.rumble(1.0, 1.0, 100)
-            lifters.actuate()
+            if (!yButtonDown)
+                lifters.actuate()
+            yButtonDown = true
             return
+        }
+        else {
+
+            yButtonDown = false
         }
         val power = gamepad.left_trigger.toDouble() - gamepad.right_trigger.toDouble()
         lifters.modifyGoal(power/20)
-        lifters.lift(0.86)
+        lifters.lift(0.86, telemetry)
     }
 
     fun controlClawWithGamepad(gamepad: Gamepad) {
@@ -278,9 +290,9 @@ class Steve : Robot() {
         return distance
     }
 
-    fun getRobotEncoderPositions(telemetry: Telemetry): MutableList<Int> {
+    fun getRobotEncoderPositions(telemetry: Telemetry): MutableList<Double> {
         // Get encoder positions
-        val positions = robotEncoderDrive.currentPositions()
+        val positions = robotEncoderDrive.currentPositions(Encoder.UnitType.MM)
         telemetry.addData("Encoder positions", positions.toString())
         return positions
     }
@@ -323,5 +335,10 @@ class Steve : Robot() {
     fun openCloseClaw() : Boolean {
         // Open or close the claw
         return claw.openClose()
+    }
+
+    fun liftersMoving() : Boolean {
+        // Check if the lifters are moving
+        return lifters.moving()
     }
 }

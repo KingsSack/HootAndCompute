@@ -177,7 +177,7 @@ class Auto(
             extenderCompleted = false
             return false
         }
-
+        // telemetry.addData("Lifter target position", "%d", 1)
         // Extend or retract the extender
         val completed = if (extend) robot.extendExtender() else robot.retractExtender()
 
@@ -193,9 +193,10 @@ class Auto(
         // Reset completion
         if (liftersCompleted) {
             liftersCompleted = false
-            robot.liftLifters(0.86)  // Lift the lifters
-            return false
+            robot.liftLifters()
         }
+
+        robot.controllLifters(0.86)
 
         // Wait for completion
         if (!robot.liftersMoving()) {

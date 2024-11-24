@@ -4,15 +4,17 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import util.Encoder
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import kotlin.math.sign
 
 class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
     // Initialize lifters
     private val rightLifter = hardwareMap.get(DcMotor::class.java, rightName)
     private val leftLifter = hardwareMap.get(DcMotor::class.java, leftName)
-
     // Encoder
     private val lifterEncoder = Encoder(listOf(rightLifter, leftLifter), 383.6, 2)
 
+    private var currentGoalPos = 0.0;
 
     private var goalPos = 0.0;
     // Goal
@@ -53,19 +55,28 @@ class Lifters(hardwareMap: HardwareMap, rightName: String, leftName: String) {
         lifterEncoder.resetEncoder()
     }
 
-    fun lift(power: Double) {
+    fun lift(power: Double, telemetry: Telemetry) {
         // Check if lifters are moving
         // if (!isAtGoal) return
+
         val currentPosition = lifterEncoder.currentPositions(Encoder.UnitType.ROTATIONS).sum()
         // Reset encoder if at bottom
+        telemetry.addData("lifter timing out",lifterEncoder.shouldTimeout() )
         if (lifterEncoder.shouldTimeout())
+
             if (goalPos/5.6 <currentPosition)
                 resetEncoder()
             else
                 goalPos -= 0.1
-
+        telemetry.addData("final lifter goal to", goalPos)
+        telemetry.addData("current lifter goal is", currentGoalPos)
+        telemetry.addData("changed lifter goal", ((goalPos*5.6-currentPosition>0.0)== (currentGoalPos*5.6-currentPosition>0)||!moving()))
         // Get current position
-        lifterEncoder.startEncoderWithUnits(power, goalPos*5.6-currentPosition, Encoder.UnitType.ROTATIONS)
+        if (((goalPos*5.6-currentPosition>0.0) != (currentGoalPos*5.6-currentPosition>0)||!moving())) {
+
+            lifterEncoder.startEncoderWithUnits(power, goalPos * 5.6 - currentPosition, Encoder.UnitType.ROTATIONS)
+            currentGoalPos = goalPos
+        }
         /*
         if (currentPosition > 100) {
             // Retract
