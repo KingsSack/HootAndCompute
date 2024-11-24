@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-class Encoder(private val motors: List<DcMotor>, private val countsPerMotorRev: Double, driveGearReduction: Double, wheelDiameterMM: Double, private val timeout: Int) {
+class EncoderOld(private val motors: List<DcMotor>, private val countsPerMotorRev: Double, driveGearReduction: Double, wheelDiameterMM: Double, private val timeout: Int) {
     constructor(motors: List<DcMotor>, countsPerMotorRev: Double, timeout: Int) : this(motors, countsPerMotorRev, 1.0, 96.0, timeout)
 
     // Calculate counts per mm

@@ -1,15 +1,19 @@
 package robot
 
-import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
+import util.Controller
 
-abstract class Robot {
+interface Robot {
+    // Control
+    val control: Controller
+
     // Initialize
-    abstract fun init(hardwareMap: HardwareMap)
+    fun init(hardwareMap: HardwareMap)
 
-    // Drive
-    abstract fun driveWithGamepad(gamepad: Gamepad)
+    // Register
+    fun registerSensors(hardwareMap: HardwareMap)
+    fun registerAttachments(hardwareMap: HardwareMap)
 
-    // Stop
-    abstract fun halt()
+    // Tick
+    fun tick()
 }

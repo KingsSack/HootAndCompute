@@ -1,207 +1,195 @@
 package autonomous
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.SequentialAction
+import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import robot.Steve
-import util.Position
+import util.MecanumDrive
 
 class Auto(
     private val robot: Steve,
-    private val samplePositions: List<Position>,
-    private val basketPosition: Position,
-    private val observationZonePosition: Position
-): Autonomous(robot) {
+    private val isPreloaded: Boolean,
+    private val samplePoses: List<Pose2d>,
+    private val basketPose: Pose2d,
+    private val observationZonePose: Pose2d
+) : Autonomous {
     // States
-    private enum class State {
-        GO_TO_SAMPLE,
-        COLLECT_SAMPLE,
-        GO_TO_BASKET,
-        DEPOSIT_SAMPLE,
-        GO_TO_OBSERVATION_ZONE,
-        STOP
+    private sealed class State {
+        data object Idle : State()
+        data object GoingToSample : State()
+        data object CollectingSample : State()
+        data object GoingToBasket : State()
+        data object DepositingSample : State()
+        data object GoingToObservationZone : State()
+        data object Park : State()
     }
+    private var currentState: State = State.Idle
 
-    // Default state
-    private var state = State.GO_TO_SAMPLE
+    // Events
+    private sealed class Event {
+        data object Begin : Event()
+        data object SampleReached : Event()
+        data object SampleCollected : Event()
+        data object BasketReached : Event()
+        data object SampleDeposited : Event()
+        data object ObservationZoneReached : Event()
+    }
+    private class EmitEvent(private val auto: Auto, private val event: Event) : Action {
+        override fun run(p: TelemetryPacket): Boolean {
+            auto.handleEvent(event)
+            return false
+        }
+    }
+    private fun emitEvent(event: Event) : Action {
+        return EmitEvent(this, event)
+    }
 
     // Sample index
     private var currentSampleIndex = 0
 
-    // Completion
-    private var verticalCompleted = true
-    private var horizontalCompleted = true
-    private var extenderCompleted = true
-    // private var clawCompleted = true
-    private var liftersCompleted = true
+    // Drive
+    private lateinit var drive: MecanumDrive
 
-    // Strikes
-    private var strikes = 0
+    override fun init(hardwareMap: HardwareMap, telemetry: Telemetry, initialPose: Pose2d) {
+        // Register drive
+        registerDrive(hardwareMap, initialPose)
 
-    override fun run(telemetry: Telemetry) {
         // Display telemetry
-        telemetry.addData("Numnber of strikes", strikes)
-        telemetry.addData("Current state", state.toString())
+        telemetry.addData("Current state", currentState.toString())
         telemetry.addData("Current sample", currentSampleIndex + 1)
+        telemetry.addData("", "")
+        telemetry.addData("Preloaded", isPreloaded)
+        telemetry.addData("Basket position", basketPose)
+        telemetry.addData("Observation zone position", observationZonePose)
 
-        // Check for obstacles
-        checkForObstacles(telemetry)
+        // Handle event
+        handleEvent(Event.Begin)
 
-        // State machine
-        runState(telemetry)
-
-        // Update the state
+        // Update telemetry
         telemetry.update()
     }
 
-    private fun runState(telemetry: Telemetry) {
-        when (state) {
-            State.GO_TO_SAMPLE -> {
-                // Check if the list is empty
-                if (samplePositions.isEmpty()) {
-                    state = State.GO_TO_OBSERVATION_ZONE
-                    return
+    override fun registerDrive(hardwareMap: HardwareMap, initialPose: Pose2d) {
+        // Create new mecanum drive
+        drive = MecanumDrive(hardwareMap, initialPose)
+    }
+
+    override fun tick(telemetry: Telemetry) {
+        // Display telemetry
+        telemetry.addData("Current state", currentState.toString())
+        telemetry.addData("Current sample", currentSampleIndex + 1)
+
+        // Tick robot
+        robot.tick()
+
+        // Update telemetry
+        telemetry.update()
+    }
+
+    private fun handleEvent(event: Event) {
+        when (currentState) {
+            is State.Idle -> when (event) {
+                is Event.Begin -> {
+                    currentState = if (samplePoses.isNotEmpty())
+                        if (isPreloaded) State.GoingToBasket
+                        else State.GoingToSample
+                    else State.GoingToObservationZone
                 }
-                // Move to the sample position
-                val position = samplePositions[currentSampleIndex]
-                if (!moveToPosition(telemetry, position)) return
-                state = State.COLLECT_SAMPLE
+                else -> {
+                    // Do nothing
+                }
             }
-            State.COLLECT_SAMPLE -> {
-                // Collect the sample
-                if (!collectSample()) return
-                state = State.GO_TO_BASKET
+
+            is State.GoingToSample -> when (event) {
+                is Event.SampleReached -> {
+                    currentState = State.CollectingSample
+                }
+                else -> {
+                    robot.control.addAction(goToSample)
+                }
             }
-            State.GO_TO_BASKET -> {
-                // Move to the basket position
-                if (!moveToPosition(telemetry, basketPosition)) return
-                state = State.DEPOSIT_SAMPLE
-            }
-            State.DEPOSIT_SAMPLE -> {
-                // Deposit the sample
-                if (!depositSample()) return
-                if (currentSampleIndex < samplePositions.lastIndex) {
+
+            is State.CollectingSample -> when (event) {
+                is Event.SampleCollected -> {
                     currentSampleIndex++
-                    state = State.GO_TO_SAMPLE
-                } else {
-                    state = State.GO_TO_OBSERVATION_ZONE
+                    currentState = State.GoingToBasket
+                }
+                else -> {
+                    robot.control.addAction(collectSample)
                 }
             }
-            State.GO_TO_OBSERVATION_ZONE -> {
-                // Go to the observation zone
-                if (!moveToPosition(telemetry, observationZonePosition)) return
-                state = State.STOP
+
+            is State.GoingToBasket -> when (event) {
+                is Event.BasketReached -> {
+                    currentState = State.DepositingSample
+                }
+                else -> {
+                    robot.control.addAction(goToBasket)
+                }
             }
-            State.STOP -> {
-                // Stop the robot
-                robot.halt()
+
+            is State.DepositingSample -> when (event) {
+                is Event.SampleDeposited -> {
+                    currentState = if (currentSampleIndex < samplePoses.size) State.GoingToSample else State.GoingToObservationZone
+                }
+                else -> {
+                    robot.control.addAction(depositSample)
+                }
+            }
+
+            is State.GoingToObservationZone -> when (event) {
+                is Event.ObservationZoneReached -> {
+                    currentState = State.Park
+                }
+                else -> {
+                    robot.control.addAction(goToObservationZone)
+                }
+            }
+
+            is State.Park -> {
+                // Do nothing
             }
         }
     }
 
-    private fun checkForObstacles(telemetry: Telemetry) {
-        // Check for obstacles less than 300 mm away
-        if (robot.getDistanceToObstacle(telemetry) < 300) {
-            strikes++
-            if (strikes >= 5) {
-                state = State.STOP
-            }
-        }
-    }
+    private val goToSample = SequentialAction(
+        drive.actionBuilder(drive.pose)
+            .splineTo(samplePoses[currentSampleIndex].position, samplePoses[currentSampleIndex].heading)
+            .build(),
+        emitEvent(Event.SampleReached)
+    )
 
-    private fun collectSample() : Boolean {
-        // Extend claw
-        if (!controlExtender(true)) return false  // Check for completion
-        // Close claw
-        if (!robot.openCloseClaw()) return false  // Check for completion
-        // Retract claw
-        if (!controlExtender(false)) return false  // Check for completion
-        return true
-    }
+    private val collectSample = SequentialAction(
+        robot.claw.open(),
+        robot.extender.extend(),
+        robot.claw.close(),
+        robot.extender.retract(),
+        emitEvent(Event.SampleCollected)
+    )
 
-    private fun depositSample() : Boolean {
-        // Face the basket
-        robot.spinWithEncoder(0.9, -135.0)
-        // Lift lifters
-        if (!liftLifters()) return false  // Check for completion
-        // Extend claw
-        if (!controlExtender(true)) return false  // Check for completion
-        // Open claw
-        if (!robot.openCloseClaw()) return false  // Check for completion
-        // Retract claw
-        if (!controlExtender(false)) return false  // Check for completion
-        // Spin back
-        robot.spinWithEncoder(0.9, 135.0)
-        return !robot.driving()  // Check for completion
-    }
+    private val goToBasket = SequentialAction(
+        drive.actionBuilder(drive.pose)
+            .splineTo(basketPose.position, basketPose.heading)
+            .build(),
+        emitEvent(Event.BasketReached)
+    )
 
-    private fun moveToPosition(telemetry: Telemetry, position: Position) : Boolean {
-        // Reset completion
-        if (verticalCompleted && horizontalCompleted) {
-            verticalCompleted = false
-            horizontalCompleted = false
-            return false
-        }
+    private val depositSample = SequentialAction(
+        robot.lift.liftUp(),
+        robot.extender.extend(),
+        robot.claw.open(),
+        robot.extender.retract(),
+        robot.claw.close(),
+        emitEvent(Event.SampleDeposited)
+    )
 
-        robot.getRobotEncoderPositions(telemetry)
-        robot.getRobotEncoderTargets(telemetry)
-
-        // Move to position
-        if (!verticalCompleted) {
-            verticalCompleted = moveToPositionVertical(position.forwardDistance)
-        }
-        if (verticalCompleted && !horizontalCompleted) {
-            horizontalCompleted = moveToPositionHorizontal(position.strafeDistance)
-        }
-        return verticalCompleted && horizontalCompleted
-    }
-
-    private fun moveToPositionVertical(forwardDistance: Double) : Boolean {
-        // Move the robot to the specified position
-        if (forwardDistance != 0.0 && !robot.driving()) {
-            // Vertical movement (y-axis)
-            robot.driveWithEncoder(0.6, forwardDistance)
-        }
-        return !robot.driving()  // Check for completion
-    }
-
-    private fun moveToPositionHorizontal(strafeDistance: Double) : Boolean {
-        if (strafeDistance != 0.0 && !robot.driving()) {
-            // Horizontal movement (x-axis)
-            robot.strafeWithEncoder(0.6, strafeDistance)
-        }
-        return !robot.driving()  // Check for completion
-    }
-
-    private fun controlExtender(extend: Boolean) : Boolean {
-        // Reset completion
-        if (extenderCompleted) {
-            extenderCompleted = false
-            return false
-        }
-
-        // Extend or retract the extender
-        val completed = if (extend) robot.extendExtender() else robot.retractExtender()
-
-        // Wait for completion
-        if (completed) {
-            extenderCompleted = true
-            return true
-        }
-        return false
-    }
-
-    private fun liftLifters() : Boolean {
-        // Reset completion
-        if (liftersCompleted) {
-            liftersCompleted = false
-            robot.liftLifters(0.86)  // Lift the lifters
-            return false
-        }
-
-        // Wait for completion
-        if (!robot.liftersMoving()) {
-            liftersCompleted = true
-            return true
-        }
-        return false
-    }
+    private val goToObservationZone = SequentialAction(
+        drive.actionBuilder(drive.pose)
+            .splineTo(observationZonePose.position, observationZonePose.heading)
+            .build(),
+        emitEvent(Event.ObservationZoneReached)
+    )
 }

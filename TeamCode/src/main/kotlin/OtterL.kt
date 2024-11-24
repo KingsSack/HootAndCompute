@@ -1,40 +1,45 @@
 package org.firstinspires.ftc.teamcode
 
 import autonomous.Auto
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import robot.Steve
-import util.Position
 
 @Autonomous(name = "Otter - Left", group = "Competition")
-class OtterL : LinearOpMode(){
+class OtterL : LinearOpMode() {
     // Robot
     private val robot = Steve()
 
+    // Initial position
+    private val initialPose = Pose2d(Vector2d(0.0, 0.0), 90.0)
+
     // Sample positions
-    private val samplePositions = listOf(
-        Position(609.6, 609.6)  // First sample to collect
+    private val samplePoses: List<Pose2d> = listOf(
+        Pose2d(Vector2d(609.6, 609.6), 90.0)  // First sample to collect
     )
 
     // Basket position
-    private val basketPosition = Position(-304.8, 0.0)
+    private val basketPose = Pose2d(Vector2d(-304.8, 0.0), -45.0)
 
     // Observation zone position
-    private val observationZonePosition = Position(-609.6, -2133.6)
+    private val observationZonePosition = Pose2d(Vector2d(-609.6, -2133.6), 90.0)
 
     // Autonomous script
-    private val auto = Auto(robot, samplePositions, basketPosition, observationZonePosition)
+    private val auto = Auto(robot, false, samplePoses, basketPose, observationZonePosition)
 
     override fun runOpMode() {
         // Initialize
         robot.init(hardwareMap)
+        auto.init(hardwareMap, telemetry, initialPose)
 
         // Wait for start
         waitForStart()
 
         // Loop
         while (opModeIsActive()) {
-            auto.run(telemetry)
+            auto.tick(telemetry)
         }
     }
 }
