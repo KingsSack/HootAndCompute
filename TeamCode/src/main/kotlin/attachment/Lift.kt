@@ -1,4 +1,4 @@
-package attachment
+package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 
 class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Attachment {
     // Constants
-    private val maxPosition: Int = 3000
+    private val maxPosition: Int = 1900
     private val maxPower: Double = 0.8
 
     // Initialize lifters
@@ -30,25 +30,49 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         liftLeft.mode = DcMotor.RunMode.RUN_USING_ENCODER
     }
 
-    private class LiftUp(private val liftRight: DcMotor, private val liftLeft: DcMotor, private val power: Double, private val targetPosition: Int) : Action {
+    private class Control(
+        private val liftRight: DcMotor,
+        private val liftLeft: DcMotor,
+        private val power: Double,
+        private val targetPosition: Int
+    ) : Action {
         private var initialized = false
+
+        private var lowering = false
 
         override fun run(p: TelemetryPacket): Boolean {
             if (!initialized) {
+                // Determine if lowering
+                lowering = liftRight.currentPosition > targetPosition
+
                 // Set power
-                liftRight.power = power
-                liftLeft.power = power
+                if (lowering) {
+                    liftRight.power = -power
+                    liftLeft.power = -power
+                }
+                else {
+                    liftRight.power = power
+                    liftLeft.power = power
+                }
+
                 initialized = true
             }
 
             // Get positions
             val rightPosition: Int = liftRight.currentPosition
             val leftPosition: Int = liftLeft.currentPosition
-            p.put("Right Position", rightPosition)
-            p.put("Left Position", leftPosition)
+            p.put("Lift right position", rightPosition)
+            p.put("Lift left position", leftPosition)
 
-            if (rightPosition < targetPosition && leftPosition < targetPosition)
-                return true
+            if (lowering) {
+                // Lowering
+                if (rightPosition > targetPosition && leftPosition > targetPosition)
+                    return true
+            } else {
+                // Raising
+                if (rightPosition < targetPosition && leftPosition < targetPosition)
+                    return true
+            }
 
             // At target position
             liftRight.power = 0.0
@@ -56,33 +80,10 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
             return false
         }
     }
-    fun liftUp() : Action {
-        return LiftUp(liftRight, liftLeft, maxPower, maxPosition)
+    fun raise() : Action {
+        return Control(liftRight, liftLeft, maxPower, maxPosition)
     }
-
-//    class LiftDown(private val liftRight: DcMotor, private val liftLeft: DcMotor) : Action {
-//        var initialized: Boolean = false
-//
-//        override fun init(p: TelemetryPacket): Boolean {
-//            if (!initialized) {
-//                liftRight.setPower(-0.8)
-//                liftLeft.setPower(-0.8)
-//                initialized = true
-//            }
-//
-//            val rightPos: Int = liftRight.currentPosition
-//            val leftPos: Int = liftLeft.currentPosition
-//            p.put("liftPos", pos)
-//            if (rightPos > 0 && leftPos > 0) {
-//                return true
-//            } else {
-//                liftRight.setPower(0)
-//                liftLeft.setPower(0)
-//                return false
-//            }
-//        }
-//    }
-//    fun liftDown() : Action {
-//        return LiftDown(liftRight, liftLeft)
-//    }
+    fun drop() : Action {
+        return Control(liftRight, liftLeft, maxPower, 100)
+    }
 }

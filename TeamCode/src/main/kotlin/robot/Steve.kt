@@ -1,15 +1,15 @@
-package robot
+package org.firstinspires.ftc.teamcode.robot
 
-import attachment.Claw
-import attachment.Extender
-import attachment.Lift
+import org.firstinspires.ftc.teamcode.attachment.Claw
+import org.firstinspires.ftc.teamcode.attachment.Extender
+import org.firstinspires.ftc.teamcode.attachment.Lift
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import util.Controller
+import org.firstinspires.ftc.teamcode.util.Controller
 
-class Steve : Robot {
+class Steve(hardwareMap: HardwareMap) : Robot {
     // Control
     override val control = Controller()
 
@@ -24,12 +24,12 @@ class Steve : Robot {
     lateinit var extender: Extender
 
     // Drive parameters
-    private val countsPerMotorRev: Double = 560.0 // Encoder counts per motor revolution
-    private val driveGearReduction: Double = 1.0  // Gear reduction from external gears
-    private val wheelDiameterMM: Double = 96.0    // Wheel diameter in mm
-    private val wheelBaseWidthMM: Double = 460.0  // Wheelbase width in mm
+    // private val countsPerMotorRev: Double = 560.0 // Encoder counts per motor revolution
+    // private val driveGearReduction: Double = 1.0  // Gear reduction from external gears
+    // private val wheelDiameterMM: Double = 96.0    // Wheel diameter in mm
+    // private val wheelBaseWidthMM: Double = 460.0  // Wheelbase width in mm
 
-    override fun init(hardwareMap: HardwareMap) {
+    init {
         // Register hardware
         registerSensors(hardwareMap)
         registerAttachments(hardwareMap)
@@ -53,11 +53,6 @@ class Steve : Robot {
         lift = Lift(hardwareMap, "liftr", "liftl")
         claw = Claw(hardwareMap, "claw")
         extender = Extender(hardwareMap, "extend")
-    }
-
-    override fun tick() {
-        // Run controller
-        control.run()
     }
 
     fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {

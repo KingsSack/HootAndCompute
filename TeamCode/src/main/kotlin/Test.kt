@@ -5,8 +5,8 @@ import com.acmerobotics.roadrunner.Pose2d
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 
-@Autonomous(name = "Otter - Right", group = "Competition", preselectTeleOp = "Whale")
-class OtterR : LinearOpMode() {
+@Autonomous(name = "Otter - Test", group = "Test", preselectTeleOp = "Whale")
+class Test : LinearOpMode() {
     // Initial position
     private val initialPose = Pose2d(-24.0, 60.0, Math.toRadians(-90.0))
 
@@ -30,8 +30,7 @@ class OtterR : LinearOpMode() {
         waitForStart()
 
         // Loop
-        while (opModeIsActive()) {
-            auto.tick(telemetry)
-        }
+        if (opModeIsActive())
+            auto.test()
     }
 }

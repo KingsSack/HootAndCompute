@@ -5,15 +5,18 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import robot.Steve
+import org.firstinspires.ftc.teamcode.robot.Steve
 import kotlin.math.abs
 import kotlin.math.pow
 
 class Man(
-    private val robot: Steve,
+    hardwareMap: HardwareMap,
     private val gamepad1: Gamepad,
     private val gamepad2: Gamepad
 ) : Manual {
+    // Robot
+    private val robot = Steve(hardwareMap)
+
     // Drive motors
     private lateinit var leftFrontDrive: DcMotorEx
     private lateinit var rightFrontDrive: DcMotorEx
@@ -34,7 +37,7 @@ class Man(
     )
     private var currentSpeedMode = "NORMAL"
 
-    override fun init(hardwareMap: HardwareMap) {
+    init {
         // Register motors
         registerMotors(hardwareMap)
     }
@@ -62,6 +65,9 @@ class Man(
         controlClawWithGamepad(gamepad2)
         controlExtenderWithGamepad(gamepad2, telemetry)
 
+        // Tick robot
+        robot.tick()
+
         // Update telemetry
         telemetry.update()
     }
@@ -82,7 +88,7 @@ class Man(
         val scaledPowers = powers.map { it * speedModes[currentSpeedMode]!! }
 
         // Set motor powers with a minimum power threshold
-
+        setMotorPowers(scaledPowers)
     }
 
     private fun processInput(input: Double): Double {
@@ -131,24 +137,23 @@ class Man(
         when {
             gamepad.y -> {
                 currentSpeedMode = "TURBO"
-                gamepad.rumble(0.8, 0.8, 100)
             }
             gamepad.b -> {
                 currentSpeedMode = "NORMAL"
-                gamepad.rumble(0.4, 0.4, 100)
             }
             gamepad.a -> {
                 currentSpeedMode = "PRECISE"
-                gamepad.rumble(0.2, 0.2, 100)
             }
         }
     }
 
     private fun controlLiftersWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
         // Control lifters
-        if (gamepad.y) {
-            gamepad.rumble(1.0, 1.0, 100)
-            robot.control.addAction(robot.lift.liftUp())
+        if (gamepad.right_bumper) {
+            robot.control.addAction(robot.lift.raise())
+        }
+        else if (gamepad.left_bumper) {
+            robot.control.addAction(robot.lift.drop())
         }
     }
 
@@ -164,12 +169,10 @@ class Man(
         val position = robot.extender.currentPosition
         telemetry.addData("Extender position", "%5.2f", position)
         if (gamepad.x) {
-            gamepad.rumble(1.0, 1.0, 100)
             if (position == 0.0) robot.control.addAction(robot.extender.extend())
             else robot.control.addAction(robot.extender.retract())
         }
-        if (gamepad.right_bumper) {
-            gamepad.rumble(1.0, 1.0, 100)
+        if (gamepad.y) {
             // extender.setPos(0.4)
         }
     }

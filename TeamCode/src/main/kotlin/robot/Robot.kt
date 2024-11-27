@@ -1,19 +1,18 @@
-package robot
+package org.firstinspires.ftc.teamcode.robot
 
 import com.qualcomm.robotcore.hardware.HardwareMap
-import util.Controller
+import org.firstinspires.ftc.teamcode.util.Controller
 
 interface Robot {
     // Control
     val control: Controller
-
-    // Initialize
-    fun init(hardwareMap: HardwareMap)
 
     // Register
     fun registerSensors(hardwareMap: HardwareMap)
     fun registerAttachments(hardwareMap: HardwareMap)
 
     // Tick
-    fun tick()
+    fun tick() {
+        control.run()
+    }
 }
