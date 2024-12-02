@@ -86,4 +86,7 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
     fun drop() : Action {
         return Control(liftRight, liftLeft, maxPower, 100)
     }
+    fun lift(position: Int) : Action {
+        return Control(liftRight, liftLeft, maxPower, position)
+    }
 }

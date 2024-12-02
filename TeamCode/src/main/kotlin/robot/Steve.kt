@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot
 
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.SequentialAction
 import org.firstinspires.ftc.teamcode.attachment.Claw
 import org.firstinspires.ftc.teamcode.attachment.Extender
 import org.firstinspires.ftc.teamcode.attachment.Lift
@@ -7,12 +9,8 @@ import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import org.firstinspires.ftc.teamcode.util.Controller
 
 class Steve(hardwareMap: HardwareMap) : Robot {
-    // Control
-    override val control = Controller()
-
     // Sensors
     private lateinit var imu: IMU
     private lateinit var distanceSensor: DistanceSensor
@@ -22,12 +20,6 @@ class Steve(hardwareMap: HardwareMap) : Robot {
     lateinit var lift: Lift
     lateinit var claw: Claw
     lateinit var extender: Extender
-
-    // Drive parameters
-    // private val countsPerMotorRev: Double = 560.0 // Encoder counts per motor revolution
-    // private val driveGearReduction: Double = 1.0  // Gear reduction from external gears
-    // private val wheelDiameterMM: Double = 96.0    // Wheel diameter in mm
-    // private val wheelBaseWidthMM: Double = 460.0  // Wheelbase width in mm
 
     init {
         // Register hardware
@@ -53,6 +45,26 @@ class Steve(hardwareMap: HardwareMap) : Robot {
         lift = Lift(hardwareMap, "liftr", "liftl")
         claw = Claw(hardwareMap, "claw")
         extender = Extender(hardwareMap, "extend")
+    }
+
+    fun collectSample(): Action {
+        return SequentialAction(
+            lift.drop(),
+            extender.extend(),
+            claw.close(),
+            extender.retract(),
+            lift.raise()
+        )
+    }
+
+    fun depositSample(basketHeight: Int): Action {
+        return SequentialAction(
+            lift.lift(basketHeight + 20),
+            extender.extend(),
+            claw.open(),
+            extender.retract(),
+            lift.drop()
+        )
     }
 
     fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {

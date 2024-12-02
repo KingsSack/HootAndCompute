@@ -43,7 +43,6 @@ class Claw(hardwareMap: HardwareMap, name: String) : Attachment {
         return Control(clawServo, -maxPower, openCloseTime)
     }
 
-
     fun setPower(power: Double) {
         // Set servo power
         clawServo.power = power

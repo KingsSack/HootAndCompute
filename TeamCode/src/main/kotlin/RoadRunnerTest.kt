@@ -17,7 +17,7 @@ class RoadRunnerTest : LinearOpMode() {
     private lateinit var drive: MecanumDrive
 
     override fun runOpMode() {
-        registerDrive(hardwareMap, Pose2d(0.0, 0.0, 0.0))
+        registerDrive(hardwareMap, Pose2d(Vector2d(Configuration.testParams.initialX, Configuration.testParams.initialY), Configuration.testParams.initialHeading))
 
         waitForStart()
 

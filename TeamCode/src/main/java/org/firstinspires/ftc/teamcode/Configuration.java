@@ -40,4 +40,48 @@ public final class Configuration {
     }
 
     public static DriveParams driveParams = new DriveParams();
+
+    public static class FieldParams {
+        // basket
+        public double basketX = 60.0;
+        public double basketY = 60.0;
+        public int lowerBasketHeight = 500;
+        public int upperBasketHeight = 500;
+
+        // observation zone
+        public double observationX = -60.0;
+        public double observationY = 60.0;
+
+        // sample positions
+        public double[] samplePositionsX = new double[]{0.0, 0.0, 0.0};
+        public double[] samplePositionsY = new double[]{0.0, 0.0, 0.0};
+    }
+
+    public static FieldParams fieldParams = new FieldParams();
+
+    public static class OtterParams {
+        // inital
+        public double initialX = 24.0;
+        public double initialY = 60.0;
+        public double initialHeading = -90.0;
+
+        // preloaded
+        public boolean isPreloaded = false;
+
+        // number of samples to collect
+        public int numSamples = 0;
+    }
+
+    public static OtterParams otterLParams = new OtterParams();
+    public static OtterParams otterRParams = new OtterParams();
+    public static OtterParams otterTestParams = new OtterParams();
+
+    public static class TestParams {
+        // inital
+        public double initialX = 24.0;
+        public double initialY = 60.0;
+        public double initialHeading = -90.0;
+    }
+
+    public static TestParams testParams = new TestParams();
 }

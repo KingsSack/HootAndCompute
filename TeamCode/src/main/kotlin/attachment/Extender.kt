@@ -16,16 +16,16 @@ class Extender(hardwareMap: HardwareMap, name: String) : Attachment {
     // Position
     var currentPosition = extenderServo.position
 
-    private class Extend(private val servo: Servo, private val targetPosition: Double) : Action {
+    private class Control(private val servo: Servo, private val targetPosition: Double) : Action {
         override fun run(p: TelemetryPacket): Boolean {
             servo.position = targetPosition
             return false
         }
     }
     fun extend() : Action {
-        return Extend(extenderServo, minPosition)
+        return Control(extenderServo, minPosition)
     }
     fun retract() : Action {
-        return Extend(extenderServo, maxPosition)
+        return Control(extenderServo, maxPosition)
     }
 }

@@ -1,10 +1,13 @@
-package org.firstinspires.ftc.teamcode.util
+package org.firstinspires.ftc.teamcode.manual
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
-class Controller {
+class ManualController(
+    private val telemetry: Telemetry
+) {
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private var runningActions: MutableList<Action> = ArrayList()
 
@@ -12,7 +15,7 @@ class Controller {
         runningActions.add(action)
     }
 
-    fun run() {
+    fun runActions() {
         val packet = TelemetryPacket()
         val newActions: MutableList<Action> = ArrayList()
         for (action in runningActions) {
@@ -23,5 +26,6 @@ class Controller {
         }
         runningActions = newActions
         dash?.sendTelemetryPacket(packet)
+        telemetry.update()
     }
 }
