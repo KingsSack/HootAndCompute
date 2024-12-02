@@ -23,18 +23,21 @@ class Otter(
     private var currentSampleIndex = 0
 
     init {
-        // Build the sequence of actions
+        // Autonomous sequence
         if (params.isPreloaded) {
+            // If preloaded, deposit the preloaded sample
             controller.addAction(goToBasket())
             controller.addAction(robot.depositSample(fieldParams.lowerBasketHeight))
         } else {
             repeat(params.numSamples) {
+                // Collect samples
                 controller.addAction(goToSample())
                 controller.addAction(collectSample())
                 controller.addAction(goToBasket())
                 controller.addAction(robot.depositSample(fieldParams.lowerBasketHeight))
             }
         }
+        // Go to the observation zone
         controller.addAction(goToObservationZone())
     }
 

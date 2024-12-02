@@ -5,11 +5,12 @@ import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.teamcode.Configuration
 
 class Claw(hardwareMap: HardwareMap, name: String) : Attachment {
     // Constants
-    val maxPower = 0.72
-    private val openCloseTime = 0.6
+    val maxPower = Configuration.clawParams.maxPower
+    private val openCloseTime = Configuration.clawParams.openCloseTime
 
     // Initialize claw
     private var clawServo: CRServo = hardwareMap.get(CRServo::class.java, name)

@@ -6,13 +6,15 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.Configuration
 import org.firstinspires.ftc.teamcode.robot.Steve
 import kotlin.math.abs
 import kotlin.math.pow
 
-class Man(
+class Manual(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
+    params: Configuration.ManualParams,
     private val gamepad1: Gamepad,
     private val gamepad2: Gamepad
 ) : ManualMode {
@@ -26,16 +28,16 @@ class Man(
     private lateinit var rightRearDrive: DcMotorEx
 
     // Control parameters
-    private val deadzone = 0.05 // Minimum stick movement to register
-    private val minPower = 0.05 // Minimum power to move motors
-    private val turnScale = 0.8 // Reduce turn sensitivity
-    private val inputExp = 2.0  // Input exponential for fine control
+    private val deadzone = params.deadzone
+    private val minPower = params.minPower
+    private val turnScale = params.turnScale
+    private val inputExp = params.inputExp
 
     // Speed modes
     private val speedModes = mapOf(
-        "TURBO" to 1.0,
-        "NORMAL" to 0.8,
-        "PRECISE" to 0.4
+        "TURBO" to params.turbo,
+        "NORMAL" to params.normal,
+        "PRECISE" to params.precise
     )
     private var currentSpeedMode = "NORMAL"
 

@@ -5,12 +5,12 @@ import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-
+import org.firstinspires.ftc.teamcode.Configuration
 
 class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Attachment {
     // Constants
-    private val maxPosition: Int = 1900
-    private val maxPower: Double = 0.8
+    private val maxPosition: Int = Configuration.liftParams.maxPosition
+    private val maxPower: Double = Configuration.liftParams.maxPower
 
     // Initialize lifters
     private val liftRight = hardwareMap.get(DcMotor::class.java, rightName)
@@ -34,7 +34,8 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         private val liftRight: DcMotor,
         private val liftLeft: DcMotor,
         private val power: Double,
-        private val targetPosition: Int
+        private val targetPosition: Int,
+        private val maxPosition: Int
     ) : Action {
         private var initialized = false
 
@@ -42,6 +43,10 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
 
         override fun run(p: TelemetryPacket): Boolean {
             if (!initialized) {
+                // Check if the target position is valid
+                if (targetPosition < 0 || targetPosition > maxPosition)
+                    throw IllegalArgumentException("Target position out of bounds")
+
                 // Determine if lowering
                 lowering = liftRight.currentPosition > targetPosition
 
@@ -81,12 +86,12 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         }
     }
     fun raise() : Action {
-        return Control(liftRight, liftLeft, maxPower, maxPosition)
+        return Control(liftRight, liftLeft, maxPower, maxPosition, maxPosition)
     }
     fun drop() : Action {
-        return Control(liftRight, liftLeft, maxPower, 100)
+        return Control(liftRight, liftLeft, maxPower, 100, maxPosition)
     }
     fun lift(position: Int) : Action {
-        return Control(liftRight, liftLeft, maxPower, position)
+        return Control(liftRight, liftLeft, maxPower, position, maxPosition)
     }
 }

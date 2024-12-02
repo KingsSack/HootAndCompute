@@ -4,11 +4,12 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.teamcode.Configuration
 
 class Extender(hardwareMap: HardwareMap, name: String) : Attachment {
     // Constants
-    private val minPosition = 0.0
-    private val maxPosition = 1.0
+    private val minPosition = Configuration.extenderParams.minPosition
+    private val maxPosition = Configuration.extenderParams.maxPosition
 
     // Initialize extender
     private val extenderServo = hardwareMap.get(Servo::class.java, name)

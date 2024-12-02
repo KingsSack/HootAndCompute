@@ -5,6 +5,20 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
 @Config
 public final class Configuration {
+    public static class ManualParams {
+        // control parameters
+        public double deadzone = 0.05; // Minimum joystick input to register
+        public double minPower = 0.05; // Minimum power to move motors
+        public double turnScale = 0.8; // Reduce turn sensitivity
+        public double inputExp = 2.0;  // Input exponential for fine control
+
+        // speeds
+        public double turbo = 1.0;
+        public double normal = 0.75;
+        public double precise = 0.5;
+    }
+    public static ManualParams whaleParams = new ManualParams();
+
     public static class DriveParams {
         // IMU orientation
         public RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
@@ -38,7 +52,6 @@ public final class Configuration {
         public double lateralVelGain = 0.0;
         public double headingVelGain = 0.0; // shared with turn
     }
-
     public static DriveParams driveParams = new DriveParams();
 
     public static class FieldParams {
@@ -56,7 +69,6 @@ public final class Configuration {
         public double[] samplePositionsX = new double[]{0.0, 0.0, 0.0};
         public double[] samplePositionsY = new double[]{0.0, 0.0, 0.0};
     }
-
     public static FieldParams fieldParams = new FieldParams();
 
     public static class OtterParams {
@@ -71,7 +83,6 @@ public final class Configuration {
         // number of samples to collect
         public int numSamples = 0;
     }
-
     public static OtterParams otterLParams = new OtterParams();
     public static OtterParams otterRParams = new OtterParams();
     public static OtterParams otterTestParams = new OtterParams();
@@ -82,6 +93,26 @@ public final class Configuration {
         public double initialY = 60.0;
         public double initialHeading = -90.0;
     }
-
     public static TestParams testParams = new TestParams();
+
+    public static class LiftParams {
+        // constants
+        public int maxPosition = 1900;
+        public double maxPower = 0.8;
+    }
+    public static LiftParams liftParams = new LiftParams();
+
+    public static class ExtenderParams {
+        // constants
+        public double minPosition = 0.0;
+        public double maxPosition = 1.0;
+    }
+    public static ExtenderParams extenderParams = new ExtenderParams();
+
+    public static class ClawParams {
+        // constants
+        public double maxPower = 0.72;
+        public double openCloseTime = 0.6;
+    }
+    public static ClawParams clawParams = new ClawParams();
 }
