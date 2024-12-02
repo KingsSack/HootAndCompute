@@ -1,15 +1,9 @@
-package robot
+package org.firstinspires.ftc.teamcode.robot
 
-import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 
-abstract class Robot {
-    // Initialize
-    abstract fun init(hardwareMap: HardwareMap)
-
-    // Drive
-    abstract fun driveWithGamepad(gamepad: Gamepad)
-
-    // Stop
-    abstract fun halt()
+interface Robot {
+    // Register
+    fun registerSensors(hardwareMap: HardwareMap)
+    fun registerAttachments(hardwareMap: HardwareMap)
 }

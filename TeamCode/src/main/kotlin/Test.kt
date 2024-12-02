@@ -1,19 +1,24 @@
 package org.firstinspires.ftc.teamcode
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import robot.Goose
+import org.firstinspires.ftc.teamcode.autonomous.Otter
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import org.firstinspires.ftc.teamcode.autonomous.AutonomousMode
 
-@TeleOp(name = "Test - Seal", group = "Experimental")
-class Test : OpMode() {
-    private val robot = Goose()
+@Autonomous(name = "Otter - Test", group = "Test", preselectTeleOp = "Whale")
+class Test : LinearOpMode() {
+    // Autonomous script
+    private lateinit var auto: AutonomousMode
 
-    override fun init() {
-        robot.init(hardwareMap)
-    }
+    override fun runOpMode() {
+        // Initialize
+        auto = Otter(hardwareMap, telemetry, Configuration.otterTestParams)
 
-    override fun loop() {
-        robot.driveWithGamepad(gamepad1)
-        robot.liftArmWithGamepad(gamepad2)
+        // Wait for start
+        waitForStart()
+
+        // Execute
+        if (opModeIsActive())
+            auto.run()
     }
 }

@@ -1,7 +1,3 @@
-package attachment
+package org.firstinspires.ftc.teamcode.attachment
 
-import com.qualcomm.robotcore.hardware.HardwareMap
-
-abstract class Attachment(hardwareMap: HardwareMap) {
-
-}
+interface Attachment
