@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.util
 
-import android.graphics.Bitmap.Config
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.*

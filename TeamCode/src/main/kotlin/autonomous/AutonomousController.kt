@@ -6,6 +6,11 @@ import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 
+/**
+ * AutonomousController is a class that manages the execution of autonomous actions.
+ *
+ * @param telemetry for logging
+ */
 class AutonomousController(
     private val telemetry: Telemetry
 ) {
@@ -13,10 +18,18 @@ class AutonomousController(
     private val canvas = Canvas()
     private val actions = mutableListOf<Action>()
 
+    /**
+     * Add an action to the autonomous sequence.
+     *
+     * @param action the action to add
+     */
     fun addAction(action: Action) {
         actions.add(action)
     }
 
+    /**
+     * Execute the autonomous sequence.
+     */
     fun execute() {
         for (action in actions) {
             runAction(action)
@@ -26,6 +39,11 @@ class AutonomousController(
         telemetry.update()
     }
 
+    /**
+     * Run an action.
+     *
+     * @param action the action to run
+     */
     private fun runAction(action: Action) {
         action.preview(canvas)
 
