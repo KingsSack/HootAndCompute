@@ -8,6 +8,19 @@ import org.firstinspires.ftc.teamcode.Configuration.fieldParams
 import org.firstinspires.ftc.teamcode.robot.Steve
 import org.firstinspires.ftc.teamcode.util.MecanumDrive
 
+/**
+ * Otter is an autonomous mode that collects samples and deposits them in the basket.
+ *
+ * @param hardwareMap the hardware map
+ * @param telemetry the telemetry
+ * @param params the Otter parameters
+ *
+ * @property controller the autonomous controller
+ * @property robot the robot
+ * @property drive the mecanum drive
+ *
+ * @see AutonomousMode
+ */
 class Otter(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
@@ -43,7 +56,7 @@ class Otter(
 
     private fun goToSample(): Action {
         return drive.actionBuilder(drive.pose)
-            .splineTo(Vector2d(fieldParams.samplePositionsX[currentSampleIndex], fieldParams.samplePositionsY[currentSampleIndex]), Math.toRadians(-90.0))
+            .strafeTo(Vector2d(fieldParams.samplePositionsX[currentSampleIndex], fieldParams.samplePositionsY[currentSampleIndex]))
             .build()
     }
 
@@ -56,7 +69,8 @@ class Otter(
 
     private fun goToBasket(): Action {
         return drive.actionBuilder(drive.pose)
-            .splineTo(Vector2d(fieldParams.basketX, fieldParams.basketY), Math.toRadians(45.0))
+            .strafeTo(Vector2d(fieldParams.basketX, fieldParams.basketY))
+            .turn(Math.toRadians(135.0))
             .build()
     }
 

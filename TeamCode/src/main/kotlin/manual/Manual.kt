@@ -11,6 +11,18 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 import kotlin.math.abs
 import kotlin.math.pow
 
+/**
+ * The Manual class implements the ManualMode interface and provides manual control of the robot.
+ *
+ * @param hardwareMap the hardware map
+ * @param telemetry the telemetry
+ * @param params the manual parameters
+ * @param gamepad1 the first gamepad
+ * @param gamepad2 the second gamepad
+ *
+ * @property controller the manual controller
+ * @property robot the robot
+ */
 class Manual(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,

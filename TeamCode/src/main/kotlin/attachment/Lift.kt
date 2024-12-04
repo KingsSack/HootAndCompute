@@ -7,6 +7,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.teamcode.Configuration
 
+/**
+ * Lift is an attachment that raises and lowers the claw.
+ *
+ * @param hardwareMap for initializing motors
+ * @param rightName for the right motor
+ * @param leftName for the left motor
+ */
 class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Attachment {
     // Constants
     private val maxPosition: Int = Configuration.liftParams.maxPosition
@@ -30,6 +37,15 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         liftLeft.mode = DcMotor.RunMode.RUN_USING_ENCODER
     }
 
+    /**
+     * Control is an action that raises or lowers the lift to a target position.
+     *
+     * @param liftRight for the right motor
+     * @param liftLeft for the left motor
+     * @param power for the power of the lift
+     * @param targetPosition for the target position of the lift
+     * @param maxPosition for the maximum position of the lift
+     */
     private class Control(
         private val liftRight: DcMotor,
         private val liftLeft: DcMotor,
@@ -89,7 +105,7 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         return Control(liftRight, liftLeft, maxPower, maxPosition, maxPosition)
     }
     fun drop() : Action {
-        return Control(liftRight, liftLeft, maxPower, 100, maxPosition)
+        return Control(liftRight, liftLeft, maxPower, 10, maxPosition)
     }
     fun lift(position: Int) : Action {
         return Control(liftRight, liftLeft, maxPower, position, maxPosition)

@@ -7,6 +7,14 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.teamcode.Configuration
 
+/**
+ * Claw is an attachment that can open and close.
+ *
+ * @param hardwareMap the hardware map
+ * @param name the name of the claw servo
+ *
+ * @property maxPower the maximum power of the claw
+ */
 class Claw(hardwareMap: HardwareMap, name: String) : Attachment {
     // Constants
     val maxPower = Configuration.clawParams.maxPower
@@ -15,6 +23,13 @@ class Claw(hardwareMap: HardwareMap, name: String) : Attachment {
     // Initialize claw
     private var clawServo: CRServo = hardwareMap.get(CRServo::class.java, name)
 
+    /**
+     * Control is an action that opens or closes the claw.
+     *
+     * @param servo the servo that controls the claw
+     * @param power the power to set the servo to
+     * @param time the time to set the servo to the power
+     */
     private class Control(private val servo: CRServo, private val power: Double, private val time: Double) : Action {
         private var initialized = false
 
@@ -44,6 +59,11 @@ class Claw(hardwareMap: HardwareMap, name: String) : Attachment {
         return Control(clawServo, -maxPower, openCloseTime)
     }
 
+    /**
+     * Set the power of the claw.
+     *
+     * @param power the power to set the claw to
+     */
     fun setPower(power: Double) {
         // Set servo power
         clawServo.power = power

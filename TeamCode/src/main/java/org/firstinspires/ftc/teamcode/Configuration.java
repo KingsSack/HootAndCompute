@@ -59,15 +59,15 @@ public final class Configuration {
         public double basketX = 60.0;
         public double basketY = 60.0;
         public int lowerBasketHeight = 500;
-        public int upperBasketHeight = 500;
+        public int upperBasketHeight = 600;
 
         // observation zone
         public double observationX = -60.0;
         public double observationY = 60.0;
 
         // sample positions
-        public double[] samplePositionsX = new double[]{0.0, 0.0, 0.0};
-        public double[] samplePositionsY = new double[]{0.0, 0.0, 0.0};
+        public double[] samplePositionsX = new double[]{49.0, 60.0, 72.0};
+        public double[] samplePositionsY = new double[]{36.0, 36.0, 36.0};
     }
     public static FieldParams fieldParams = new FieldParams();
 
