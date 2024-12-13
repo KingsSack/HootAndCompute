@@ -35,15 +35,15 @@ class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         @JvmField
         var lateralInPerTick: Double = 0.0238
         @JvmField
-        var trackWidthTicks: Double = 1291.24
+        var trackWidthTicks: Double = 1297.32
 
         // feedforward parameters (in tick units)
         @JvmField
-        var kS: Double = 1.06 // 0.9035 // Represents the static force
+        var kS: Double = 0.9134 // 1.06 // Represents the static force
         @JvmField
-        var kV: Double = 0.0042 // 0.0044 // Represents the linear velocity
+        var kV: Double = 0.0043 // Represents the linear velocity
         @JvmField
-        var kA: Double = 0.00000001 // 0.001 // Represents the acceleration
+        var kA: Double = 0.001 // Represents the acceleration
 
         // path profile parameters (in inches)
         @JvmField
@@ -61,7 +61,7 @@ class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
 
         // path controller gains
         @JvmField
-        var axialGain: Double = 1.0
+        var axialGain: Double = 0.8
         @JvmField
         var lateralGain: Double = 1.0
         @JvmField
