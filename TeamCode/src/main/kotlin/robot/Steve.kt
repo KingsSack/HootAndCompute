@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot
 
+import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.SequentialAction
@@ -10,8 +11,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.attachment.*
 
 /**
- * Steve is a robot that has a lift, claw, shoulder, wrist, IMU, distance sensor, and HuskyLens.
+ * Steve is a robot for the 2024-2025 INTO THE DEEP FTC Season.
+ *
  * Steve can collect samples, deposit samples, detect objects, and detect distances.
+ * Steve has a lift, claw, shoulder, wrist, IMU, two distance sensors, and HuskyLens.
  *
  * @param hardwareMap for initializing hardware components
  * @param initialPose for setting the initial pose
@@ -21,17 +24,49 @@ import org.firstinspires.ftc.teamcode.attachment.*
  * @property shoulder for extending the claw
  * @property wrist for rotating the claw
  */
+@Config
 class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+    /**
+     * Params is a companion object that holds the configuration for the robot Steve.
+     *
+     * @property lidarLeftName the name of the left distance sensor
+     * @property lidarRightName the name of the right distance sensor
+     * @property huskyLensName the name of the HuskyLens
+     * @property liftRightName the name of the right lift motor
+     * @property liftLeftName the name of the left lift motor
+     * @property clawName the name of the claw motor
+     * @property shoulderName the name of the shoulder motor
+     * @property wristName the name of the wrist motor
+     */
+    companion object Params {
+        @JvmField
+        var lidarLeftName: String = "lidarl"
+        @JvmField
+        var lidarRightName: String = "lidarr"
+        @JvmField
+        var huskyLensName: String = "lens"
+        @JvmField
+        var liftRightName: String = "liftr"
+        @JvmField
+        var liftLeftName: String = "liftl"
+        @JvmField
+        var clawName: String = "claw"
+        @JvmField
+        var shoulderName: String = "sh"
+        @JvmField
+        var wristName: String = "wr"
+    }
+
     // Sensors
-    private val lidarLeft: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, "lidarl")
-    private val lidarRight: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, "lidarr")
-    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+    private val lidarLeft: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
+    private val lidarRight: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, lidarRightName)
+    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, huskyLensName)
 
     // Attachments
-    val lift: Lift = Lift(hardwareMap, "liftr", "liftl")
-    val claw: Claw = Claw(hardwareMap, "claw")
-    val shoulder: Shoulder = Shoulder(hardwareMap, "sh")
-    val wrist: Wrist = Wrist(hardwareMap, "wr")
+    val lift: Lift = Lift(hardwareMap, liftRightName, liftLeftName)
+    val claw: Claw = Claw(hardwareMap, clawName)
+    val shoulder: Shoulder = Shoulder(hardwareMap, shoulderName)
+    val wrist: Wrist = Wrist(hardwareMap, wristName)
 
     init {
         attachments = listOf(lift, claw, shoulder, wrist)

@@ -111,17 +111,17 @@ class Manual(
         updateSpeedMode(gamepad)
 
         // Get gamepad input with deadzone and exponential scaling
-        val x = processInput(gamepad.left_stick_x.toDouble())
-        val y = processInput(-gamepad.left_stick_y.toDouble())  // Inverted Y
-        val rx = processInput(gamepad.right_stick_x.toDouble()) * turnScale
+        val x = processInput(-gamepad.left_stick_x.toDouble())
+        val y = processInput(-gamepad.left_stick_y.toDouble())
+        val rx = processInput(-gamepad.right_stick_x.toDouble()) * turnScale
 
         // Apply current speed mode scaling
         val scale = speedModes[currentSpeedMode]!!
 
         // Create linear and angular velocities with scaling
         val linearVelocity = Vector2d(
-            applyMinPower(x * scale),
-            applyMinPower(y * scale)
+            applyMinPower(y * scale),
+            applyMinPower(x * scale)
         )
         val angularVelocity = applyMinPower(rx * scale)
 

@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 @Config
 class Wrist(hardwareMap: HardwareMap, name: String) : Attachment() {
     /**
-     * WristParams is a configuration object for the wrist.
+     * Params is a companion object that holds the configuration for the wrist attachment.
      *
      * @property minPosition the minimum position of the wrist
      * @property maxPosition the maximum position of the wrist

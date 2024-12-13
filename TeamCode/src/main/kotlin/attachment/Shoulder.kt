@@ -18,6 +18,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  */
 @Config
 class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
+    /**
+     * Params is a companion object that holds the configuration for the shoulder attachment.
+     *
+     * @property maxPosition the maximum position of the shoulder
+     * @property minPosition the minimum position of the shoulder
+     * @property maxPower the maximum power of the shoulder
+     */
     companion object Params {
         @JvmField
         var maxPosition: Int = 0

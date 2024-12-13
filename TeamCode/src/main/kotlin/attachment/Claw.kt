@@ -16,6 +16,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  */
 @Config
 class Claw(hardwareMap: HardwareMap, name: String) : Attachment() {
+    /**
+     * Params is a companion object that holds the configuration for the claw attachment.
+     *
+     * @property maxPower the maximum power of the claw
+     * @property openCloseTime the time it takes to open or close the claw
+     */
     companion object Params {
         @JvmField
         var maxPower: Double = 0.72
