@@ -3,21 +3,18 @@ package org.firstinspires.ftc.teamcode.autonomous
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.Configuration.OtterParams
-import org.firstinspires.ftc.teamcode.Configuration.fieldParams
+import org.firstinspires.ftc.teamcode.util.FieldParams
 import org.firstinspires.ftc.teamcode.robot.Steve
-import org.firstinspires.ftc.teamcode.util.MecanumDrive
 
 /**
  * Otter is an autonomous mode that collects samples and deposits them in the basket.
  *
  * @param hardwareMap the hardware map
  * @param telemetry the telemetry
- * @param params the Otter parameters
+ * @param params the parameters for Otter
  *
  * @property controller the autonomous controller
  * @property robot the robot
- * @property drive the mecanum drive
  *
  * @see AutonomousMode
  */
@@ -26,12 +23,35 @@ class Otter(
     telemetry: Telemetry,
     params: OtterParams
 ) : AutonomousMode {
+    /**
+     * The parameters for Otter.
+     *
+     * @property initialX the initial x position
+     * @property initialY the initial y position
+     * @property initialHeading the initial heading
+     * @property isPreloaded whether the robot is preloaded
+     * @property numSamples the number of samples to collect
+     */
+    class OtterParams {
+        @JvmField
+        var initialX: Double = 24.0
+        @JvmField
+        var initialY: Double = 66.0
+        @JvmField
+        var initialHeading: Double = -90.0
+
+        @JvmField
+        var isPreloaded: Boolean = false
+
+        @JvmField
+        var numSamples: Int = 1
+    }
+
     override val controller = AutonomousController(telemetry)
-    override val robot = Steve(hardwareMap)
-    override val drive = MecanumDrive(
-        hardwareMap, 
-        Pose2d(Vector2d(params.initialX, params.initialY), Math.toRadians(params.initialHeading))
-    )
+    override val robot = Steve(hardwareMap, Pose2d(
+        Vector2d(params.initialX, params.initialY),
+        Math.toRadians(params.initialHeading)
+    ))
 
     private var currentSampleIndex = 0
 
@@ -39,24 +59,25 @@ class Otter(
         // Autonomous sequence
         if (params.isPreloaded) {
             // If preloaded, deposit the preloaded sample
-            controller.addAction(goToBasket())
-            controller.addAction(robot.depositSample(fieldParams.lowerBasketHeight))
-        } else {
-            repeat(params.numSamples) {
-                // Collect samples
-                controller.addAction(goToSample())
-                controller.addAction(collectSample())
-                controller.addAction(goToBasket())
-                controller.addAction(robot.depositSample(fieldParams.lowerBasketHeight))
-            }
+            controller.addAction { goToBasket() }
+            controller.addAction { robot.depositSample(FieldParams.lowerBasketHeight) }
         }
-        // Go to the observation zone
-        controller.addAction(goToObservationZone())
+        repeat(params.numSamples) {
+            // Collect samples
+            controller.addAction { goToSample() }
+            controller.addAction { collectSample() }
+            controller.addAction { goToBasket() }
+            controller.addAction { robot.depositSample(FieldParams.lowerBasketHeight) }
+        }
+        // Park
+        controller.addAction { goToObservationZone() }
     }
 
     private fun goToSample(): Action {
-        return drive.actionBuilder(drive.pose)
-            .strafeTo(Vector2d(fieldParams.samplePositionsX[currentSampleIndex], fieldParams.samplePositionsY[currentSampleIndex]))
+        return robot.drive.actionBuilder(robot.drive.pose)
+            .turnTo(Math.toRadians(-90.0))
+            .waitSeconds(1.0)
+            .strafeTo(Vector2d(FieldParams.samplePickupPositionsX[currentSampleIndex], FieldParams.samplePickupPositionsY[currentSampleIndex]))
             .build()
     }
 
@@ -68,15 +89,19 @@ class Otter(
     }
 
     private fun goToBasket(): Action {
-        return drive.actionBuilder(drive.pose)
-            .strafeTo(Vector2d(fieldParams.basketX, fieldParams.basketY))
-            .turn(Math.toRadians(135.0))
+        return robot.drive.actionBuilder(robot.drive.pose)
+            .turn(Math.toRadians(-135.0))
+            .strafeTo(Vector2d(FieldParams.basketX, FieldParams.basketY))
             .build()
     }
 
     private fun goToObservationZone(): Action {
-        return drive.actionBuilder(drive.pose)
-            .strafeTo(Vector2d(fieldParams.observationX, fieldParams.observationY))
+        return robot.drive.actionBuilder(robot.drive.pose)
+            .lineToY(36.0)
+            .setTangent(Math.toRadians(0.0))
+            .lineToX(FieldParams.observationX)
+            .setTangent(Math.toRadians(-90.0))
+            .lineToY(FieldParams.observationY)
             .build()
     }
 

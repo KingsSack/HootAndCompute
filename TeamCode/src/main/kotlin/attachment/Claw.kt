@@ -1,62 +1,67 @@
 package org.firstinspires.ftc.teamcode.attachment
 
+import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
-import org.firstinspires.ftc.teamcode.Configuration
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * Claw is an attachment that can open and close.
  *
  * @param hardwareMap the hardware map
  * @param name the name of the claw servo
- *
- * @property maxPower the maximum power of the claw
  */
-class Claw(hardwareMap: HardwareMap, name: String) : Attachment {
-    // Constants
-    val maxPower = Configuration.clawParams.maxPower
-    private val openCloseTime = Configuration.clawParams.openCloseTime
+@Config
+class Claw(hardwareMap: HardwareMap, name: String) : Attachment() {
+    companion object Params {
+        @JvmField
+        var maxPower: Double = 0.72
+        @JvmField
+        var openCloseTime: Double = 0.6
+    }
 
     // Initialize claw
-    private var clawServo: CRServo = hardwareMap.get(CRServo::class.java, name)
+    private val clawServo: CRServo = hardwareMap.crservo[name]
+
+    init {
+        crServos = listOf(clawServo)
+    }
 
     /**
      * Control is an action that opens or closes the claw.
      *
-     * @param servo the servo that controls the claw
      * @param power the power to set the servo to
      * @param time the time to set the servo to the power
      */
-    private class Control(private val servo: CRServo, private val power: Double, private val time: Double) : Action {
-        private var initialized = false
-
+    inner class Control(
+        private val power: Double,
+        private val time: Double
+    ) : ControlAction() {
         // Runtime
         private val runtime: ElapsedTime = ElapsedTime()
 
-        override fun run(p: TelemetryPacket): Boolean {
-            if (!initialized) {
-                // Set power
-                runtime.reset()
-                servo.power = power
-                initialized = true
-            }
+        override fun init() {
+            runtime.reset()
+            clawServo.power = power // Set servo power
+        }
 
+        override fun update(packet: TelemetryPacket): Boolean {
             if (runtime.seconds() < time)
                 return true
 
             // Stop servo
-            servo.power = 0.0
+            clawServo.power = 0.0
             return false
         }
     }
-    fun open() : Action {
-        return Control(clawServo, maxPower, openCloseTime)
+    fun open(): Action {
+        return Control(maxPower, openCloseTime)
     }
-    fun close() : Action {
-        return Control(clawServo, -maxPower, openCloseTime)
+    fun close(): Action {
+        return Control(-maxPower, openCloseTime)
     }
 
     /**
@@ -67,5 +72,9 @@ class Claw(hardwareMap: HardwareMap, name: String) : Attachment {
     fun setPower(power: Double) {
         // Set servo power
         clawServo.power = power
+    }
+
+    override fun update(telemetry: Telemetry) {
+        telemetry.addData("Claw power", clawServo.power)
     }
 }

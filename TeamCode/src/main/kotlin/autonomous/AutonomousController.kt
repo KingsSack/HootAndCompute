@@ -16,14 +16,14 @@ class AutonomousController(
 ) {
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
-    private val actions = mutableListOf<Action>()
+    private val actions = mutableListOf<() -> Action>()
 
     /**
      * Add an action to the autonomous sequence.
      *
      * @param action the action to add
      */
-    fun addAction(action: Action) {
+    fun addAction(action: () -> Action) {
         actions.add(action)
     }
 
@@ -32,7 +32,7 @@ class AutonomousController(
      */
     fun execute() {
         for (action in actions) {
-            runAction(action)
+            runAction(action())
             telemetry.update()
         }
         telemetry.addData("Autonomous", "Completed")

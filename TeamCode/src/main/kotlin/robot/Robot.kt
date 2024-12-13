@@ -1,22 +1,34 @@
 package org.firstinspires.ftc.teamcode.robot
 
+import com.acmerobotics.roadrunner.Pose2d
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.attachment.Attachment
+import org.firstinspires.ftc.teamcode.util.MecanumDrive
 
 /**
- * Robot is an interface that defines the methods for registering sensors and attachments.
+ * Represents a robot.
+ *
+ * @param hardwareMap for initializing hardware components
+ * @param initialPose of the robot
  */
-interface Robot {
-    /**
-     * Register sensors to the robot.
-     *
-     * @param hardwareMap the hardware map
-     */
-    fun registerSensors(hardwareMap: HardwareMap)
+abstract class Robot(hardwareMap: HardwareMap, initialPose: Pose2d) {
+    // Attachments
+    protected var attachments: List<Attachment> = listOf()
+
+    // The mecanum drive of the robot.
+    val drive = MecanumDrive(hardwareMap, initialPose)
 
     /**
-     * Register attachments to the robot.
+     * Updates the robot.
      *
-     * @param hardwareMap the hardware map
+     * @param telemetry for updating telemetry
      */
-    fun registerAttachments(hardwareMap: HardwareMap)
+    fun update(telemetry: Telemetry) {
+        drive.updatePoseEstimate()
+        attachments.forEach { it.update(telemetry) }
+
+        // Update telemetry
+        telemetry.update()
+    }
 }

@@ -1,60 +1,43 @@
 package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.SequentialAction
-import org.firstinspires.ftc.teamcode.attachment.Claw
-import org.firstinspires.ftc.teamcode.attachment.Extender
-import org.firstinspires.ftc.teamcode.attachment.Lift
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.teamcode.attachment.*
 
 /**
- * Steve is a robot that has a lift, claw, extender, IMU, distance sensor, and HuskyLens.
- * Steve can collect samples, deposit samples, and detect objects.
+ * Steve is a robot that has a lift, claw, shoulder, wrist, IMU, distance sensor, and HuskyLens.
+ * Steve can collect samples, deposit samples, detect objects, and detect distances.
  *
  * @param hardwareMap for initializing hardware components
+ * @param initialPose for setting the initial pose
  *
  * @property lift for lifting the claw
  * @property claw for grabbing objects
- * @property extender for extending the claw
+ * @property shoulder for extending the claw
+ * @property wrist for rotating the claw
  */
-class Steve(hardwareMap: HardwareMap) : Robot {
+class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
     // Sensors
-    private lateinit var imu: IMU
-    private lateinit var distanceSensor: DistanceSensor
-    private lateinit var huskyLens: HuskyLens
+    private val lidarLeft: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, "lidarl")
+    private val lidarRight: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, "lidarr")
+    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
 
     // Attachments
-    lateinit var lift: Lift
-    lateinit var claw: Claw
-    lateinit var extender: Extender
+    val lift: Lift = Lift(hardwareMap, "liftr", "liftl")
+    val claw: Claw = Claw(hardwareMap, "claw")
+    val shoulder: Shoulder = Shoulder(hardwareMap, "sh")
+    val wrist: Wrist = Wrist(hardwareMap, "wr")
 
     init {
-        // Register hardware
-        registerSensors(hardwareMap)
-        registerAttachments(hardwareMap)
-
-        // Reset IMU
-        imu.resetYaw()
+        attachments = listOf(lift, claw, shoulder, wrist)
 
         // Set huskylens mode
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
-    }
-
-    override fun registerSensors(hardwareMap: HardwareMap) {
-        // Register sensors
-        imu = hardwareMap.get(IMU::class.java, "imu")
-        distanceSensor = hardwareMap.get(DistanceSensor::class.java, "lidar")
-        huskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
-    }
-
-    override fun registerAttachments(hardwareMap: HardwareMap) {
-        // Register attachments
-        lift = Lift(hardwareMap, "liftr", "liftl")
-        claw = Claw(hardwareMap, "claw")
-        extender = Extender(hardwareMap, "extend")
     }
 
     /**
@@ -63,34 +46,34 @@ class Steve(hardwareMap: HardwareMap) : Robot {
      *
      * @return action to collect a sample
      *
-     * @see Extender
+     * @see Shoulder
      * @see Claw
      */
     fun collectSample(): Action {
         return SequentialAction(
-            extender.extend(),
+            shoulder.extend(),
             claw.close(),
-            extender.retract()
+            shoulder.retract()
         )
     }
 
     /**
-     * Deposit a sample by lifting the lift, extending the extender,
-     * opening the claw, retracting the extender, and dropping the lift.
+     * Deposit a sample by lifting the goTo, extending the extender,
+     * opening the claw, retracting the extender, and dropping the goTo.
      *
      * @param basketHeight height of the basket
      * @return action to deposit a sample
      *
      * @see Lift
-     * @see Extender
+     * @see Shoulder
      * @see Claw
      */
     fun depositSample(basketHeight: Int): Action {
         return SequentialAction(
-            lift.lift(basketHeight + 20),
-            extender.extend(),
+            lift.goTo(basketHeight + 20),
+            shoulder.extend(),
             claw.open(),
-            extender.retract(),
+            shoulder.retract(),
             lift.drop()
         )
     }
@@ -123,9 +106,15 @@ class Steve(hardwareMap: HardwareMap) : Robot {
      * @see DistanceSensor
      */
     fun getDistanceToObstacle(telemetry: Telemetry): Double {
-        // Get distance
-        val distance = distanceSensor.getDistance(DistanceUnit.MM)
-        telemetry.addData("range", "%.01f mm".format(distance))
-        return distance
+        // Get distances
+        val distanceLeft = lidarLeft.getDistance(DistanceUnit.MM)
+        val distanceRight = lidarRight.getDistance(DistanceUnit.MM)
+        val averageDistance = (distanceLeft + distanceRight) / 2
+
+        telemetry.addData("range left", "%.01f mm".format(distanceLeft))
+        telemetry.addData("range right", "%.01f mm".format(distanceRight))
+        telemetry.addData("average range", "%.01f mm".format(averageDistance))
+
+        return averageDistance
     }
 }

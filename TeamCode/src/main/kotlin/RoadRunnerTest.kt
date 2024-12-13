@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode
 
 import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.PoseVelocity2d
@@ -14,10 +15,20 @@ import org.firstinspires.ftc.teamcode.util.MecanumDrive
 
 @TeleOp(name = "RoadRunner - Test", group = "Test")
 class RoadRunnerTest : LinearOpMode() {
+    @Config
+    object RRTestParams {
+        @JvmField
+        var initialX: Double = 24.0
+        @JvmField
+        var initialY: Double = 66.0
+        @JvmField
+        var initialHeading: Double = -90.0
+    }
+
     private lateinit var drive: MecanumDrive
 
     override fun runOpMode() {
-        registerDrive(hardwareMap, Pose2d(Vector2d(Configuration.testParams.initialX, Configuration.testParams.initialY), Configuration.testParams.initialHeading))
+        registerDrive(hardwareMap, Pose2d(Vector2d(RRTestParams.initialX, RRTestParams.initialY), RRTestParams.initialHeading))
 
         waitForStart()
 

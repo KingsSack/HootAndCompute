@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.teamcode.manual
 
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.PoseVelocity2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.Configuration
+import org.firstinspires.ftc.teamcode.attachment.Claw
+import org.firstinspires.ftc.teamcode.attachment.Wrist
 import org.firstinspires.ftc.teamcode.robot.Steve
 import kotlin.math.abs
 import kotlin.math.pow
@@ -16,9 +17,8 @@ import kotlin.math.pow
  *
  * @param hardwareMap the hardware map
  * @param telemetry the telemetry
- * @param params the manual parameters
- * @param gamepad1 the first gamepad
- * @param gamepad2 the second gamepad
+ * @param gamepad1 gamepad for movement
+ * @param gamepad2 gamepad for actions
  *
  * @property controller the manual controller
  * @property robot the robot
@@ -26,18 +26,54 @@ import kotlin.math.pow
 class Manual(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    params: Configuration.ManualParams,
+    params: ManualParams,
     private val gamepad1: Gamepad,
     private val gamepad2: Gamepad
 ) : ManualMode {
-    override val controller = ManualController(telemetry)
-    override val robot = Steve(hardwareMap)
+    /**
+     * ManualParams is a configuration object for manual control.
+     *
+     * @property deadzone the minimum joystick input to register
+     * @property minPower the minimum power to move motors
+     * @property turnScale the turn sensitivity
+     * @property inputExp the input exponential for fine control
+     * @property turbo the speed of the turbo speed mode
+     * @property normal the speed of the normal speed mode
+     * @property precise the speed of the precise speed mode
+     * @property initialX the initial x position
+     * @property initialY the initial y position
+     * @property initialHeading the initial heading
+     */
+    class ManualParams {
+        @JvmField
+        var deadzone: Double = 0.05
+        @JvmField
+        var minPower: Double = 0.05
+        @JvmField
+        var turnScale: Double = 0.8
+        @JvmField
+        var inputExp: Double = 2.0
 
-    // Drive motors
-    private lateinit var leftFrontDrive: DcMotorEx
-    private lateinit var rightFrontDrive: DcMotorEx
-    private lateinit var leftRearDrive: DcMotorEx
-    private lateinit var rightRearDrive: DcMotorEx
+        @JvmField
+        var turbo: Double = 1.0
+        @JvmField
+        var normal: Double = 0.75
+        @JvmField
+        var precise: Double = 0.5
+
+        @JvmField
+        var initialX: Double = -66.0
+        @JvmField
+        var initialY: Double = 66.0
+        @JvmField
+        var initialHeading: Double = -90.0
+    }
+
+    override val controller = ManualController(telemetry)
+    override val robot = Steve(hardwareMap, Pose2d(
+        Vector2d(params.initialX, params.initialY),
+        Math.toRadians(params.initialHeading)
+    ))
 
     // Control parameters
     private val deadzone = params.deadzone
@@ -53,42 +89,21 @@ class Manual(
     )
     private var currentSpeedMode = "NORMAL"
 
-    init {
-        // Register motors
-        registerMotors(hardwareMap)
-    }
-
-    override fun registerMotors(hardwareMap: HardwareMap) {
-        // Register motors
-        leftFrontDrive = hardwareMap.get(DcMotorEx::class.java, "lf")
-        rightFrontDrive = hardwareMap.get(DcMotorEx::class.java, "rf")
-        leftRearDrive = hardwareMap.get(DcMotorEx::class.java, "lr")
-        rightRearDrive = hardwareMap.get(DcMotorEx::class.java, "rr")
-
-        // Set motor directions
-        leftFrontDrive.direction = DcMotorSimple.Direction.FORWARD
-        rightFrontDrive.direction = DcMotorSimple.Direction.REVERSE
-        leftRearDrive.direction = DcMotorSimple.Direction.FORWARD
-        rightRearDrive.direction = DcMotorSimple.Direction.REVERSE
-
-        // Set zero power behavior`
-        leftFrontDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rightFrontDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        leftRearDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rightRearDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-    }
-
     override fun tick(telemetry: Telemetry) {
         // Drive
         driveWithGamepad(gamepad1)
 
         // Control lifters, claw, and extender
-        controlLiftersWithGamepad(gamepad2, telemetry)
+        controlLiftWithGamepad(gamepad2)
         controlClawWithGamepad(gamepad2)
-        controlExtenderWithGamepad(gamepad2, telemetry)
+        rotateClawWithGamepad(gamepad2)
+        extendClawWithGamepad(gamepad2)
 
         // Run actions
         controller.runActions()
+
+        // Update robot
+        robot.update(telemetry)
     }
 
     private fun driveWithGamepad(gamepad: Gamepad) {
@@ -100,14 +115,23 @@ class Manual(
         val y = processInput(-gamepad.left_stick_y.toDouble())  // Inverted Y
         val rx = processInput(gamepad.right_stick_x.toDouble()) * turnScale
 
-        // Calculate mecanum drive powers
-        val powers = calculateMecanumPowers(x, y, rx)
-
         // Apply current speed mode scaling
-        val scaledPowers = powers.map { it * speedModes[currentSpeedMode]!! }
+        val scale = speedModes[currentSpeedMode]!!
 
-        // Set motor powers with a minimum power threshold
-        setMotorPowers(scaledPowers)
+        // Create linear and angular velocities with scaling
+        val linearVelocity = Vector2d(
+            applyMinPower(x * scale),
+            applyMinPower(y * scale)
+        )
+        val angularVelocity = applyMinPower(rx * scale)
+
+        // Set drive powers using robot.drive.setDrivePowers
+        robot.drive.setDrivePowers(
+            PoseVelocity2d(
+                linearVelocity,
+                angularVelocity
+            )
+        )
     }
 
     private fun processInput(input: Double): Double {
@@ -119,29 +143,6 @@ class Manual(
 
         // Apply exponential scaling for fine control
         return normalizedInput.pow(inputExp) * if (input < 0) -1 else 1
-    }
-
-    private fun calculateMecanumPowers(x: Double, y: Double, rx: Double): List<Double> {
-        // Calculate raw powers
-        val rfPower = y - x - rx
-        val lfPower = y + x + rx
-        val rrPower = y + x - rx
-        val lrPower = y - x + rx
-
-        // Find maximum magnitude
-        val maxMagnitude = maxOf(abs(rfPower), abs(lfPower), abs(rrPower), abs(lrPower))
-
-        // Normalize powers
-        val normalizationFactor = if (maxMagnitude > 1.0) maxMagnitude else 1.0
-        return listOf(rfPower, lfPower, rrPower, lrPower).map { it / normalizationFactor }
-    }
-
-    private fun setMotorPowers(powers: List<Double>) {
-        // Apply minimum power threshold and set motors
-        rightFrontDrive.power = applyMinPower(powers[0])
-        leftFrontDrive.power = applyMinPower(powers[1])
-        rightRearDrive.power = applyMinPower(powers[2])
-        leftRearDrive.power = applyMinPower(powers[3])
     }
 
     private fun applyMinPower(power: Double): Double {
@@ -166,33 +167,28 @@ class Manual(
         }
     }
 
-    private fun controlLiftersWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
+    private fun controlLiftWithGamepad(gamepad: Gamepad) {
         // Control lifters
-        if (gamepad.right_bumper) {
-            controller.addAction(robot.lift.raise())
-        }
-        else if (gamepad.left_bumper) {
-            controller.addAction(robot.lift.drop())
-        }
+        if (gamepad.right_bumper) controller.addAction(robot.lift.raise())
+        else if (gamepad.left_bumper) controller.addAction(robot.lift.drop())
     }
 
     private fun controlClawWithGamepad(gamepad: Gamepad) {
-        // Control arm
-        if (gamepad.a) robot.claw.setPower(robot.claw.maxPower)
-        else if (gamepad.b) robot.claw.setPower(-robot.claw.maxPower)
-        else robot.claw.setPower(0.0)
+        // Control claw
+        robot.claw.setPower(Claw.maxPower * (gamepad.right_trigger - gamepad.left_trigger))
     }
 
-    private fun controlExtenderWithGamepad(gamepad: Gamepad, telemetry: Telemetry) {
-        // Control extender
-        val position = robot.extender.currentPosition
-        telemetry.addData("Extender position", "%5.2f", position)
-        if (gamepad.x) {
-            if (position == 0.0) controller.addAction(robot.extender.extend())
-            else controller.addAction(robot.extender.retract())
-        }
-        if (gamepad.y) {
-            // extender.setPos(0.4)
-        }
+    private fun rotateClawWithGamepad(gamepad: Gamepad) {
+        // Control claw rotation
+        if (gamepad.a) controller.addAction(robot.wrist.twistTo((Wrist.maxPosition - Wrist.minPosition) / 2))
+        else if (gamepad.dpad_up) controller.addAction(robot.wrist.twistTo(robot.wrist.getPosition() + 0.05))
+        else if (gamepad.dpad_down) controller.addAction(robot.wrist.twistTo(robot.wrist.getPosition() - 0.05))
+    }
+
+    private fun extendClawWithGamepad(gamepad: Gamepad) {
+        // Control shoulder
+        if (gamepad.x) controller.addAction(robot.shoulder.retract())
+        else if (gamepad.y) controller.addAction(robot.shoulder.goTo(0))
+        else if (gamepad.b) controller.addAction(robot.shoulder.extend())
     }
 }

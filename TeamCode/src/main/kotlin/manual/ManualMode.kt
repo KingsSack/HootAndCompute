@@ -15,13 +15,6 @@ interface ManualMode {
     val robot: Robot
 
     /**
-     * Register motors for manual movement.
-     *
-     * @param hardwareMap the hardware map
-     */
-    fun registerMotors(hardwareMap: HardwareMap)
-
-    /**
      * Tick the manual mode.
      *
      * @param telemetry for logging
