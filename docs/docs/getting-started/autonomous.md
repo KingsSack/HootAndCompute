@@ -51,7 +51,8 @@ override fun runOpMode() {
 }
 ```
 
-{% include warning.html content="You must include the `waitForStart()` to make the OpMode legal" %}
+>[!Warning]
+>You must include the `waitForStart()` to make the OpMode legal
 
 ## Result
 
