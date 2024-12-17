@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.autonomous
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.util.FieldParams
 import org.firstinspires.ftc.teamcode.robot.Steve
 
@@ -34,7 +35,7 @@ class Otter(
      */
     class OtterParams {
         @JvmField
-        var initialX: Double = 24.0
+        var initialX: Double = -24.0
         @JvmField
         var initialY: Double = 66.0
         @JvmField
@@ -44,7 +45,7 @@ class Otter(
         var isPreloaded: Boolean = false
 
         @JvmField
-        var numSamples: Int = 1
+        var numSamples: Int = 0
     }
 
     override val controller = AutonomousController(telemetry)
@@ -60,14 +61,14 @@ class Otter(
         if (params.isPreloaded) {
             // If preloaded, deposit the preloaded sample
             controller.addAction { goToBasket() }
-            controller.addAction { robot.depositSample(FieldParams.lowerBasketHeight) }
+            controller.addAction { robot.depositSample(Lift.upperBasketHeight) }
         }
         repeat(params.numSamples) {
             // Collect samples
             controller.addAction { goToSample() }
             controller.addAction { collectSample() }
             controller.addAction { goToBasket() }
-            controller.addAction { robot.depositSample(FieldParams.lowerBasketHeight) }
+            controller.addAction { robot.depositSample(Lift.upperBasketHeight) }
         }
         // Park
         controller.addAction { goToObservationZone() }
@@ -77,7 +78,7 @@ class Otter(
         return robot.drive.actionBuilder(robot.drive.pose)
             .turnTo(Math.toRadians(-90.0))
             .waitSeconds(1.0)
-            .strafeTo(Vector2d(FieldParams.samplePickupPositionsX[currentSampleIndex], FieldParams.samplePickupPositionsY[currentSampleIndex]))
+            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex]))
             .build()
     }
 

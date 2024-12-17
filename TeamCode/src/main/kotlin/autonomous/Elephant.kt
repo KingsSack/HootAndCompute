@@ -38,13 +38,13 @@ class Elephant(
         @JvmField
         var initialY: Double = 66.0
         @JvmField
-        var initialHeading: Double = 0.0
+        var initialHeading: Double = 90.0
 
         @JvmField
         var isPreloaded: Boolean = true
 
         @JvmField
-        var numSamples: Int = 3
+        var numSamples: Int = 2
     }
 
     override val controller = AutonomousController(telemetry)
@@ -73,8 +73,14 @@ class Elephant(
     private fun goToSample(): Action {
         return SequentialAction(
             robot.drive.actionBuilder(robot.drive.pose)
-                .strafeTo(Vector2d(24.0, 60.0))
-                .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex] - 8.0, FieldParams.samplePositionsY[currentSampleIndex]))
+                .setTangent(Math.toRadians(-90.0))
+                .lineToY(58.0)
+                .setTangent(Math.toRadians(0.0))
+                .lineToX(44.0)
+                .setTangent(-90.0)
+                .lineToY(FieldParams.samplePositionsY[currentSampleIndex] - 16.0)
+                .setTangent(Math.toRadians(0.0))
+                .lineToX(FieldParams.samplePositionsX[currentSampleIndex])
                 .build(),
             InstantAction { currentSampleIndex++ }
         )
@@ -88,7 +94,7 @@ class Elephant(
 
     private fun goToObservationZone(): Action {
         return robot.drive.actionBuilder(robot.drive.pose)
-            .lineToY(36.0)
+            .strafeTo(Vector2d(24.0, 38.0))
             .setTangent(Math.toRadians(0.0))
             .lineToX(FieldParams.observationX)
             .setTangent(Math.toRadians(-90.0))

@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.autonomous.Elephant
 class OtterTest : LinearOpMode() {
     companion object Config {
         @JvmField
-        var otterTestParams: Otter.OtterParams = Otter.OtterParams()
+        var params: Otter.OtterParams = Otter.OtterParams()
     }
 
     // Autonomous script
@@ -20,7 +20,7 @@ class OtterTest : LinearOpMode() {
 
     override fun runOpMode() {
         // Initialize
-        auto = Otter(hardwareMap, telemetry, otterTestParams)
+        auto = Otter(hardwareMap, telemetry, params)
 
         // Wait for start
         waitForStart()
@@ -36,7 +36,7 @@ class OtterTest : LinearOpMode() {
 class ElephantTest : LinearOpMode() {
     companion object Config {
         @JvmField
-        var elephantTestParams: Elephant.ElephantParams = Elephant.ElephantParams()
+        var params: Elephant.ElephantParams = Elephant.ElephantParams()
     }
 
     // Autonomous script
@@ -44,7 +44,7 @@ class ElephantTest : LinearOpMode() {
 
     override fun runOpMode() {
         // Initialize
-        auto = Elephant(hardwareMap, telemetry, elephantTestParams)
+        auto = Elephant(hardwareMap, telemetry, params)
 
         // Wait for start
         waitForStart()

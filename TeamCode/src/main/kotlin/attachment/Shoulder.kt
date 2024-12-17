@@ -22,16 +22,22 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
      * Params is a companion object that holds the configuration for the shoulder attachment.
      *
      * @property maxPosition the maximum position of the shoulder
+     * @property basketPosition the ideal position of the shoulder for putting a sample in the basket
+     * @property submersiblePosition the ideal position of the shoulder for scoring a specimen
      * @property minPosition the minimum position of the shoulder
      * @property maxPower the maximum power of the shoulder
      */
     companion object Params {
         @JvmField
-        var maxPosition: Int = 0
+        var maxPosition: Int = -100
+        @JvmField
+        var basketPosition: Int = -40
+        @JvmField
+        var submersiblePosition: Int = -80
         @JvmField
         var minPosition: Int = 0
         @JvmField
-        var maxPower: Double = 0.8
+        var maxPower: Double = 0.45
     }
 
     // Initialize shoulder motor
@@ -45,6 +51,7 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
         shoulder.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
         // Set motor mode
+        shoulder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         shoulder.mode = DcMotor.RunMode.RUN_USING_ENCODER
 
         motors = listOf(shoulder)
@@ -64,10 +71,10 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
 
         override fun init() {
             // Check if the target position is valid
-            if (targetPosition < 0 || targetPosition > maxPosition)
+            if (targetPosition > minPosition || targetPosition < maxPosition)
                 throw IllegalArgumentException("Target position is out of bounds")
 
-            // Check if the goTo is raising or lowering
+            // Determine if lowering
             lowering = targetPosition < shoulder.currentPosition
 
             // Set power
@@ -82,16 +89,18 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
             if (lowering) {
                 // Lowering
                 if (currentPosition > targetPosition)
-                    return true
+                    return false
             } else {
                 // Raising
                 if (currentPosition < targetPosition)
-                    return true
+                    return false
             }
+            return true
+        }
 
-            // At target position
+        override fun handleStop() {
+            // Stop the shoulder
             shoulder.power = 0.0
-            return false
         }
     }
     fun extend(): Action {
@@ -104,6 +113,15 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
         return Control(maxPower, position)
     }
 
+    /**
+     * Set the power of the shoulder.
+     *
+     * @param power the power to set the shoulder to
+     */
+    fun setPower(power: Double) {
+        // Set servo power
+        shoulder.power = power
+    }
 
     override fun update(telemetry: Telemetry) {
         telemetry.addData("Shoulder Position", shoulder.currentPosition)

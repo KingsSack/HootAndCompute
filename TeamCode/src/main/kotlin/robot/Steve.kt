@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.attachment.*
  * @property lift for lifting the claw
  * @property claw for grabbing objects
  * @property shoulder for extending the claw
+ * @property elbow for bending the claw
  * @property wrist for rotating the claw
  */
 @Config
@@ -36,6 +37,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      * @property liftLeftName the name of the left lift motor
      * @property clawName the name of the claw motor
      * @property shoulderName the name of the shoulder motor
+     * @property elbowName the name of the elbow motor
      * @property wristName the name of the wrist motor
      */
     companion object Params {
@@ -54,6 +56,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
         @JvmField
         var shoulderName: String = "sh"
         @JvmField
+        var elbowName: String = "el"
+        @JvmField
         var wristName: String = "wr"
     }
 
@@ -66,13 +70,62 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
     val lift: Lift = Lift(hardwareMap, liftRightName, liftLeftName)
     val claw: Claw = Claw(hardwareMap, clawName)
     val shoulder: Shoulder = Shoulder(hardwareMap, shoulderName)
+    val elbow: Elbow = Elbow(hardwareMap, elbowName)
     val wrist: Wrist = Wrist(hardwareMap, wristName)
 
     init {
-        attachments = listOf(lift, claw, shoulder, wrist)
+        attachments = listOf(lift, claw, shoulder, elbow, wrist)
 
         // Set huskylens mode
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
+    }
+
+    /**
+     * Extend the arm by extending the elbow and then shoulder.
+     *
+     * @return action to extend the arm
+     */
+    fun extendArm(): Action {
+        return SequentialAction(
+            shoulder.extend()
+            // elbow.extend()
+        )
+    }
+
+    /**
+     * Retract the arm by retracting the shoulder and then elbow.
+     *
+     * @return action to retract the arm
+     */
+    fun retractArm(): Action {
+        return SequentialAction(
+            shoulder.retract()
+            // elbow.retract()
+        )
+    }
+
+    /**
+     * Extend the arm to the basket by extending the elbow and then shoulder.
+     *
+     * @return action to extend the arm to the basket
+     */
+    fun extendToBasket(): Action {
+        return SequentialAction(
+            // elbow.bendTo(Elbow.basketPosition),
+            shoulder.goTo(Shoulder.basketPosition)
+        )
+    }
+
+    /**
+     * Extend the arm to the submersible by extending the elbow and then shoulder.
+     *
+     * @return action to extend the arm to the submersible
+     */
+    fun extendToSubmersible(): Action {
+        return SequentialAction(
+            // elbow.bendTo(Elbow.submersiblePosition),
+            shoulder.goTo(Shoulder.submersiblePosition)
+        )
     }
 
     /**

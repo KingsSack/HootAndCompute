@@ -49,7 +49,11 @@ class Wrist(hardwareMap: HardwareMap, name: String) : Attachment() {
         }
 
         override fun update(packet: TelemetryPacket): Boolean {
-            return false
+            return true
+        }
+
+        override fun handleStop() {
+            // Do nothing
         }
     }
     fun twistTo(position: Double): Action {

@@ -10,8 +10,8 @@ import org.firstinspires.ftc.teamcode.autonomous.AutonomousMode
 @Autonomous(name = "Otter - Right", group = "Competition", preselectTeleOp = "Whale")
 class OtterR : LinearOpMode() {
     companion object Config {
-        @JvmStatic
-        var otterRParams: Otter.OtterParams = Otter.OtterParams()
+        @JvmField
+        var params: Otter.OtterParams = Otter.OtterParams()
     }
 
     // Autonomous script
@@ -19,7 +19,7 @@ class OtterR : LinearOpMode() {
 
     override fun runOpMode() {
         // Initialize
-        auto = Otter(hardwareMap, telemetry, otterRParams)
+        auto = Otter(hardwareMap, telemetry, params)
 
         // Wait for start
         waitForStart()

@@ -26,7 +26,11 @@ abstract class Attachment {
                 init()
                 initialized = true
             }
-            return update(p)
+            if (update(p)) {
+                handleStop()
+                return false
+            }
+            return true
         }
 
         /**
@@ -38,11 +42,15 @@ abstract class Attachment {
          * Updates the action.
          *
          * @param packet the telemetry packet
-         * @return whether the action is running
+         * @return whether the action is complete
          */
         abstract fun update(packet: TelemetryPacket): Boolean
-    }
 
+        /**
+         * Handles the ending of the action.
+         */
+        abstract fun handleStop()
+    }
 
     /**
      * Updates the attachment.

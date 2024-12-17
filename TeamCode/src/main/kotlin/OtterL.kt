@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.autonomous.AutonomousMode
 class OtterL : LinearOpMode() {
     companion object Config {
         @JvmField
-        var otterLParams: Otter.OtterParams = Otter.OtterParams()
+        var params: Otter.OtterParams = Otter.OtterParams()
     }
 
     // Autonomous script
@@ -19,7 +19,7 @@ class OtterL : LinearOpMode() {
 
     override fun runOpMode() {
         // Initialize
-        auto = Otter(hardwareMap, telemetry, otterLParams)
+        auto = Otter(hardwareMap, telemetry, params)
 
         // Wait for start
         waitForStart()
