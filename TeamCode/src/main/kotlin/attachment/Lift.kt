@@ -3,11 +3,7 @@ package org.firstinspires.ftc.teamcode.attachment
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
-import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.PIDFCoefficients
+import com.qualcomm.robotcore.hardware.*
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
@@ -31,21 +27,29 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
      * @property maxPosition the maximum position of the lift
      * @property upperBasketHeight the position of the lift for the upper basket
      * @property lowerBasketHeight the position of the lift for the lower basket
+     * @property upperSubmersibleBarHeight the position of the lift for the upper submersible bar
+     * @property lowerSubmersibleBarHeight the position of the lift for the lower submersible bar
      * @property minPosition the minimum position of the lift
      * @property maxPower the maximum power of the lift
      * @property idlePower the idle power of the lift
+     * @property timeout the timeout for the lift
+     * @property coefficients the PIDF coefficients for the lift
      */
     companion object Params {
         @JvmField
-        var maxPosition: Int = 2150
+        var maxPosition: Int = 2200
         @JvmField
         var upperBasketHeight: Int = 2000
         @JvmField
-        var lowerBasketHeight: Int = 1200
+        var lowerBasketHeight: Int = 500
+        @JvmField
+        var upperSubmersibleBarHeight: Int = 1200
+        @JvmField
+        var lowerSubmersibleBarHeight: Int = 500
         @JvmField
         var minPosition: Int = 10
         @JvmField
-        var maxPower: Double = 0.5
+        var maxPower: Double = 0.6
         @JvmField
         var idlePower: Double = 0.1
         @JvmField
@@ -175,8 +179,16 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
             liftRight.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
             liftLeft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         }
-        liftRight.power = power
-        liftLeft.power = power
+
+        var finalPower = power
+        if (power > maxPower)
+            finalPower = maxPower
+
+        if (liftRight.currentPosition > maxPosition || liftLeft.currentPosition > maxPosition)
+            finalPower = 0.0
+
+        liftRight.power = finalPower
+        liftLeft.power = finalPower
     }
 
     /**

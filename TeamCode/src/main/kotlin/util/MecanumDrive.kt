@@ -51,7 +51,7 @@ class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         @JvmField
         var minProfileAccel: Double = -30.0
         @JvmField
-        var maxProfileAccel: Double = 50.0
+        var maxProfileAccel: Double = 40.0
 
         // turn profile parameters (in radians)
         @JvmField
@@ -61,9 +61,9 @@ class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
 
         // path controller gains
         @JvmField
-        var axialGain: Double = 0.8
+        var axialGain: Double = 5.0
         @JvmField
-        var lateralGain: Double = 1.0
+        var lateralGain: Double = 4.0
         @JvmField
         var headingGain: Double = 1.0 // shared with turn
 

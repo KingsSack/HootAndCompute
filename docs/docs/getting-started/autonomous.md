@@ -28,11 +28,10 @@ class Test : LinearOpMode() {
 
 ## Add autonomous mode script
 
-1. Declare `auto` as an [AutonomousMode](AutonomousMode)
-    - Requires a [Configuration](Configuration) class
+1. Declare `auto` as an [AutonomousMode](kdoc/-team-code/org.firstinspires.ftc.teamcode.autonomous/-autonomous-mode/index.html)
 2. Initialize `auto` in `runOpMode`
 3. Add a `waitForStart()`
-4. If `opModeIsActive()`, execute the [AutonomousMode](AutonomousMode) with `auto.run()`
+4. If `opModeIsActive()`, execute the [AutonomousMode](kdoc/-team-code/org.firstinspires.ftc.teamcode.autonomous/-autonomous-mode/index.html) with `auto.run()`
 
 ```kt
 // Autonomous script

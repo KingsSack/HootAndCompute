@@ -34,5 +34,5 @@ object FieldParams {
     @JvmField
     var submersibleX: Double = -12.0
     @JvmField
-    var submersibleY: Double = 30.0
+    var submersibleY: Double = 24.0
 }

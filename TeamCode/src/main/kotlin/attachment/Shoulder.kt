@@ -22,22 +22,16 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
      * Params is a companion object that holds the configuration for the shoulder attachment.
      *
      * @property maxPosition the maximum position of the shoulder
-     * @property basketPosition the ideal position of the shoulder for putting a sample in the basket
-     * @property submersiblePosition the ideal position of the shoulder for scoring a specimen
      * @property minPosition the minimum position of the shoulder
      * @property maxPower the maximum power of the shoulder
      */
     companion object Params {
         @JvmField
-        var maxPosition: Int = -100
+        var maxPosition: Int = 100
         @JvmField
-        var basketPosition: Int = -40
+        var minPosition: Int = 15
         @JvmField
-        var submersiblePosition: Int = -80
-        @JvmField
-        var minPosition: Int = 0
-        @JvmField
-        var maxPower: Double = 0.45
+        var maxPower: Double = 0.6
     }
 
     // Initialize shoulder motor
@@ -45,7 +39,7 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
 
     init {
         // Set motor direction
-        shoulder.direction = DcMotorSimple.Direction.FORWARD
+        shoulder.direction = DcMotorSimple.Direction.REVERSE
 
         // Set zero power behavior
         shoulder.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
@@ -71,7 +65,7 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
 
         override fun init() {
             // Check if the target position is valid
-            if (targetPosition > minPosition || targetPosition < maxPosition)
+            if (targetPosition < minPosition || targetPosition > maxPosition)
                 throw IllegalArgumentException("Target position is out of bounds")
 
             // Determine if lowering
@@ -104,7 +98,7 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : Attachment() {
         }
     }
     fun extend(): Action {
-        return Control(maxPower, maxPosition)
+        return Control(0.2, maxPosition)
     }
     fun retract(): Action {
         return Control(maxPower, minPosition)

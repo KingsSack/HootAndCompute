@@ -7,11 +7,11 @@ sidebar: docs
 folder: docs
 ---
 
-## What is an [Attachment]()
+## What is an [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html)
 
-An [Attachment]() is anything that has a function on the [Robot](). This could be a motor, a servo, a sensor, or anything else that can be controlled. Attachments are used to control the [Robot]() and interact with the environment.
+An [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) is anything that has a function on the [Robot](kdoc/-team-code/org.firstinspires.ftc.teamcode.robot/-robot/index.html). This could be a motor, a servo, a sensor, or anything else that can be controlled. Attachments are used to control the [Robot](kdoc/-team-code/org.firstinspires.ftc.teamcode.robot/-robot/index.html) and interact with the environment.
 
-There should be one [Attachment]() per "interaction" your [Robot]() can perform.
+There should be one [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) per "interaction" your [Robot](kdoc/-team-code/org.firstinspires.ftc.teamcode.robot/-robot/index.html) can perform.
 
 ## Create the class
 
@@ -19,7 +19,7 @@ There should be one [Attachment]() per "interaction" your [Robot]() can perform.
 
 ## Make it an attachment
 
-1. Make it inherit the [Attachement]() class
+1. Make it inherit the [Attachement](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) class
 2. Add the `init` body
 3. Override the `update(telemetry: Telemetry)` function
 
@@ -38,7 +38,7 @@ class ExampleAttachment(hardwareMap: HardwareMap, name: String) : Attachment() {
 ## Add an action
 
 1. Create a new `inner class` called `Control`
-2. Make it inherit the [ControlAction]() class
+2. Make it inherit the [ControlAction](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/-control-action/index.html) class
 3. Override the `init()` function
 4. Override the `update(packet: TelemetryPacket): Boolean` function
 
@@ -58,9 +58,9 @@ inner class Control : ControlAction() {
 ## Add a motor
 
 1. Create a new val called `motor`
-2. Set the motor's `mode` to `DcMotor.RunMode.RUN_USING_ENCODER`
-3. Set the motor's `zeroPowerBehavior` to `DcMotor.ZeroPowerBehavior.BRAKE`
-4. Add it to the `motors` list in the `init` body
+2. Set the motor's `mode` to `DcMotor.RunMode.RUN_USING_ENCODER` so we can move the motor to a position based on encoder data
+3. Set the motor's `zeroPowerBehavior` to `DcMotor.ZeroPowerBehavior.BRAKE` so that the motor holds in place when its power is set to `0.0`
+4. Add it to the `motors` list in the `init` body so that it can be accessed by the [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) class
 
 ```kt
 val motor = hardwareMap.dcMotor[name]

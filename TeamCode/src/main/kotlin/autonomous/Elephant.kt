@@ -73,14 +73,9 @@ class Elephant(
     private fun goToSample(): Action {
         return SequentialAction(
             robot.drive.actionBuilder(robot.drive.pose)
-                .setTangent(Math.toRadians(-90.0))
-                .lineToY(58.0)
-                .setTangent(Math.toRadians(0.0))
-                .lineToX(44.0)
-                .setTangent(-90.0)
-                .lineToY(FieldParams.samplePositionsY[currentSampleIndex] - 16.0)
-                .setTangent(Math.toRadians(0.0))
-                .lineToX(FieldParams.samplePositionsX[currentSampleIndex])
+                .strafeTo(Vector2d(42.0, 46.0))
+                .strafeTo(Vector2d(42.0, FieldParams.samplePositionsY[currentSampleIndex] - 10.0))
+                .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 10.0))
                 .build(),
             InstantAction { currentSampleIndex++ }
         )

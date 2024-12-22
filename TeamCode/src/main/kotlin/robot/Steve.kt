@@ -87,9 +87,18 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      */
     fun extendArm(): Action {
         return SequentialAction(
-            shoulder.extend()
-            // elbow.extend()
+            shoulder.extend(),
+            elbow.extend()
         )
+    }
+
+    /**
+     * Extend the arm to the submersible by extending the shoulder and then elbow.
+     *
+     * @return action to extend the arm to the submersible
+     */
+    fun extendArmToSubmersible(): Action {
+        return shoulder.extend()
     }
 
     /**
@@ -99,32 +108,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      */
     fun retractArm(): Action {
         return SequentialAction(
-            shoulder.retract()
-            // elbow.retract()
-        )
-    }
-
-    /**
-     * Extend the arm to the basket by extending the elbow and then shoulder.
-     *
-     * @return action to extend the arm to the basket
-     */
-    fun extendToBasket(): Action {
-        return SequentialAction(
-            // elbow.bendTo(Elbow.basketPosition),
-            shoulder.goTo(Shoulder.basketPosition)
-        )
-    }
-
-    /**
-     * Extend the arm to the submersible by extending the elbow and then shoulder.
-     *
-     * @return action to extend the arm to the submersible
-     */
-    fun extendToSubmersible(): Action {
-        return SequentialAction(
-            // elbow.bendTo(Elbow.submersiblePosition),
-            shoulder.goTo(Shoulder.submersiblePosition)
+            shoulder.retract(),
+            elbow.retract()
         )
     }
 

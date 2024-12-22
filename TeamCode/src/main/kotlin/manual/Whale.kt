@@ -80,7 +80,7 @@ class Whale(
 
     private fun rotateClawWithGamepad(gamepad: Gamepad) {
         // Control claw rotation
-        if (gamepad.dpad_right) controller.addAction(robot.wrist.twistTo(Wrist.maxPosition))
+        if (gamepad.dpad_right) controller.addAction(robot.wrist.twistTo(0.5))
         else if (gamepad.dpad_up) controller.addAction(robot.wrist.twistTo(robot.wrist.getPosition() + 0.05))
         else if (gamepad.dpad_down) controller.addAction(robot.wrist.twistTo(robot.wrist.getPosition() - 0.05))
     }
@@ -89,8 +89,8 @@ class Whale(
         // Control shoulder and elbow
         if (gamepad.x) controller.addAction(robot.retractArm())
         else if (gamepad.y) controller.addAction(robot.extendArm())
-        else if (gamepad.b) controller.addAction(robot.extendToBasket())
-        else if (gamepad.a) controller.addAction(robot.extendToSubmersible())
+        // else if (gamepad.b) controller.addAction(robot.extendToBasket())
+        // else if (gamepad.a) controller.addAction(robot.extendToSubmersible())
         else {
             robot.shoulder.setPower(gamepad.left_stick_y.toDouble())
             robot.elbow.setPower(-gamepad.right_stick_y.toDouble())

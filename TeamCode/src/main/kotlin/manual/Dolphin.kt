@@ -73,7 +73,7 @@ class Dolphin(
         // Control lift
         if (gamepad.right_bumper) controller.addAction(robot.lift.goTo(Lift.upperBasketHeight))
         else if (gamepad.left_bumper) controller.addAction(robot.lift.drop())
-        else robot.lift.setPower(controller.processInput(gamepad.left_stick_y.toDouble()))
+        else robot.lift.setPower(controller.processInput(gamepad.left_stick_y.toDouble()) * Lift.maxPower)
     }
 
     private fun controlClawWithGamepad(gamepad: Gamepad) {

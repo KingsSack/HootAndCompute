@@ -70,6 +70,9 @@ class Elbow(hardwareMap: HardwareMap, name: String) : Attachment() {
     fun retract(): Action {
         return Control(maxPower, timeForFullExtend)
     }
+    fun moveFor(time: Double): Action {
+        return Control(maxPower, time)
+    }
 
     /**
      * Set the power of the claw.

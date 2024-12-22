@@ -15,7 +15,7 @@ folder: docs
 
 ## Make it a TeleOp
 
-1. Choose whether to use an [[OpMode]] (recommended) or [[LinearOpMode]]
+1. Choose whether to use an [OpMode](opmode.html) (recommended) or [LinearOpMode](linearopmode.html)
 2. Add the `@TeleOp(name="Name", group="Group")` annotation
 3. Override the `init()` and `loop()` functions
 
@@ -34,8 +34,7 @@ class Test : OpMode() {
 
 ## Add manual mode script
 
-1. Declare `manual` as an [[ManualMode]]
-   - Requires a [[Configuration]] class
+1. Declare `manual` as an [ManualMode](kdoc/-team-code/org.firstinspires.ftc.teamcode.manual/-manual-mode/index.html)
 2. Initialize `manual` in `init`
 3. Call `tick` in `loop`
 
