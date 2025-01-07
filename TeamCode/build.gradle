@@ -18,8 +18,6 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    namespace = 'org.firstinspires.ftc.teamcode'
-
     compileSdk 34
 
     packagingOptions {
@@ -34,6 +32,8 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    namespace = 'org.firstinspires.ftc.teamcode'
 }
 
 repositories {
@@ -45,6 +45,8 @@ repositories {
 dependencies {
     implementation project(':FtcRobotController')
 
+    implementation project(':Volt')
+
     implementation "com.acmerobotics.roadrunner:ftc:0.1.14"
     implementation "com.acmerobotics.roadrunner:core:1.0.0"
     implementation "com.acmerobotics.roadrunner:actions:1.0.0"
@@ -52,5 +54,5 @@ dependencies {
 }
 
 tasks.dokkaJekyll {
-    outputDirectory.set(layout.projectDirectory.dir("../docs/kdoc"))
+    outputDirectory.set(layout.projectDirectory.dir("../docs/kdoc/teamcode"))
 }

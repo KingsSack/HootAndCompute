@@ -61,7 +61,7 @@ package org.firstinspires.ftc.teamcode
 import org.firstinspires.ftc.teamcode.autonomous.Otter  
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous  
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode  
-import org.firstinspires.ftc.teamcode.autonomous.AutonomousMode  
+import com.lasteditguild.volt.autonomous.AutonomousMode  
   
 @Autonomous(name = "Test", group = "Test")  
 class Test : LinearOpMode() {  

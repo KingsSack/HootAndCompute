@@ -61,7 +61,7 @@ package org.firstinspires.ftc.teamcode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode.manual.Manual
-import org.firstinspires.ftc.teamcode.manual.ManualMode
+import com.lasteditguild.volt.manual.ManualMode
 
 @TeleOp(name = "Test", group = "Test")
 class Test : OpMode() {
