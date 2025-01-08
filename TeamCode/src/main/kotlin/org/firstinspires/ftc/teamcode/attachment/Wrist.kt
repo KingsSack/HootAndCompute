@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.attachment
 import com.acmerobotics.dashboard.config.Config
 import com.lasteditguild.volt.attachment.SimpleAttachmentWithServo
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * Wrist is an attachment that twists the Claw.
@@ -25,5 +26,11 @@ class Wrist(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithServo(
         var minPosition: Double = 0.0
         @JvmField
         var maxPosition: Double = 1.0
+    }
+
+    override fun update(telemetry: Telemetry) {
+        telemetry.addLine("==== WRIST ====")
+        super.update(telemetry)
+        telemetry.addLine()
     }
 }

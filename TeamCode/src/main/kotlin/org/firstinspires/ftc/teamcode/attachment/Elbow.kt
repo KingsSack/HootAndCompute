@@ -5,8 +5,10 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import com.lasteditguild.volt.attachment.Attachment
 import com.lasteditguild.volt.attachment.SimpleAttachmentWithCRServo
+import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * Elbow is an attachment that bends the Claw.
@@ -17,7 +19,7 @@ import com.qualcomm.robotcore.util.ElapsedTime
  * @see Claw
  */
 @Config
-class Elbow(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithCRServo(hardwareMap, name) {
+class Elbow(hardwareMap: HardwareMap, name: String, private val potentiometer: AnalogInput) : SimpleAttachmentWithCRServo(hardwareMap, name) {
     /**
      * Params is a companion object that holds the configuration for the elbow attachment.
      *
@@ -40,5 +42,12 @@ class Elbow(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithCRServ
     }
     fun moveFor(seconds: Double): Action {
         return SimpleAttachmentWithCRServoControl(maxPower, seconds)
+    }
+
+    override fun update(telemetry: Telemetry) {
+        telemetry.addLine("==== ELBOW ====")
+        super.update(telemetry)
+        telemetry.addData("Elbow Position", potentiometer.voltage / potentiometer.maxVoltage)
+        telemetry.addLine()
     }
 }

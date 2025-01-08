@@ -80,7 +80,7 @@ class Otter(
         return robot.drive.actionBuilder(robot.drive.pose)
             .turnTo(Math.toRadians(-90.0))
             .waitSeconds(1.0)
-            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex]))
+            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] + 14.0))
             .build()
     }
 

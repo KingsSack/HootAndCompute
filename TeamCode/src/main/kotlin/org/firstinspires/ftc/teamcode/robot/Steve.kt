@@ -34,6 +34,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      * @property lidarLeftName the name of the left distance sensor
      * @property lidarRightName the name of the right distance sensor
      * @property huskyLensName the name of the HuskyLens
+     * @property potentiometerName the name of the potentiometer
      * @property liftRightName the name of the right lift motor
      * @property liftLeftName the name of the left lift motor
      * @property clawName the name of the claw motor
@@ -48,6 +49,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
         var lidarRightName: String = "lidarr"
         @JvmField
         var huskyLensName: String = "lens"
+        @JvmField
+        var potentiometerName: String = "pt"
         @JvmField
         var liftRightName: String = "liftr"
         @JvmField
@@ -66,12 +69,13 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
     private val lidarLeft: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
     private val lidarRight: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, lidarRightName)
     private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, huskyLensName)
+    private val potentiometer: AnalogInput = hardwareMap.get(AnalogInput::class.java, potentiometerName)
 
     // Attachments
     val lift: Lift = Lift(hardwareMap, liftRightName, liftLeftName)
     val claw: Claw = Claw(hardwareMap, clawName)
     val shoulder: Shoulder = Shoulder(hardwareMap, shoulderName)
-    val elbow: Elbow = Elbow(hardwareMap, elbowName)
+    val elbow: Elbow = Elbow(hardwareMap, elbowName, potentiometer)
     val wrist: Wrist = Wrist(hardwareMap, wristName)
 
     init {
@@ -115,8 +119,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
     }
 
     /**
-     * Collect a sample by extending the extender, closing the claw,
-     * and retracting the extender.
+     * Collect a sample by extending the arm, closing the claw,
+     * and retracting the arm.
      *
      * @return action to collect a sample
      *
@@ -125,15 +129,15 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      */
     fun collectSample(): Action {
         return SequentialAction(
-            shoulder.extend(),
+            extendArm(),
             claw.close(),
-            shoulder.retract()
+            retractArm()
         )
     }
 
     /**
-     * Deposit a sample by lifting the goTo, extending the extender,
-     * opening the claw, retracting the extender, and dropping the goTo.
+     * Deposit a sample by lifting the lift, extending the shoulder,
+     * opening the claw, retracting the arm, and dropping the lift.
      *
      * @param basketHeight height of the basket
      * @return action to deposit a sample
@@ -144,10 +148,10 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      */
     fun depositSample(basketHeight: Int): Action {
         return SequentialAction(
-            lift.goTo(basketHeight + 20),
+            lift.goTo(basketHeight + 50),
             shoulder.extend(),
             claw.open(),
-            shoulder.retract(),
+            retractArm(),
             lift.drop()
         )
     }
@@ -185,9 +189,9 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
         val distanceRight = lidarRight.getDistance(DistanceUnit.MM)
         val averageDistance = (distanceLeft + distanceRight) / 2
 
-        telemetry.addData("range left", "%.01f mm".format(distanceLeft))
-        telemetry.addData("range right", "%.01f mm".format(distanceRight))
-        telemetry.addData("average range", "%.01f mm".format(averageDistance))
+        telemetry.addData("Range left", "%.01f mm".format(distanceLeft))
+        telemetry.addData("Range right", "%.01f mm".format(distanceRight))
+        telemetry.addData("Average range", "%.01f mm".format(averageDistance))
 
         return averageDistance
     }

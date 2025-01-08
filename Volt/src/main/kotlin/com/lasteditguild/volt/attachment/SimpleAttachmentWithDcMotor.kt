@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  */
 open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val name: String) : Attachment() {
     // Initialize motor
-    private val motor = hardwareMap.dcMotor[name]
+    protected val motor: DcMotor = hardwareMap.dcMotor[name]
 
     init {
         // Set motor direction

@@ -2,13 +2,14 @@ package com.lasteditguild.volt.attachment
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val name: String) : Attachment() {
     // Initialize cr servo
-    private val crServo = hardwareMap.crservo[name]
+    protected val crServo: CRServo = hardwareMap.crservo[name]
 
     init {
         crServos = listOf(crServo)

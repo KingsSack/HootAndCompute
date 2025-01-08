@@ -88,8 +88,8 @@ class Dolphin(
     private fun rotateClawWithGamepad(gamepad: Gamepad) {
         // Control wrist
         if (gamepad.dpad_right) controller.addAction(robot.wrist.goTo(0.5))
-        else if (gamepad.dpad_up) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() + 0.05))
-        else if (gamepad.dpad_down) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() - 0.05))
+        else if (gamepad.dpad_up) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() + 0.005))
+        else if (gamepad.dpad_down) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() - 0.005))
     }
 
     private fun extendClawWithGamepad(gamepad: Gamepad) {

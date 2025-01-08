@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.lasteditguild.volt.attachment.SimpleAttachmentWithServo
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * Claw is an attachment that can open and close.
@@ -21,16 +22,22 @@ class Claw(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithServo(h
      */
     companion object Params {
         @JvmField
-        var minPosition: Double = 0.0
+        var minPosition: Double = 0.5
         @JvmField
-        var maxPosition: Double = 0.8
+        var maxPosition: Double = 1.0
     }
 
     // Actions
     fun open(): Action {
-        return SimpleAttachmentWithServoControl(maxPosition)
+        return SimpleAttachmentWithServoControl(minPosition)
     }
     fun close(): Action {
-        return SimpleAttachmentWithServoControl(minPosition)
+        return SimpleAttachmentWithServoControl(maxPosition)
+    }
+
+    override fun update(telemetry: Telemetry) {
+        telemetry.addLine("==== CLAW ====")
+        super.update(telemetry)
+        telemetry.addLine()
     }
 }

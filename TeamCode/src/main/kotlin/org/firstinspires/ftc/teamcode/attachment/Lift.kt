@@ -52,7 +52,7 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         @JvmField
         var maxPower: Double = 0.6
         @JvmField
-        var idlePower: Double = 0.1
+        var idlePower: Double = 0.2
         @JvmField
         var timeout: Double = 4.0
         @JvmField
@@ -206,6 +206,7 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
     }
 
     override fun update(telemetry: Telemetry) {
+        telemetry.addLine("==== LIFT ====")
         if (liftRight.isBusy) {
             liftLeft.targetPosition = liftRight.currentPosition
         }
@@ -213,5 +214,6 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         telemetry.addData("Lift Left Position", liftLeft.currentPosition)
         telemetry.addData("Lift Right Busy", liftRight.isBusy)
         telemetry.addData("Lift Left Busy", liftLeft.isBusy)
+        telemetry.addLine()
     }
 }

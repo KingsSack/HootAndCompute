@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  */
 open class SimpleAttachmentWithServo(hardwareMap: HardwareMap, private val name: String) : Attachment() {
     // Initialize servo
-    private val servo: Servo = hardwareMap.servo[name]
+    protected val servo: Servo = hardwareMap.servo[name]
 
     init {
         servos = listOf(servo)
