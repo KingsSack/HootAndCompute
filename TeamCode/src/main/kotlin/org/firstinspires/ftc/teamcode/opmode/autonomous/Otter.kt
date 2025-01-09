@@ -24,7 +24,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 class Otter(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    params: OtterParams
+    private val params: OtterParams
 ) : AutonomousMode {
     /**
      * The parameters for Otter.
@@ -41,13 +41,16 @@ class Otter(
         @JvmField
         var initialY: Double = 66.0
         @JvmField
-        var initialHeading: Double = -90.0
+        var initialHeading: Double = 0.0
 
         @JvmField
-        var isPreloaded: Boolean = false
+        var angleOfAttack: Double = 45.0
 
         @JvmField
-        var numSamples: Int = 0
+        var isPreloaded: Boolean = true
+
+        @JvmField
+        var numSamples: Int = 2
     }
 
     override val controller = AutonomousController(telemetry)
@@ -93,7 +96,7 @@ class Otter(
 
     private fun goToBasket(): Action {
         return robot.drive.actionBuilder(robot.drive.pose)
-            .turn(Math.toRadians(-135.0))
+            .turnTo(Math.toRadians(params.angleOfAttack))
             .strafeTo(Vector2d(FieldParams.basketX, FieldParams.basketY))
             .build()
     }

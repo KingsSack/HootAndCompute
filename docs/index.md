@@ -8,4 +8,5 @@ sidebar: docs
 
 Welcome to the HootAndCompute docs.
 - [Getting Started](getting-started.html)
-- [kdocs](kdoc/index.html)
+- [TeamCode](kdoc/teamcode/index.html)
+- [Volt](kdoc/volt/index.html)

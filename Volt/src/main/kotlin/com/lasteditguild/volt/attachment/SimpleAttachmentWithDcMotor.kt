@@ -60,7 +60,7 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
         override fun update(packet: TelemetryPacket): Boolean {
             // Get position
             val currentPosition = motor.currentPosition
-            packet.put("Shoulder position", currentPosition)
+            packet.put("DcMotor $name position", currentPosition)
 
             if (reversing) {
                 // Lowering
@@ -105,6 +105,6 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
     }
 
     override fun update(telemetry: Telemetry) {
-        telemetry.addData("DC Motor $name Position", motor.currentPosition)
+        telemetry.addData("Position", motor.currentPosition)
     }
 }

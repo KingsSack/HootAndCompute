@@ -47,7 +47,7 @@ class Elbow(hardwareMap: HardwareMap, name: String, private val potentiometer: A
     override fun update(telemetry: Telemetry) {
         telemetry.addLine("==== ELBOW ====")
         super.update(telemetry)
-        telemetry.addData("Elbow Position", potentiometer.voltage / potentiometer.maxVoltage)
+        telemetry.addData("Position", potentiometer.voltage / potentiometer.maxVoltage)
         telemetry.addLine()
     }
 }

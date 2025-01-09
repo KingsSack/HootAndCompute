@@ -65,6 +65,6 @@ open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val nam
     }
 
     override fun update(telemetry: Telemetry) {
-        telemetry.addData("CR Servo: $name Power", crServo.power)
+        telemetry.addData("Power", crServo.power)
     }
 }

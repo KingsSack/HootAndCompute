@@ -60,6 +60,6 @@ open class SimpleAttachmentWithServo(hardwareMap: HardwareMap, private val name:
     }
 
     override fun update(telemetry: Telemetry) {
-        telemetry.addData("Servo $name Position", servo.position)
+        telemetry.addData("Position", servo.position)
     }
 }

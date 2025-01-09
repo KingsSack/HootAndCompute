@@ -9,10 +9,10 @@ import com.acmerobotics.dashboard.config.Config
  * @property basketY the y position of the basket
  * @property observationX the x position of the observation zone
  * @property observationY the y position of the observation zone
- * @property samplePositionsX the x positions of the sample positions
- * @property samplePositionsY the y positions of the sample positions
- * @property samplePickupPositionsX the x positions of the sample pickup positions
- * @property samplePickupPositionsY the y positions of the sample pickup positions
+ * @property samplePositionsX the x positions of the samples
+ * @property samplePositionsY the y positions of the samples
+ * @property submersibleX the x position of the submersible
+ * @property submersibleY the y position of the submersible
  */
 @Config
 object FieldParams {

@@ -7,24 +7,31 @@ sidebar: docs
 folder: docs
 ---
 
-## What is an [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html)
+# What is an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html)?
 
-An [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) is anything that has a function on the [Robot](kdoc/-team-code/org.firstinspires.ftc.teamcode.robot/-robot/index.html). This could be a motor, a servo, a sensor, or anything else that can be controlled. Attachments are used to control the [Robot](kdoc/-team-code/org.firstinspires.ftc.teamcode.robot/-robot/index.html) and interact with the environment.
+An [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) is anything
+that has a function on the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot/index.html).
+This could be a motor, a servo, a sensor, or anything else that can be controlled.
+Attachments are used to control the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot/index.html)
+and interact with the environment.
 
-There should be one [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) per "interaction" your [Robot](kdoc/-team-code/org.firstinspires.ftc.teamcode.robot/-robot/index.html) can perform.
+There should be one [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) per "interaction"
+your [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot/index.html) can perform.
 
-## Create the class
+# Creating an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html)
 
-1. First create a new Kotlin class in `TeamCode/src/main/kotlin/attachment`
+Create a new Kotlin class in `TeamCode/src/main/kotlin/attachment` that inherits the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) class.
 
-## Make it an attachment
+The [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) class contains:
+1. A list of motors
+2. A list of servos
+3. A list of continuous rotation servos
+4. A boolean that is true when the attachment's [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html) is running
+5. A function called `update(telemetry: Telemetry)` that is called every tick
+6. A function called `stop()` that is called when the robot is stopped
 
-1. Make it inherit the [Attachement](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) class
-2. Add the `init` body
-3. Override the `update(telemetry: Telemetry)` function
-
-```kt
-class ExampleAttachment(hardwareMap: HardwareMap, name: String) : Attachment() {
+```kotlin
+class Example : Attachment() {
     init {
         // Initialize
     }
@@ -35,101 +42,187 @@ class ExampleAttachment(hardwareMap: HardwareMap, name: String) : Attachment() {
 }
 ```
 
-## Add an action
+## Add a motor
 
-1. Create a new `inner class` called `Control`
-2. Make it inherit the [ControlAction](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/-control-action/index.html) class
-3. Override the `init()` function
-4. Override the `update(packet: TelemetryPacket): Boolean` function
 
-```kt
-inner class Control : ControlAction() {
-    override fun init() {
+### Defining the motor
+
+Add the parameters `hardwareMap` and `name` for initializing a motor. Create a new `DcMotor`.
+
+```kotlin
+class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
+    val motor = hardwareMap.dcMotor[name]
+
+    init {
         // Initialize
     }
-    
-    override fun update(packet: TelemetryPacket): Boolean {
+
+    inner class Control : ControlAction() {
+        override fun init() {
+            // Start
+        }
+
+        override fun update(packet: TelemetryPacket): Boolean {
+            // Logic
+            return false
+        }
+
+        override fun handleStop() {
+            // End
+        }
+    }
+
+    override fun update(telemetry: Telemetry) {
         // Update
-        return false
     }
 }
 ```
 
-## Add a motor
+### Setting up the motor
 
-1. Create a new val called `motor`
-2. Set the motor's `mode` to `DcMotor.RunMode.RUN_USING_ENCODER` so we can move the motor to a position based on encoder data
-3. Set the motor's `zeroPowerBehavior` to `DcMotor.ZeroPowerBehavior.BRAKE` so that the motor holds in place when its power is set to `0.0`
-4. Add it to the `motors` list in the `init` body so that it can be accessed by the [Attachment](kdoc/-team-code/org.firstinspires.ftc.teamcode.attachment/-attachment/index.html) class
+Set the motor's mode to `DcMotor.RunMode.RUN_USING_ENCODER` to use the motor's built-in encoder.
+Set the motor's zero-power behavior
+to `DcMotor.ZeroPowerBehavior.BRAKE` so the motor holds its position when the motor's power is set to `0.0`.
+Add the motor to the `motors` list
+so that it can be managed by the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) class.
 
-```kt
-val motor = hardwareMap.dcMotor[name]
+```kotlin
+class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
+    val motor = hardwareMap.dcMotor[name]
 
-init {
-    // Set mode
-    motor.mode = DcMotorSimple.RunMode.RUN_USING_ENCODER
-    
-    // Set zero power behavior
-    motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-    
-    // Add to list
-    motors = listOf(motor)
+    init {
+        // Set mode
+        motor.mode = DcMotorSimple.RunMode.RUN_USING_ENCODER
+
+        // Set zero power behavior
+        motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+
+        // Add to list
+        motors = listOf(motor)
+    }
+
+    inner class Control : ControlAction() {
+        override fun init() {
+            // Start
+        }
+
+        override fun update(packet: TelemetryPacket): Boolean {
+            // Logic
+            return false
+        }
+
+        override fun handleStop() {
+            // End
+        }
+    }
+
+    override fun update(telemetry: Telemetry) {
+        // Update
+    }
 }
 ```
 
 ## Log the position of the motor
 
-1. Modify the `update` function to log the position of `motor`
+Modify the `update(telemetry: Telemetry)` function to log the position of `motor`.
 
-```kt
+```kotlin
 override fun update(telemetry: Telemetry) {
     // Log motor position
-    telemetry.addData("Motor Position", motor.currentPosition)
+    telemetry.addLine("==== EXAMPLE ====")
+    telemetry.addData("Position", motor.currentPosition)
+    telemetry.addLine()
 }
 ```
 
-## Control the motor
+## Add logic
 
-1. Modify the `Control` class to control `motor`
+### Setup the [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html)
 
-```kt
-inner class Control(power: Double, time: Double) : ControlAction() {
-    val runtime = ElapsedTime()
-    
+Create a new `inner class` called `Control`
+that inherits [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html).
+This class will be used to define the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html)'s logic.
+
+The [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html) class contains:
+1. A function called `init()` that is called when the action is triggered
+2. A function called `update(packet: TelemetryPacket): Boolean` that is called while the action is running and returns whether the action is complete
+3. A function called `handleStop()` that is called when the action is stopped
+
+```kotlin
+inner class Control : ControlAction() {
     override fun init() {
-        // Reset runtime
-        runtime.reset()
-        
-        // Set motor power
-        motor.power = 1.0
+        // Start
     }
     
     override fun update(packet: TelemetryPacket): Boolean {
-        // Check if time has passed
-        if (runtime.seconds() > time) {
-            // Stop motor
-            motor.power = 0.0
-            return true
-        }
+        // Logic
         return false
+    }
+    
+    override fun handleStop() {
+        // End
     }
 }
 ```
 
-## Add an action
+### Control the motor
 
-1. Create a function called `use(time: Double)` that returns a new `Action`
+Add parameters for a `power` and a `targetPosition`. Create an instance variable for whether the motor is `reversing`.
+Set the motor's power in the `init()` function.
+Determine whether the motor has reached the `targetPosition`. Stop the motor in the `handleStop()` function.
 
-```kt
-fun use(time: Double): Action {
-    // Move for time seconds with max power
-    return Control(1.0, time)
+```kotlin
+inner class Control(
+    private val power: Double,
+    private val targetPosition: Int
+) : ControlAction() {
+    private var reversing = false
+
+    override fun init() {
+        // Determine reversing
+        reversing = targetPosition < motor.currentPosition
+
+        // Set power
+        motor.power = if (reversing) -power else power
+    }
+
+    override fun update(packet: TelemetryPacket): Boolean {
+        // Get position
+        val currentPosition = motor.currentPosition
+
+        if (reversing) {
+            // Reverse
+            if (currentPosition > targetPosition)
+                return false
+        } else {
+            // Forward
+            if (currentPosition < targetPosition)
+                return false
+        }
+        return true
+    }
+
+    override fun handleStop() {
+        // Stop the motor
+        motor.power = 0.0
+    }
 }
 ```
 
-## Result
+### Add an action
 
-```kt
+Create a function called `use(time: Double)` that returns a new `Action`.
+
+```kotlin
+fun goTo(power: Double, position: Int): Action {
+    // Return Control
+    return Control(power, position)
+}
+```
+
+# Result
+
+```kotlin
 package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
@@ -139,7 +232,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
-class ExampleAttachment(hardwareMap: HardwareMap, name: String) : Attachment() {
+class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
     val motor = hardwareMap.dcMotor[name]
 
     init {
@@ -148,28 +241,41 @@ class ExampleAttachment(hardwareMap: HardwareMap, name: String) : Attachment() {
         motors = listOf(motor)
     }
 
-    inner class Control(power: Double, time: Double) : ControlAction() {
-        val runtime = ElapsedTime()
+    inner class Control(
+        private val power: Double,
+        private val targetPosition: Int
+    ) : ControlAction() {
+        private var reversing = false
 
         override fun init() {
-            runtime.reset()
-            motor.power = 1.0
+            reversing = targetPosition < motor.currentPosition
+            motor.power = if (reversing) -power else power
         }
 
         override fun update(packet: TelemetryPacket): Boolean {
-            if (runtime.seconds() > time) {
-                motor.power = 0.0
-                return true
+            val currentPosition = motor.currentPosition
+            if (reversing) {
+                if (currentPosition > targetPosition)
+                    return false
+            } else {
+                if (currentPosition < targetPosition)
+                    return false
             }
-            return false
+            return true
+        }
+
+        override fun handleStop() {
+            motor.power = 0.0
         }
     }
-    fun use(time: Double): Action {
-        return Control(1.0, time)
+    fun goTo(power: Double, position: Int): Action {
+        return Control(power, position)
     }
 
     override fun update(telemetry: Telemetry) {
-        telemetry.addData("Motor Position", motor.currentPosition)
+        telemetry.addLine("==== EXAMPLE ====")
+        telemetry.addData("Position", motor.currentPosition)
+        telemetry.addLine()
     }
 }
 ```

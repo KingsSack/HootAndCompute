@@ -210,10 +210,10 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         if (liftRight.isBusy) {
             liftLeft.targetPosition = liftRight.currentPosition
         }
-        telemetry.addData("Lift Right Position", liftRight.currentPosition)
-        telemetry.addData("Lift Left Position", liftLeft.currentPosition)
-        telemetry.addData("Lift Right Busy", liftRight.isBusy)
-        telemetry.addData("Lift Left Busy", liftLeft.isBusy)
+        telemetry.addData("Right Position", liftRight.currentPosition)
+        telemetry.addData("Left Position", liftLeft.currentPosition)
+        telemetry.addData("Right Busy", liftRight.isBusy)
+        telemetry.addData("Left Busy", liftLeft.isBusy)
         telemetry.addLine()
     }
 }
