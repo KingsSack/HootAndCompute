@@ -54,5 +54,5 @@ dependencies {
 }
 
 tasks.dokkaJekyll {
-    outputDirectory.set(layout.projectDirectory.dir("../docs/kdoc/teamcode"))
+    outputDirectory.set(layout.projectDirectory.dir("../docs/docs/kdoc/teamcode"))
 }

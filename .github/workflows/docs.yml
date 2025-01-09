@@ -18,13 +18,15 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build kdocs
-        run: ./gradlew dokkaJekyll -Pmodule=TeamCode
+        run: ./gradlew dokkaJekyll
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - name: Activate virtual environment
-        run: source .venv/bin/activate
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs
       - name: Build MkDocs
         run: mkdocs build --config-file docs/mkdocs.yml --site-dir public
       - name: Deploy pages
