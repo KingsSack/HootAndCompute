@@ -1,12 +1,3 @@
----
-title: Creating a Manual OpMode
-tags:
-   - getting-started
-permalink: manual.html
-sidebar: docs
-folder: docs
----
-
 # Creating a Manual OpMode
 
 ## Create the class

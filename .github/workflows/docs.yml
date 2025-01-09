@@ -1,0 +1,38 @@
+name: Build Team Documentation with GitHub Pages
+
+on:
+  push:
+    branches: ["master"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build kdocs
+        run: ./gradlew dokkaJekyll -Pmodule=TeamCode
+#      - name: Setup Pages
+#        uses: actions/configure-pages@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Deploy pages
+        run: mkdocs gh-deploy --config-file ../docs/mkdocs.yml --force

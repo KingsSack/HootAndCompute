@@ -1,11 +1,4 @@
----
-title: Creating an Autonomous OpMode
-tags:
-   - getting-started
-permalink: autonomous.html
-sidebar: docs
-folder: docs
----
+# Creating an Autonomous OpMode
 
 ## Create the class
 

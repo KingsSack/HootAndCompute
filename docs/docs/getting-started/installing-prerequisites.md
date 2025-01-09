@@ -1,13 +1,4 @@
----
-title: Installing Prerequisites
-tags:
-   - getting-started
-permalink: installing-prerequisites.html
-sidebar: docs
-folder: docs
----
-
-- It is recommended to use `IntelliJ IDEA`
+*It is recommended to use `IntelliJ IDEA`*
 
 # Installing the latest version of the Android SDK
 

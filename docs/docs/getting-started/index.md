@@ -1,17 +1,8 @@
----
-title: Getting Started
-tags:
-   - getting-started
-permalink: getting-started.html
-sidebar: docs
-folder: docs
----
-
 # Contributing to HootAndCompute
 
 ## Introduction
 
-The HootAndCompute repository contains two modules, [TeamCode]() and [Volt]().
+The HootAndCompute repository contains two modules, [TeamCode](kdoc/teamcode) and [Volt](kdoc/volt).
 
 ## Prerequisites
 

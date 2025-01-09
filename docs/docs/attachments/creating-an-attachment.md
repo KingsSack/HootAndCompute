@@ -1,32 +1,24 @@
----
-title: Creating an Attachment
-tags:
-    - getting-started
-permalink: creating-an-attachment.html
-sidebar: docs
-folder: docs
----
+# What is an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)?
 
-# What is an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html)?
-
-An [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) is anything
-that has a function on the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot/index.html).
+An [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) is anything
+that has a function on the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot).
 This could be a motor, a servo, a sensor, or anything else that can be controlled.
-Attachments are used to control the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot/index.html)
+Attachments are used to control the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot)
 and interact with the environment.
 
-There should be one [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) per "interaction"
-your [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot/index.html) can perform.
+There should be one [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) per "interaction"
+your [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot) can perform.
 
-# Creating an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html)
+# Creating an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)
 
-Create a new Kotlin class in `TeamCode/src/main/kotlin/attachment` that inherits the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) class.
+Create a new Kotlin class in `TeamCode/src/main/kotlin/attachment` that inherits the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class.
 
-The [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) class contains:
+The [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class contains:
+
 1. A list of motors
 2. A list of servos
 3. A list of continuous rotation servos
-4. A boolean that is true when the attachment's [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html) is running
+4. A boolean that is true when the attachment's [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action) is running
 5. A function called `update(telemetry: Telemetry)` that is called every tick
 6. A function called `stop()` that is called when the robot is stopped
 
@@ -84,7 +76,7 @@ Set the motor's mode to `DcMotor.RunMode.RUN_USING_ENCODER` to use the motor's b
 Set the motor's zero-power behavior
 to `DcMotor.ZeroPowerBehavior.BRAKE` so the motor holds its position when the motor's power is set to `0.0`.
 Add the motor to the `motors` list
-so that it can be managed by the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html) class.
+so that it can be managed by the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class.
 
 ```kotlin
 class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
@@ -137,13 +129,14 @@ override fun update(telemetry: Telemetry) {
 
 ## Add logic
 
-### Setup the [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html)
+### Setup the [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action)
 
 Create a new `inner class` called `Control`
-that inherits [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html).
-This class will be used to define the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/index.html)'s logic.
+that inherits [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action).
+This class will be used to define the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)'s logic.
 
-The [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action/index.html) class contains:
+The [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action) class contains:
+
 1. A function called `init()` that is called when the action is triggered
 2. A function called `update(packet: TelemetryPacket): Boolean` that is called while the action is running and returns whether the action is complete
 3. A function called `handleStop()` that is called when the action is stopped
