@@ -2,7 +2,11 @@ name: Build Team Documentation with MkDocs and GitHub Pages
 
 on:
   push:
-    branches: ["master"]
+    branches:
+      - "master"
+    paths:
+      - "docs/**"
+    workflow_dispatch:
 
 jobs:
   deploy:
@@ -34,3 +38,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
