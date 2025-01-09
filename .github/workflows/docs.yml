@@ -1,17 +1,8 @@
-name: Build Team Documentation with GitHub Pages
+name: Build Team Documentation with MkDocs and GitHub Pages
 
 on:
   push:
     branches: ["master"]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -28,11 +19,16 @@ jobs:
         run: chmod +x gradlew
       - name: Build kdocs
         run: ./gradlew dokkaJekyll -Pmodule=TeamCode
-#      - name: Setup Pages
-#        uses: actions/configure-pages@v5
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - name: Activate virtual environment
+        run: source .venv/bin/activate
+      - name: Build MkDocs
+        run: mkdocs build --config-file docs/mkdocs.yml --site-dir public
       - name: Deploy pages
-        run: mkdocs gh-deploy --config-file ../docs/mkdocs.yml --force
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
