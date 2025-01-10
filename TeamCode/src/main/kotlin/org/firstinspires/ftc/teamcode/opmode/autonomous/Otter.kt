@@ -37,7 +37,7 @@ class Otter(
      */
     class OtterParams {
         @JvmField
-        var initialX: Double = -24.0
+        var initialX: Double = 24.0
         @JvmField
         var initialY: Double = 66.0
         @JvmField
@@ -83,7 +83,7 @@ class Otter(
         return robot.drive.actionBuilder(robot.drive.pose)
             .turnTo(Math.toRadians(-90.0))
             .waitSeconds(1.0)
-            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] + 14.0))
+            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] + 26.0))
             .build()
     }
 
@@ -96,8 +96,8 @@ class Otter(
 
     private fun goToBasket(): Action {
         return robot.drive.actionBuilder(robot.drive.pose)
-            .turnTo(Math.toRadians(params.angleOfAttack))
             .strafeTo(Vector2d(FieldParams.basketX, FieldParams.basketY))
+            .turnTo(Math.toRadians(params.angleOfAttack))
             .build()
     }
 

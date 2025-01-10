@@ -37,11 +37,8 @@ class Elbow(hardwareMap: HardwareMap, name: String, private val potentiometer: A
         return CRServoWithPotentiometer(-maxPower, 0.5)
     }
     fun retract(): Action {
-        return CRServoWithPotentiometer(maxPower, 1.0)
+        return CRServoWithPotentiometer(maxPower, 0.95)
     }
-   /* fun moveFor(seconds: Double): Action {
-        return SimpleAttachmentWithCRServoControl(maxPower, seconds)
-    }*/
 
     override fun update(telemetry: Telemetry) {
         telemetry.addLine("==== ELBOW ====")

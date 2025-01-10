@@ -22,7 +22,8 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
      *
      * @property maxPosition the maximum position of the shoulder
      * @property minPosition the minimum position of the shoulder
-     * @property maxPower the maximum power of the shoulder
+     * @property extendPower the power of the shoulder for extending
+     * @property retractPower the power of the shoulder for retracting
      */
     companion object Params {
         @JvmField
@@ -30,7 +31,9 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
         @JvmField
         var minPosition: Int = 15
         @JvmField
-        var maxPower: Double = 0.55
+        var extendPower: Double = 0.12
+        @JvmField
+        var retractPower: Double = 0.4
     }
 
     init {
@@ -40,13 +43,13 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
 
     // Actions
     fun extend(): Action {
-        return SimpleAttachmentWithDcMotorControl(0.32, maxPosition, minPosition, maxPosition)
+        return SimpleAttachmentWithDcMotorControl(extendPower, maxPosition, minPosition, maxPosition)
     }
     fun retract(): Action {
-        return SimpleAttachmentWithDcMotorControl(maxPower, minPosition, minPosition, maxPosition)
+        return SimpleAttachmentWithDcMotorControl(retractPower, minPosition, minPosition, maxPosition)
     }
     fun goTo(position: Int): Action {
-        return goTo(maxPower, position, minPosition, maxPosition)
+        return goTo(extendPower, position, minPosition, maxPosition)
     }
 
     override fun update(telemetry: Telemetry) {

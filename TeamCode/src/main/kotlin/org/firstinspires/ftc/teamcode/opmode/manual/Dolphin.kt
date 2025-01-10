@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Lift
+import org.firstinspires.ftc.teamcode.attachment.Wrist
 import org.firstinspires.ftc.teamcode.robot.Steve
 
 /**
@@ -87,17 +88,19 @@ class Dolphin(
 
     private fun rotateClawWithGamepad(gamepad: Gamepad) {
         // Control wrist
-        if (gamepad.dpad_right) controller.addAction(robot.wrist.goTo(0.5))
-        else if (gamepad.dpad_up) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() + 0.005))
-        else if (gamepad.dpad_down) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() - 0.005))
+        if (gamepad.dpad_down) controller.addAction(robot.wrist.goTo(Wrist.centerPosition))
+        else if (gamepad.dpad_left) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() + 0.005))
+        else if (gamepad.dpad_right) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() - 0.005))
     }
 
     private fun extendClawWithGamepad(gamepad: Gamepad) {
         // Control shoulder
         if (gamepad.x) controller.addAction(robot.shoulder.extend())
         else if (gamepad.y) controller.addAction(robot.shoulder.retract())
+        else robot.shoulder.setPower(gamepad.right_trigger.toDouble() - gamepad.left_trigger.toDouble())
 
         // Control elbow
-        robot.elbow.setPower(controller.processInput(-gamepad.right_stick_y.toDouble()))
+        if (gamepad.dpad_up) controller.addAction(robot.elbow.extend())
+        else robot.elbow.setPower(controller.processInput(-gamepad.right_stick_y.toDouble()))
     }
 }

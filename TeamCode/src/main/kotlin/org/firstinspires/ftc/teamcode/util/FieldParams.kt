@@ -17,9 +17,9 @@ import com.acmerobotics.dashboard.config.Config
 @Config
 object FieldParams {
     @JvmField
-    var basketX: Double = 64.0
+    var basketX: Double = 58.0
     @JvmField
-    var basketY: Double = 64.0
+    var basketY: Double = 58.0
 
     @JvmField
     var observationX: Double = -48.0

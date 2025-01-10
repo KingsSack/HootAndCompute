@@ -52,9 +52,9 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         @JvmField
         var maxPower: Double = 0.6
         @JvmField
-        var idlePower: Double = 0.2
+        var idlePower: Double = 0.4
         @JvmField
-        var timeout: Double = 4.0
+        var timeout: Double = 5.0
         @JvmField
         var coefficients: PIDFCoefficients = PIDFCoefficients(1.0, 1.0, 1.0, 1.0)
     }
@@ -81,6 +81,8 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         motors = listOf(liftRight, liftLeft)
     }
 
+    private var currentGoal: Int = 0
+
     /**
      * Control is an action that raises or lowers the lift to a target position.
      *
@@ -91,8 +93,6 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         private val power: Double,
         private val targetPosition: Int
     ) : ControlAction() {
-        private var lowering = false
-
         // Runtime
         private val runtime: ElapsedTime = ElapsedTime()
 
@@ -102,14 +102,14 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
                 throw IllegalArgumentException("Target position out of bounds")
 
             // Determine if lowering
-            lowering = liftRight.currentPosition > targetPosition
+            currentGoal = targetPosition
 
             // Set mode
             liftRight.mode = DcMotor.RunMode.RUN_USING_ENCODER
             liftLeft.mode = DcMotor.RunMode.RUN_USING_ENCODER
 
             // Set target position
-            liftRight.targetPosition = targetPosition
+            liftRight.targetPosition = currentGoal
             liftLeft.targetPosition = liftRight.currentPosition
 
             // Set mode again
@@ -125,42 +125,31 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         }
 
         override fun update(packet: TelemetryPacket): Boolean {
-            // Get positions
-            val rightPosition = liftRight.currentPosition
-            val leftPosition = liftLeft.currentPosition
-            packet.put("Lift right position", rightPosition)
-            packet.put("Lift left position", leftPosition)
+            // Print telemetry
+            packet.put("Lift right position", liftRight.currentPosition)
+            packet.put("Lift left position", liftLeft.currentPosition)
+            packet.put("Lift right target", liftRight.targetPosition)
+            packet.put("Lift left target", liftLeft.targetPosition)
+            packet.put("Current goal", currentGoal)
 
             // Set target position
-            liftLeft.targetPosition = rightPosition
+            liftLeft.targetPosition = liftRight.currentPosition
 
             // Check for timeout
-            if (runtime.seconds() > timeout) {
+            if (runtime.seconds() > timeout)
                 return true
-            }
 
-            if (lowering) {
-                // Lowering
-                if (rightPosition >= targetPosition && leftPosition >= targetPosition)
-                    return false
-            } else {
-                // Raising
-                if (rightPosition <= targetPosition && leftPosition <= targetPosition)
-                    return false
-            }
+            // Has it completed
+            if (liftRight.isBusy)
+                return false
 
             // At target position
             return true
         }
 
         override fun handleStop() {
-            if (liftRight.currentPosition > 10) {
-                liftRight.power = idlePower
-                liftLeft.power = idlePower
-            } else {
-                liftRight.power = 0.0
-                liftLeft.power = 0.0
-            }
+            liftRight.power = idlePower
+            liftLeft.power = idlePower
         }
     }
 
@@ -193,6 +182,8 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
 
         liftRight.power = finalPower
         liftLeft.power = finalPower
+
+        currentGoal = liftRight.currentPosition
     }
 
     /**
@@ -206,10 +197,19 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
     }
 
     override fun update(telemetry: Telemetry) {
-        telemetry.addLine("==== LIFT ====")
-        if (liftRight.isBusy) {
-            liftLeft.targetPosition = liftRight.currentPosition
+        if (!running && currentGoal != 0) {
+            liftRight.mode = DcMotor.RunMode.RUN_TO_POSITION
+            liftLeft.mode = DcMotor.RunMode.RUN_TO_POSITION
+            liftRight.power = idlePower
+            liftLeft.power = idlePower
+            if (liftRight.isBusy) {
+                liftRight.targetPosition = currentGoal
+                liftLeft.targetPosition = liftRight.currentPosition
+            }
         }
+
+
+        telemetry.addLine("==== LIFT ====")
         telemetry.addData("Right Position", liftRight.currentPosition)
         telemetry.addData("Left Position", liftLeft.currentPosition)
         telemetry.addData("Right Busy", liftRight.isBusy)

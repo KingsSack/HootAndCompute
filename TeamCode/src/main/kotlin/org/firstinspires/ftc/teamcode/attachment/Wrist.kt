@@ -26,6 +26,8 @@ class Wrist(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithServo(
         var minPosition: Double = 0.0
         @JvmField
         var maxPosition: Double = 1.0
+        @JvmField
+        var centerPosition: Double = 0.7
     }
 
     override fun update(telemetry: Telemetry) {

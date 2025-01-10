@@ -51,7 +51,7 @@ class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         @JvmField
         var minProfileAccel: Double = -30.0
         @JvmField
-        var maxProfileAccel: Double = 40.0
+        var maxProfileAccel: Double = 30.0
 
         // turn profile parameters (in radians)
         @JvmField

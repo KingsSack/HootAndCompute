@@ -129,7 +129,9 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      */
     fun collectSample(): Action {
         return SequentialAction(
+            claw.open(),
             extendArm(),
+            wrist.goTo(Wrist.centerPosition),
             claw.close(),
             retractArm()
         )
@@ -150,6 +152,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
         return SequentialAction(
             lift.goTo(basketHeight + 50),
             shoulder.extend(),
+            wrist.goTo(Wrist.centerPosition),
             claw.open(),
             retractArm(),
             lift.drop()
