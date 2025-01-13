@@ -33,7 +33,7 @@ open class CRServoWithPotentiometer(hardwareMap: HardwareMap, private val name: 
                 throw IllegalArgumentException("Target position is out of bounds")
 
             // Determine reversing
-            reversing = angle < potentiometer.voltage / potentiometer.maxVoltage
+            reversing = angle < potentiometer.voltage / 3.3
 
             // Set power
             crServo.power = if (reversing) -power else power
@@ -43,7 +43,7 @@ open class CRServoWithPotentiometer(hardwareMap: HardwareMap, private val name: 
             // Get the current angle
             val currentAngle = potentiometer.voltage / potentiometer.maxVoltage
             packet.put("CRServo $name angle", currentAngle)
-            return ((angle > (potentiometer.voltage / potentiometer.maxVoltage)) xor reversing xor reversed)
+            return ((angle > (potentiometer.voltage / 3.3)) xor reversing xor reversed)
         }
 
         override fun handleStop() {

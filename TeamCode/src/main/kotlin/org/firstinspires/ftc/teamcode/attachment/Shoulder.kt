@@ -29,11 +29,11 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
         @JvmField
         var maxPosition: Int = 100
         @JvmField
-        var minPosition: Int = 15
+        var minPosition: Int = 20
         @JvmField
-        var extendPower: Double = 0.12
+        var extendPower: Double = 0.25
         @JvmField
-        var retractPower: Double = 0.4
+        var retractPower: Double = 0.45
     }
 
     init {

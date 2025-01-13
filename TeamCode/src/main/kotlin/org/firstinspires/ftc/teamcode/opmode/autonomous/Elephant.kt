@@ -38,7 +38,7 @@ class Elephant(
         @JvmField
         var initialX: Double = 24.0
         @JvmField
-        var initialY: Double = 66.0
+        var initialY: Double = 63.0
         @JvmField
         var initialHeading: Double = 90.0
 
@@ -75,9 +75,9 @@ class Elephant(
     private fun goToSample(): Action {
         return SequentialAction(
             robot.drive.actionBuilder(robot.drive.pose)
-                .strafeTo(Vector2d(42.0, 46.0))
-                .strafeTo(Vector2d(42.0, FieldParams.samplePositionsY[currentSampleIndex] - 10.0))
-                .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 10.0))
+                .strafeTo(Vector2d(37.0, 46.0))
+                .strafeTo(Vector2d(37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
+                .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
                 .build(),
             InstantAction { currentSampleIndex++ }
         )
@@ -85,7 +85,7 @@ class Elephant(
 
     private fun goToBasket(): Action {
         return robot.drive.actionBuilder(robot.drive.pose)
-            .strafeTo(Vector2d(FieldParams.basketX, FieldParams.basketY))
+            .strafeTo(Vector2d(FieldParams.basketX + 4, FieldParams.basketY + 4))
             .build()
     }
 

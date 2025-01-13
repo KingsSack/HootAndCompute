@@ -25,7 +25,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 class Dolphin(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    params: DolphinParams,
+    private val params: DolphinParams,
     private val gamepad1: Gamepad,
     private val gamepad2: Gamepad
 ) : ManualMode {
@@ -43,6 +43,9 @@ class Dolphin(
         var initialY: Double = 64.0
         @JvmField
         var initialHeading: Double = 90.0
+
+        @JvmField
+        var liftMultiplier: Int = 8
     }
 
     override val controller = ManualController(telemetry)
@@ -75,7 +78,7 @@ class Dolphin(
         // Control lift
         if (gamepad.right_bumper) controller.addAction(robot.lift.goTo(Lift.upperBasketHeight))
         else if (gamepad.left_bumper) controller.addAction(robot.lift.drop())
-        else robot.lift.setPower(controller.processInput(-gamepad.left_stick_y.toDouble()) * Lift.maxPower)
+        else robot.lift.currentGoal += controller.processInput(-gamepad.left_stick_y.toDouble()).toInt() * params.liftMultiplier
     }
 
     private fun controlClawWithGamepad(gamepad: Gamepad) {

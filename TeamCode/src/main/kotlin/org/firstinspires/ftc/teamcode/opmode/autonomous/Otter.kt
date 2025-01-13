@@ -39,7 +39,7 @@ class Otter(
         @JvmField
         var initialX: Double = 24.0
         @JvmField
-        var initialY: Double = 66.0
+        var initialY: Double = 63.0
         @JvmField
         var initialHeading: Double = 0.0
 
@@ -83,7 +83,7 @@ class Otter(
         return robot.drive.actionBuilder(robot.drive.pose)
             .turnTo(Math.toRadians(-90.0))
             .waitSeconds(1.0)
-            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] + 26.0))
+            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], 54.0))
             .build()
     }
 

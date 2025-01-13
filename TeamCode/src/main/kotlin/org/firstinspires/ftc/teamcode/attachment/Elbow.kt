@@ -23,27 +23,30 @@ class Elbow(hardwareMap: HardwareMap, name: String, private val potentiometer: A
      * Params is a companion object that holds the configuration for the elbow attachment.
      *
      * @property maxPower the maximum power of the elbow
-     * @property timeForFullExtend the time it takes to fully extend the elbow
+     * @property extendedAngle the max angle
+     * @property retractedAngle the min angle
      */
     companion object Params {
         @JvmField
-        var maxPower: Double = 0.72
+        var maxPower: Double = 1.0
         @JvmField
-        var timeForFullExtend: Double = 1.0
+        var extendedAngle: Double = 0.33
+        @JvmField
+        var retractedAngle: Double = 0.75
     }
 
     // Actions
     fun extend(): Action {
-        return CRServoWithPotentiometer(-maxPower, 0.5)
+        return CRServoWithPotentiometer(-maxPower, extendedAngle)
     }
     fun retract(): Action {
-        return CRServoWithPotentiometer(maxPower, 0.95)
+        return CRServoWithPotentiometer(maxPower, retractedAngle)
     }
 
     override fun update(telemetry: Telemetry) {
         telemetry.addLine("==== ELBOW ====")
         super.update(telemetry)
-        telemetry.addData("Position", potentiometer.voltage / potentiometer.maxVoltage)
+        telemetry.addData("Position", potentiometer.voltage / 3.3)
         telemetry.addLine()
     }
 }

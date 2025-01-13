@@ -44,7 +44,7 @@ class ManualController(
         @JvmField
         var turbo: Double = 1.0
         @JvmField
-        var normal: Double = 0.6
+        var normal: Double = 0.5
         @JvmField
         var precise: Double = 0.2
     }

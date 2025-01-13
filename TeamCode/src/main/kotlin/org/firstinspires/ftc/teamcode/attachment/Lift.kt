@@ -52,11 +52,11 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         @JvmField
         var maxPower: Double = 0.6
         @JvmField
-        var idlePower: Double = 0.4
+        var idlePower: Double = 0.6
         @JvmField
-        var timeout: Double = 5.0
+        var timeout: Double = 4.0
         @JvmField
-        var coefficients: PIDFCoefficients = PIDFCoefficients(1.0, 1.0, 1.0, 1.0)
+        var coefficients: PIDFCoefficients = PIDFCoefficients(0.8, 1.0, 1.0, 1.0)
     }
 
     // Initialize lifters
@@ -68,20 +68,21 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         liftRight.direction = DcMotorSimple.Direction.REVERSE
         liftLeft.direction = DcMotorSimple.Direction.FORWARD
 
-        // Set zero power behavior
-        liftRight.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        liftLeft.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        // Set motor modes
-        liftRight.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        liftLeft.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        liftRight.mode = DcMotor.RunMode.RUN_USING_ENCODER
-        liftLeft.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        // Set zero power behavior and modes
+        listOf(liftRight, liftLeft).forEach {
+            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            it.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            it.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        }
 
         motors = listOf(liftRight, liftLeft)
     }
 
-    private var currentGoal: Int = 0
+    var currentGoal: Int = 0
+        set(value) {
+            val temp = value.coerceAtLeast(0)
+            field = temp.coerceAtMost(maxPosition)
+        }
 
     /**
      * Control is an action that raises or lowers the lift to a target position.
@@ -98,30 +99,20 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
 
         override fun init() {
             // Check if the target position is valid
-            if (targetPosition < 0 || targetPosition > maxPosition)
-                throw IllegalArgumentException("Target position out of bounds")
+            require(targetPosition in minPosition..maxPosition) { "Target position out of bounds" }
 
-            // Determine if lowering
+            // Update current goal
             currentGoal = targetPosition
 
-            // Set mode
-            liftRight.mode = DcMotor.RunMode.RUN_USING_ENCODER
-            liftLeft.mode = DcMotor.RunMode.RUN_USING_ENCODER
+            // Get motors ready
+            listOf(liftRight, liftLeft).forEach {
+                it.mode = DcMotor.RunMode.RUN_USING_ENCODER
+                it.targetPosition = currentGoal
+                it.mode = DcMotor.RunMode.RUN_TO_POSITION
+                it.power = power
+            }
 
-            // Set target position
-            liftRight.targetPosition = currentGoal
-            liftLeft.targetPosition = liftRight.currentPosition
-
-            // Set mode again
-            liftRight.mode = DcMotor.RunMode.RUN_TO_POSITION
-            liftLeft.mode = DcMotor.RunMode.RUN_TO_POSITION
-
-            // Reset runtime
             runtime.reset()
-
-            // Set power
-            liftRight.power = power
-            liftLeft.power = power
         }
 
         override fun update(packet: TelemetryPacket): Boolean {
@@ -132,24 +123,19 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
             packet.put("Lift left target", liftLeft.targetPosition)
             packet.put("Current goal", currentGoal)
 
-            // Set target position
-            liftLeft.targetPosition = liftRight.currentPosition
-
-            // Check for timeout
-            if (runtime.seconds() > timeout)
-                return true
-
             // Has it completed
-            if (liftRight.isBusy)
-                return false
-
-            // At target position
-            return true
+            return if (runtime.seconds() > timeout) {
+                true
+            } else {
+                !liftRight.isBusy
+            }
         }
 
         override fun handleStop() {
-            liftRight.power = idlePower
-            liftLeft.power = idlePower
+            // Set the motors to idle power
+            listOf(liftRight, liftLeft).forEach {
+                it.power = idlePower
+            }
         }
     }
 
@@ -164,52 +150,30 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         return Control(maxPower, position)
     }
 
-    fun setPower(power: Double) {
-        if (running)
-            return
-
-        if (power != 0.0) {
-            liftRight.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            liftLeft.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        }
-
-        var finalPower = power
-        if (power > maxPower)
-            finalPower = maxPower
-
-        if (liftRight.currentPosition > maxPosition || liftLeft.currentPosition > maxPosition)
-            finalPower = 0.0
-
-        liftRight.power = finalPower
-        liftLeft.power = finalPower
-
-        currentGoal = liftRight.currentPosition
-    }
-
     /**
      * Resets the lift attachment motors.
      *
      * Should only be called when the lift is lowered.
      */
     fun reset() {
-        liftRight.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        liftLeft.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        listOf(liftRight, liftLeft).forEach {
+            it.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            it.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        }
     }
 
     override fun update(telemetry: Telemetry) {
         if (!running && currentGoal != 0) {
-            liftRight.mode = DcMotor.RunMode.RUN_TO_POSITION
-            liftLeft.mode = DcMotor.RunMode.RUN_TO_POSITION
-            liftRight.power = idlePower
-            liftLeft.power = idlePower
-            if (liftRight.isBusy) {
-                liftRight.targetPosition = currentGoal
-                liftLeft.targetPosition = liftRight.currentPosition
+            listOf(liftRight, liftLeft).forEach {
+                it.targetPosition = currentGoal
+                it.mode = DcMotor.RunMode.RUN_TO_POSITION
+                it.power = idlePower
             }
         }
 
 
         telemetry.addLine("==== LIFT ====")
+        telemetry.addData("Current Goal", currentGoal)
         telemetry.addData("Right Position", liftRight.currentPosition)
         telemetry.addData("Left Position", liftLeft.currentPosition)
         telemetry.addData("Right Busy", liftRight.isBusy)

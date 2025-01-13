@@ -49,21 +49,6 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
         // Initialize
     }
 
-    inner class Control : ControlAction() {
-        override fun init() {
-            // Start
-        }
-
-        override fun update(packet: TelemetryPacket): Boolean {
-            // Logic
-            return false
-        }
-
-        override fun handleStop() {
-            // End
-        }
-    }
-
     override fun update(telemetry: Telemetry) {
         // Update
     }
@@ -91,21 +76,6 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 
         // Add to list
         motors = listOf(motor)
-    }
-
-    inner class Control : ControlAction() {
-        override fun init() {
-            // Start
-        }
-
-        override fun update(packet: TelemetryPacket): Boolean {
-            // Logic
-            return false
-        }
-
-        override fun handleStop() {
-            // End
-        }
     }
 
     override fun update(telemetry: Telemetry) {

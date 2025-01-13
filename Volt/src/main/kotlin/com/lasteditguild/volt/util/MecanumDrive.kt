@@ -21,7 +21,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 
 @Config
-class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
+open class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
     companion object DriveParams {
         // IMU orientation
         @JvmField
@@ -33,13 +33,13 @@ class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         @JvmField
         var inPerTick: Double = 0.0227
         @JvmField
-        var lateralInPerTick: Double = 0.0238
+        var lateralInPerTick: Double = 0.02
         @JvmField
         var trackWidthTicks: Double = 1297.32
 
         // feedforward parameters (in tick units)
         @JvmField
-        var kS: Double = 0.9134 // 1.06 // Represents the static force
+        var kS: Double = 0.9134 // Represents the static force
         @JvmField
         var kV: Double = 0.0043 // Represents the linear velocity
         @JvmField
@@ -47,11 +47,11 @@ class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
 
         // path profile parameters (in inches)
         @JvmField
-        var maxWheelVel: Double = 30.0
+        var maxWheelVel: Double = 60.0
         @JvmField
         var minProfileAccel: Double = -30.0
         @JvmField
-        var maxProfileAccel: Double = 30.0
+        var maxProfileAccel: Double = 60.0
 
         // turn profile parameters (in radians)
         @JvmField
