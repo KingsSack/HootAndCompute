@@ -32,13 +32,13 @@ class Rhinoceros(
      * @property initialX the initial x position
      * @property initialY the initial y position
      * @property initialHeading the initial heading
-     * @property numSamples the number of samples to convert
+     * @property numSamples the number of samples to convert to a specimen
      */
     class RhinocerosParams {
         @JvmField
         var initialX: Double = -24.0
         @JvmField
-        var initialY: Double = 66.0
+        var initialY: Double = 63.0
         @JvmField
         var initialHeading: Double = -90.0
 
@@ -53,7 +53,7 @@ class Rhinoceros(
     ))
 
     private var currentSampleIndex = 0
-    private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 20)
+    private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 30)
 
     init {
         // Autonomous sequence
@@ -92,7 +92,7 @@ class Rhinoceros(
             robot.lift.goTo(Lift.upperSubmersibleBarHeight),
             robot.extendArmToSubmersible(),
             robot.lift.drop(),
-            InstantAction { currentSubmersiblePosition = Vector2d(currentSubmersiblePosition.x + 5.0, currentSubmersiblePosition.y) },
+            InstantAction { currentSubmersiblePosition = Vector2d(currentSubmersiblePosition.x + 6.0, currentSubmersiblePosition.y) },
         )
     }
 
@@ -105,7 +105,7 @@ class Rhinoceros(
     private fun retrieveSpecimen(): Action {
         return SequentialAction(
             robot.drive.actionBuilder(robot.drive.pose)
-                .strafeTo(Vector2d(FieldParams.observationX, 45.0))
+                .strafeTo(Vector2d(FieldParams.observationX, 33.0))
                 .build(),
             robot.extendArm(),
             robot.claw.close(),

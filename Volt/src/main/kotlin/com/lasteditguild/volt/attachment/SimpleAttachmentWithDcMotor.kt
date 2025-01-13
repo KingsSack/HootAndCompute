@@ -12,8 +12,11 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  *
  * @param hardwareMap for registering the motor
  * @param name the name of the motor
+ * @param idlePower the idle power of the motor
+ * @param maxPosition the maximum position of the motor
+ * @param minPosition the minimum position of the motor
  */
-open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val name: String) : Attachment() {
+open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val name: String, private val idlePower: Double, private val maxPosition: Int, private val minPosition: Int = 0) : Attachment() {
     // Initialize motor
     protected val motor: DcMotor = hardwareMap.dcMotor[name]
 
@@ -31,6 +34,12 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
         motors = listOf(motor)
     }
 
+    var currentGoal: Int = 0
+        set(value) {
+            val temp = value.coerceAtLeast(minPosition)
+            field = temp.coerceAtMost(maxPosition)
+        }
+
     /**
      * An action that extends or retracts the motor to a target position.
      *
@@ -40,43 +49,35 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
     inner class SimpleAttachmentWithDcMotorControl(
         private val power: Double,
         private val targetPosition: Int,
-        private val minPosition: Int,
-        private val maxPosition: Int
     ) : ControlAction() {
-        private var reversing = false
-
         override fun init() {
             // Check if the target position is valid
-            if (targetPosition < minPosition || targetPosition > maxPosition)
-                throw IllegalArgumentException("Target position is out of bounds")
+            require(targetPosition in minPosition..maxPosition) { "Target position out of bounds" }
 
-            // Determine reversing
-            reversing = targetPosition < motor.currentPosition
+            // Update current goal
+            currentGoal = targetPosition
+
+            // Set target position
+            motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
+            motor.targetPosition = currentGoal
+            motor.mode = DcMotor.RunMode.RUN_TO_POSITION
 
             // Set power
-            motor.power = if (reversing) -power else power
+            motor.power = power
         }
 
         override fun update(packet: TelemetryPacket): Boolean {
             // Get position
-            val currentPosition = motor.currentPosition
-            packet.put("DcMotor $name position", currentPosition)
+            packet.put("DcMotor $name position", motor.currentPosition)
+            packet.put("DcMotor $name target", motor.targetPosition)
 
-            if (reversing) {
-                // Lowering
-                if (currentPosition > targetPosition)
-                    return false
-            } else {
-                // Raising
-                if (currentPosition < targetPosition)
-                    return false
-            }
-            return true
+            // Has it completed
+            return !motor.isBusy
         }
 
         override fun handleStop() {
             // Stop the motor
-            motor.power = 0.0
+            motor.power = idlePower
         }
     }
 
@@ -85,26 +86,22 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
      *
      * @param power the power to set the motor to
      * @param position the target position of the motor
-     * @param minPosition the lower limit of the motor
-     * @param maxPosition the upper limit of the motor
      *
      * @return an action to move the motor to a position
      */
-    fun goTo(power: Double, position: Int, minPosition: Int, maxPosition: Int): Action {
-        return SimpleAttachmentWithDcMotorControl(power, position, minPosition, maxPosition)
-    }
-
-    /**
-     * Set the power of the motor.
-     *
-     * @param power the power to set the motor to
-     */
-    fun setPower(power: Double) {
-        // Set servo power
-        motor.power = power
+    fun goTo(power: Double, position: Int): Action {
+        return SimpleAttachmentWithDcMotorControl(power, position)
     }
 
     override fun update(telemetry: Telemetry) {
+        if (!running && currentGoal != minPosition) {
+            motor.targetPosition = currentGoal
+            motor.mode = DcMotor.RunMode.RUN_TO_POSITION
+            motor.power = idlePower
+        }
+
+        telemetry.addData("Goal", currentGoal)
         telemetry.addData("Position", motor.currentPosition)
+        telemetry.addData("Busy", motor.isBusy)
     }
 }

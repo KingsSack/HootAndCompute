@@ -45,7 +45,9 @@ class Dolphin(
         var initialHeading: Double = 90.0
 
         @JvmField
-        var liftMultiplier: Int = 8
+        var liftMultiplier: Int = 12
+        @JvmField
+        var shoulderMultiplier: Int = 8
     }
 
     override val controller = ManualController(telemetry)
@@ -100,7 +102,7 @@ class Dolphin(
         // Control shoulder
         if (gamepad.x) controller.addAction(robot.shoulder.extend())
         else if (gamepad.y) controller.addAction(robot.shoulder.retract())
-        else robot.shoulder.setPower(gamepad.right_trigger.toDouble() - gamepad.left_trigger.toDouble())
+        else robot.shoulder.currentGoal += (gamepad.right_trigger.toDouble() - gamepad.left_trigger.toDouble()).toInt() * params.shoulderMultiplier
 
         // Control elbow
         if (gamepad.dpad_up) controller.addAction(robot.elbow.extend())

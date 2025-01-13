@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @see Claw
  */
 @Config
-class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcMotor(hardwareMap, name) {
+class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcMotor(hardwareMap, name, idlePower, maxPosition, minPosition) {
     /**
      * Params is a companion object that holds the configuration for the shoulder attachment.
      *
@@ -24,6 +24,7 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
      * @property minPosition the minimum position of the shoulder
      * @property extendPower the power of the shoulder for extending
      * @property retractPower the power of the shoulder for retracting
+     * @property idlePower the idle power of the shoulder
      */
     companion object Params {
         @JvmField
@@ -34,6 +35,8 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
         var extendPower: Double = 0.25
         @JvmField
         var retractPower: Double = 0.45
+        @JvmField
+        var idlePower: Double = 0.4
     }
 
     init {
@@ -43,13 +46,13 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
 
     // Actions
     fun extend(): Action {
-        return SimpleAttachmentWithDcMotorControl(extendPower, maxPosition, minPosition, maxPosition)
+        return SimpleAttachmentWithDcMotorControl(extendPower, maxPosition)
     }
     fun retract(): Action {
-        return SimpleAttachmentWithDcMotorControl(retractPower, minPosition, minPosition, maxPosition)
+        return SimpleAttachmentWithDcMotorControl(retractPower, minPosition)
     }
     fun goTo(position: Int): Action {
-        return goTo(extendPower, position, minPosition, maxPosition)
+        return goTo(extendPower, position)
     }
 
     override fun update(telemetry: Telemetry) {
