@@ -82,6 +82,14 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
     }
 
     /**
+     * Resets the motor's encoder.
+     */
+    fun reset() {
+        motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
+    }
+
+    /**
      * Move the motor.
      *
      * @param power the power to set the motor to
