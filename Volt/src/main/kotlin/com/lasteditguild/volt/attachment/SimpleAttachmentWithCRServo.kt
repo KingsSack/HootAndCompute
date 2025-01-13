@@ -7,6 +7,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
+/**
+ * SimpleAttachmentWithCRServo is an attachment that controls a continuous rotation servo.
+ *
+ * @param hardwareMap for initializing cr servo
+ * @param name the name of the cr servo
+ */
 open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val name: String) : Attachment() {
     // Initialize cr servo
     protected val crServo: CRServo = hardwareMap.crservo[name]

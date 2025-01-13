@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * Shoulder is an attachment that extends and retracts the Claw.
+ * SimpleAttachmentWithDcMotor is an attachment that controls a motor.
  *
  * @param hardwareMap for registering the motor
  * @param name the name of the motor

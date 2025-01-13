@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * Claw is an attachment that can open and close.
+ * SimpleAttachmentWithServo is an attachment that controls a servo.
  *
  * @param hardwareMap for registering the servo
  * @param name the name of the servo

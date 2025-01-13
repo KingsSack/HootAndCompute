@@ -7,6 +7,14 @@ import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
+/**
+ * CRServoWithPotentiometer is an attachment that controls a continuous rotation servo with a potentiometer.
+ *
+ * @param hardwareMap for initializing cr servo and potentiometer
+ * @param name the name of the cr servo
+ * @param potentiometer the potentiometer for the cr servo
+ * @param reversed if the cr servo moves the opposite of the potentiometer
+ */
 open class CRServoWithPotentiometer(hardwareMap: HardwareMap, private val name: String, private val potentiometer: AnalogInput, private var reversed: Boolean) : Attachment() {
     // Initialize cr servo and potentiometer
     protected val crServo: CRServo = hardwareMap.crservo[name]
