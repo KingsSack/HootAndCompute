@@ -1,28 +1,41 @@
-# What is an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)?
+---
+title: Creating your first Attachment
+description: Learn all about Volt attachments.
+---
 
-An [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) is anything
-that has a function on the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot).
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Rapidly develop and test new attachments for your robot with the [Volt](/kdoc/volt) library.
+
+## What is an [Attachment](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)?
+
+An [Attachment](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) is anything
+that has a function on the [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot).
 This could be a motor, a servo, a sensor, or anything else that can be controlled.
-Attachments are used to control the [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot)
+Attachments are used to control the [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot)
 and interact with the environment.
 
-There should be one [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) per "interaction"
-your [Robot](kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot) can perform.
+There should be one [Attachment](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) per "interaction"
+your [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot) can perform.
 
-# Creating an [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)
+## Creating an [Attachment](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)
 
-Create a new Kotlin class in `TeamCode/src/main/kotlin/attachment` that inherits the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class.
+Create a new Kotlin class in `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/attachment` that inherits the [Attachment](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class.
 
-The [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class contains:
+The [Attachment](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class contains:
 
 1. A list of motors
 2. A list of servos
 3. A list of continuous rotation servos
-4. A boolean that is true when the attachment's [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action) is running
+4. A boolean that is true when the attachment's [ControlAction](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action) is running
 5. A function called `update(telemetry: Telemetry)` that is called every tick
 6. A function called `stop()` that is called when the robot is stopped
 
-```kotlin
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin "Attachment"
 class Example : Attachment() {
     init {
         // Initialize
@@ -34,14 +47,28 @@ class Example : Attachment() {
 }
 ```
 
-## Add a motor
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Add a motor
 
 
-### Defining the motor
+#### Defining the motor
 
 Add the parameters `hardwareMap` and `name` for initializing a motor. Create a new `DcMotor`.
 
-```kotlin
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin /hardwareMap.*String/ {2}
 class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
     val motor = hardwareMap.dcMotor[name]
 
@@ -55,7 +82,17 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 }
 ```
 
-### Setting up the motor
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+#### Setting up the motor
 
 Set the motor's mode to `DcMotor.RunMode.RUN_USING_ENCODER` to use the motor's built-in encoder.
 Set the motor's zero-power behavior
@@ -63,7 +100,11 @@ to `DcMotor.ZeroPowerBehavior.BRAKE` so the motor holds its position when the mo
 Add the motor to the `motors` list
 so that it can be managed by the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) class.
 
-```kotlin
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {5-12}
 class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
     val motor = hardwareMap.dcMotor[name]
 
@@ -84,32 +125,33 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 }
 ```
 
-## Log the position of the motor
+</TabItem>
 
-Modify the `update(telemetry: Telemetry)` function to log the position of `motor`.
+<TabItem label="Java">
 
-```kotlin
-override fun update(telemetry: Telemetry) {
-    // Log motor position
-    telemetry.addLine("==== EXAMPLE ====")
-    telemetry.addData("Position", motor.currentPosition)
-    telemetry.addLine()
-}
-```
+(Coming Soon)
 
-## Add logic
+</TabItem>
 
-### Setup the [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action)
+</Tabs>
+
+### Add logic
+
+#### Setup the [ControlAction](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action)
 
 Create a new `inner class` called `Control`
-that inherits [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action).
-This class will be used to define the [Attachment](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)'s logic.
+that inherits [ControlAction](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action).
+This class will be used to define the [Attachment](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment)'s logic.
 
-The [ControlAction](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action) class contains:
+The [ControlAction](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment/-control-action) class contains:
 
 1. A function called `init()` that is called when the action is triggered
 2. A function called `update(packet: TelemetryPacket): Boolean` that is called while the action is running and returns whether the action is complete
 3. A function called `handleStop()` that is called when the action is stopped
+
+<Tabs>
+
+<TabItem label="Kotlin">
 
 ```kotlin
 inner class Control : ControlAction() {
@@ -128,13 +170,27 @@ inner class Control : ControlAction() {
 }
 ```
 
-### Control the motor
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+#### Control the motor
 
 Add parameters for a `power` and a `targetPosition`. Create an instance variable for whether the motor is `reversing`.
 Set the motor's power in the `init()` function.
 Determine whether the motor has reached the `targetPosition`. Stop the motor in the `handleStop()` function.
 
-```kotlin
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {2-3, 5, 8-12, 16-28, 32-33}
 inner class Control(
     private val power: Double,
     private val targetPosition: Int
@@ -172,9 +228,29 @@ inner class Control(
 }
 ```
 
-### Add an action
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+:::danger
+
+It is usually recommended to use `RUN_TO_POSITION` rather than manually checking if it has reached the target position. However, for this guide, we will be manually checking the position.
+
+:::
+
+### Add a callable action
 
 Create a function called `use(time: Double)` that returns a new `Action`.
+
+<Tabs>
+
+<TabItem label="Kotlin">
 
 ```kotlin
 fun goTo(power: Double, position: Int): Action {
@@ -183,7 +259,48 @@ fun goTo(power: Double, position: Int): Action {
 }
 ```
 
-# Result
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Log the position of the motor
+
+Modify the `update(telemetry: Telemetry)` function to log the position of `motor`.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {2-5}
+override fun update(telemetry: Telemetry) {
+    // Log motor position
+    telemetry.addLine("==== EXAMPLE ====")
+    telemetry.addData("Position", motor.currentPosition)
+    telemetry.addLine()
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+## Result
+
+<Tabs>
+
+<TabItem label="Kotlin">
 
 ```kotlin
 package org.firstinspires.ftc.teamcode.attachment
@@ -242,3 +359,13 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
     }
 }
 ```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>

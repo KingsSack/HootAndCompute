@@ -7,8 +7,6 @@ import com.acmerobotics.roadrunner.SequentialAction
 import com.lasteditguild.volt.robot.Robot
 import com.lasteditguild.volt.util.SimpleMecanumDrive
 import com.qualcomm.hardware.dfrobot.HuskyLens
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit

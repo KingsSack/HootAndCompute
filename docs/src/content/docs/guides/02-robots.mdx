@@ -1,0 +1,245 @@
+---
+title: Creating your first Robot
+description: Learn all about Volt robots.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Rapidly develop and test new robots with the [Volt](/kdoc/volt) library.
+
+## What is a [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot)?
+
+A [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot) is a class that contains all of the [Attachments](kdoc/volt/-volt/com.lasteditguild.volt.attachment/-attachment) and some [Actions](kdoc/volt/-volt/com.lasteditguild.volt.action/-action) that make up a robot.
+
+You should create a new [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot) class for each physical robot you have built.
+
+## Creating a [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot)
+
+Create a new kotlin class in `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/robot` that inherits the [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot) class.
+
+The [Robot](/kdoc/volt/-volt/com.lasteditguild.volt.robot/-robot) class contains:
+
+1. A list of attachments
+2. A drive class
+3. A function called `update(telemetry: Telemetry)` that is called every tick
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin /hardwareMap.*Pose2d/ "Robot(hardwareMap, initialPose)"
+class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
+
+    init {
+        // Initialize
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Add Sensors
+
+Define the sensors that your robot will use and a way to use them. For example, add a HuskyLens sensor to your robot.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {2-3, 6-7, 10-18}
+class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
+
+    // Sensors
+    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+
+    init {
+        // Set huskylens mode
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
+    }
+
+    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
+        // Get objects
+        val blocks = huskyLens.blocks()
+        telemetry.addData("Block count", blocks.size)
+        for (block in blocks) {
+            telemetry.addData("Block", block.toString())
+        }
+        return blocks
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Add Attachments
+
+Define the attachments that your robot will use. For example, add a SimpleAttachmentWithDcMotor to your robot.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {5-6, 9}
+class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
+
+    // Sensors
+    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+
+    // Attachments
+    val exampleAttachment: SimpleAttachmentWithDcMotor = SimpleAttachmentWithDcMotor(hardwareMap, "motor")
+
+    init {
+        attachments = listOf(exampleAttachment)
+
+        // Set huskylens mode
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
+    }
+
+    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
+        // Get objects
+        val blocks = huskyLens.blocks()
+        telemetry.addData("Block count", blocks.size)
+        for (block in blocks) {
+            telemetry.addData("Block", block.toString())
+        }
+        return blocks
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Add Actions
+
+Define actions for your attachments and sensors. For example, add a function to move a motor to a specific position.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {15-18}
+class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
+
+    // Sensors
+    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+
+    // Attachments
+    val exampleAttachment: SimpleAttachmentWithDcMotor = SimpleAttachmentWithDcMotor(hardwareMap, "motor")
+
+    init {
+        attachments = listOf(exampleAttachment)
+
+        // Set huskylens mode
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
+    }
+
+    fun moveMotorToSpecificPosition(): Action {
+        // Move motor to 1000 at 50% power
+        return exampleAttachment.goTo(0.5, 1000, 0, 1000)
+    }
+
+    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
+        // Get objects
+        val blocks = huskyLens.blocks()
+        telemetry.addData("Block count", blocks.size)
+        for (block in blocks) {
+            telemetry.addData("Block", block.toString())
+        }
+        return blocks
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+## Result
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin
+package org.firstinspires.ftc.teamcode.robot
+
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.Pose2d
+import com.lasteditguild.volt.attachment.SimpleAttachmentWithDcMotor
+import com.lasteditguild.volt.robot.Robot
+import com.lasteditguild.volt.util.SimpleMecanumDrive
+import com.qualcomm.hardware.dfrobot.HuskyLens
+import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
+
+class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
+
+    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+
+    val exampleAttachment: SimpleAttachmentWithDcMotor = SimpleAttachmentWithDcMotor(hardwareMap, "motor")
+
+    init {
+        attachments = listOf(exampleAttachment)
+
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
+    }
+
+    fun moveMotorToSpecificPosition(): Action {
+        return exampleAttachment.goTo(0.5, 1000, 0, 1000)
+    }
+
+    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
+        val blocks = huskyLens.blocks()
+        telemetry.addData("Block count", blocks.size)
+        for (block in blocks) {
+            telemetry.addData("Block", block.toString())
+        }
+        return blocks
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>

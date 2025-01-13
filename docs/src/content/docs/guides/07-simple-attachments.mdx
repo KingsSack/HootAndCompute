@@ -1,0 +1,46 @@
+---
+title: Simple Attachments
+description: Learn how to use Volt's simple attachments.
+---
+
+Simple attachments are pre-made attachments in [Volt](/kdoc/volt) meant to make development quicker and simpler.
+
+## What are Simple Attachments?
+
+There are three main simple attachments:
+
+1. [SimpleAttachmentWithDcMotor](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-simple-attachment-with-dc-motor)
+2. [SimpleAttachmentWithCrServo](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-simple-attachment-with-cr-servo)
+3. [SimpleAttachmentWithServo](/kdoc/volt/-volt/com.lasteditguild.volt.attachment/-simple-attachment-with-servo)
+
+All three can be used as is, however, they can also be extended to add more functionality.
+
+## Using Simple Attachments
+
+There are two main ways to use a simple attachment:
+
+1. As-is
+2. Extended
+
+### As-is
+
+To use a simple attachment as-is, simply create a new instance of the attachment in your robot class.
+
+```kotlin {2}
+class ExampleRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+    val motor = SimpleAttachmentWithDcMotor(hardwareMap, "motorName")
+}
+```
+
+### Extended
+
+To extend a simple attachment, create a new class that inherits the simple attachment.
+
+```kotlin "SimpleAttachmentWithDcMotor(hardwareMap, name)"
+class ExampleAttachment(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcMotor(hardwareMap, name) {
+    init {
+        // Reverse the motor
+        motor.direction = DcMotorSimple.Direction.REVERSE
+    }
+}
+```

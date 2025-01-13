@@ -1,8 +1,15 @@
-# Creating a Manual OpMode
+---
+title: Creating a Manual OpMode
+description: Learn how to make a Manual OpMode with Volt.
+sidebar:
+    badge: 
+        text: Outdated
+        variant: danger
+---
 
 ## Create the class
 
-1. First create a new Kotlin class in`TeamCode/src/main/kotlin`
+1. First create a new Kotlin class in `TeamCode/src/main/kotlin`
 
 ## Make it a TeleOp
 
@@ -10,7 +17,7 @@
 2. Add the `@TeleOp(name="Name", group="Group")` annotation
 3. Override the `init()` and `loop()` functions
 
-```kt
+```kotlin
 @TeleOp(name = "Test", group = "Test")  
 class Test : OpMode() {
 	override fun init() {
@@ -29,7 +36,7 @@ class Test : OpMode() {
 2. Initialize `manual` in `init`
 3. Call `tick` in `loop`
 
-```kt
+```kotlin
 // Manual script  
 private lateinit var manual: ManualMode  
 
@@ -46,7 +53,7 @@ override fun loop() {
 
 ## Result
 
-```kt
+```kotlin
 package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode

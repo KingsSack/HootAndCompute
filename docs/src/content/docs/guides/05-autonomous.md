@@ -1,4 +1,11 @@
-# Creating an Autonomous OpMode
+---
+title: Creating an Autonomous OpMode
+description: Learn how to make an Autonomous OpMode with Volt.
+sidebar:
+    badge: 
+        text: Outdated
+        variant: danger
+---
 
 ## Create the class
 
@@ -10,7 +17,7 @@
 2. Add the `@Autonomous(name="Name", group="Group")` annotation
 3. Override the `runOpMode()` function
 
-```kt
+```kotlin
 @Autonomous(name = "Test", group = "Test")  
 class Test : LinearOpMode() {
 	override fun runOpMode() {
@@ -26,7 +33,7 @@ class Test : LinearOpMode() {
 3. Add a `waitForStart()`
 4. If `opModeIsActive()`, execute the [AutonomousMode](kdoc/-team-code/org.firstinspires.ftc.teamcode.autonomous/-autonomous-mode/index.html) with `auto.run()`
 
-```kt
+```kotlin
 // Autonomous script
 private lateinit var auto: AutonomousMode
 
@@ -48,7 +55,7 @@ override fun runOpMode() {
 
 ## Result
 
-```kt
+```kotlin
 package org.firstinspires.ftc.teamcode  
   
 import org.firstinspires.ftc.teamcode.autonomous.Otter  

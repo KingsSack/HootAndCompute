@@ -56,7 +56,7 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         @JvmField
         var timeout: Double = 4.0
         @JvmField
-        var coefficients: PIDFCoefficients = PIDFCoefficients(0.8, 1.0, 1.0, 1.0)
+        var coefficients: PIDFCoefficients = PIDFCoefficients(0.9, 1.0, 1.0, 1.0)
     }
 
     // Initialize lifters
@@ -68,8 +68,9 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         liftRight.direction = DcMotorSimple.Direction.REVERSE
         liftLeft.direction = DcMotorSimple.Direction.FORWARD
 
-        // Set zero power behavior and modes
+        // Set coefficients, zero power behavior, and modes
         listOf(liftRight, liftLeft).forEach {
+            it.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, coefficients)
             it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
             it.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             it.mode = DcMotor.RunMode.RUN_USING_ENCODER
@@ -170,7 +171,6 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
                 it.power = idlePower
             }
         }
-
 
         telemetry.addLine("==== LIFT ====")
         telemetry.addData("Goal", currentGoal)

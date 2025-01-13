@@ -102,7 +102,7 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
     }
 
     override fun update(telemetry: Telemetry) {
-        if (!running && currentGoal != minPosition) {
+        if (!running) {
             motor.targetPosition = currentGoal
             motor.mode = DcMotor.RunMode.RUN_TO_POSITION
             motor.power = idlePower
