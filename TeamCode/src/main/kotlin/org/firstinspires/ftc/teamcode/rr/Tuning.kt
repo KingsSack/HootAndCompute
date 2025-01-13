@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import com.lasteditguild.volt.util.Drawing.drawRobot
-import com.lasteditguild.volt.util.MecanumDrive
+import com.lasteditguild.volt.util.SimpleMecanumDrive
 import java.util.*
 
 
@@ -31,7 +31,7 @@ class RoadRunnerTest : LinearOpMode() {
         var initialHeading: Double = -90.0
     }
 
-    private lateinit var drive: MecanumDrive
+    private lateinit var drive: SimpleMecanumDrive
 
     override fun runOpMode() {
         registerDrive(hardwareMap, Pose2d(Vector2d(initialX, initialY), initialHeading))
@@ -64,7 +64,7 @@ class RoadRunnerTest : LinearOpMode() {
     }
 
     private fun registerDrive(hardwareMap: HardwareMap, initialPose: Pose2d) {
-        drive = MecanumDrive(hardwareMap, initialPose)
+        drive = SimpleMecanumDrive(hardwareMap, initialPose)
     }
 }
 
@@ -82,10 +82,10 @@ class RoadRunnerTuning : LinearOpMode() {
         var distance: Double = 32.0
     }
 
-    private lateinit var drive: MecanumDrive
+    private lateinit var drive: SimpleMecanumDrive
 
     override fun runOpMode() {
-        drive = MecanumDrive(hardwareMap, Pose2d(initialX, initialY, initialHeading))
+        drive = SimpleMecanumDrive(hardwareMap, Pose2d(initialX, initialY, initialHeading))
 
         waitForStart()
 
@@ -111,11 +111,11 @@ class RoadRunnerSplineTest : LinearOpMode() {
         var initialHeading: Double = 0.0
     }
 
-    private lateinit var drive: MecanumDrive
+    private lateinit var drive: SimpleMecanumDrive
 
     override fun runOpMode() {
         val beginPose = Pose2d(initialX, initialY, initialHeading)
-        val drive = MecanumDrive(hardwareMap, beginPose)
+        val drive = SimpleMecanumDrive(hardwareMap, beginPose)
 
         waitForStart()
 
@@ -145,7 +145,7 @@ class TuningOpModes {
         fun register(manager: OpModeManager) {
             val dvf: DriveViewFactory = object : DriveViewFactory {
                 override fun make(h: HardwareMap): DriveView {
-                    val md = MecanumDrive(h, Pose2d(0.0, 0.0, 0.0))
+                    val md = SimpleMecanumDrive(h, Pose2d(0.0, 0.0, 0.0))
 
                     val leftEncs = ArrayList<Encoder>()
                     val rightEncs = ArrayList<Encoder>()
@@ -159,10 +159,10 @@ class TuningOpModes {
 
                     return DriveView(
                         DriveType.MECANUM,
-                        MecanumDrive.inPerTick,
-                        MecanumDrive.maxWheelVel,
-                        MecanumDrive.minProfileAccel,
-                        MecanumDrive.maxProfileAccel,
+                        SimpleMecanumDrive.inPerTick,
+                        SimpleMecanumDrive.maxWheelVel,
+                        SimpleMecanumDrive.minProfileAccel,
+                        SimpleMecanumDrive.maxProfileAccel,
                         h.getAll(LynxModule::class.java),
                         listOf(md.leftFront, md.leftBack),
                         listOf(md.rightFront, md.rightBack),
@@ -170,9 +170,9 @@ class TuningOpModes {
                         md.lazyImu, md.voltageSensor
                     ) {
                         MotorFeedforward(
-                            MecanumDrive.kS,
-                            MecanumDrive.kV / MecanumDrive.inPerTick,
-                            MecanumDrive.kA / MecanumDrive.inPerTick
+                            SimpleMecanumDrive.kS,
+                            SimpleMecanumDrive.kV / SimpleMecanumDrive.inPerTick,
+                            SimpleMecanumDrive.kA / SimpleMecanumDrive.inPerTick
                         )
                     }
                 }

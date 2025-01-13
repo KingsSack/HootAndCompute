@@ -21,12 +21,10 @@ import kotlin.math.ceil
 import kotlin.math.max
 
 @Config
-open class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
+open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
     companion object DriveParams {
         // IMU orientation
-        @JvmField
         var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
-        @JvmField
         var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
 
         // drive model parameters
@@ -109,10 +107,10 @@ open class MecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
     private val mecanumCommandWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
 
     inner class DriveLocalizer : Localizer {
-        val leftFront: Encoder = OverflowEncoder(RawEncoder(this@MecanumDrive.leftFront))
-        val leftBack: Encoder = OverflowEncoder(RawEncoder(this@MecanumDrive.leftBack))
-        val rightBack: Encoder = OverflowEncoder(RawEncoder(this@MecanumDrive.rightBack))
-        val rightFront: Encoder = OverflowEncoder(RawEncoder(this@MecanumDrive.rightFront))
+        val leftFront: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.leftFront))
+        val leftBack: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.leftBack))
+        val rightBack: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.rightBack))
+        val rightFront: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.rightFront))
         private val imu: IMU = lazyImu.get()
 
         private var lastLeftFrontPos = 0

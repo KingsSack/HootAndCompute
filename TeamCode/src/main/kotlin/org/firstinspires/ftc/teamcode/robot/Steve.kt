@@ -5,7 +5,10 @@ import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.SequentialAction
 import com.lasteditguild.volt.robot.Robot
+import com.lasteditguild.volt.util.SimpleMecanumDrive
 import com.qualcomm.hardware.dfrobot.HuskyLens
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
@@ -64,6 +67,9 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
         @JvmField
         var wristName: String = "wr"
     }
+
+    // Drive
+    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
 
     // Sensors
     private val lidarLeft: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, lidarLeftName)

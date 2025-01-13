@@ -2,7 +2,7 @@ package com.lasteditguild.volt.robot
 
 import com.acmerobotics.roadrunner.Pose2d
 import com.lasteditguild.volt.attachment.Attachment
-import com.lasteditguild.volt.util.MecanumDrive
+import com.lasteditguild.volt.util.SimpleMecanumDrive
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
@@ -17,7 +17,7 @@ abstract class Robot(hardwareMap: HardwareMap, initialPose: Pose2d) {
     protected var attachments: List<Attachment> = listOf()
 
     // The mecanum drive of the robot.
-    val drive = MecanumDrive(hardwareMap, initialPose)
+    abstract val drive: SimpleMecanumDrive
 
     /**
      * Updates the robot.
