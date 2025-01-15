@@ -30,15 +30,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'corretto'
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      - name: Build kdocs
-        run: ./gradlew dokkaHtmlMultiModule
       - name: Detect package manager
         id: detect-package-manager
         run: |
@@ -76,6 +67,15 @@ jobs:
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${{ steps.pages.outputs.base_path }}"
         working-directory: ${{ env.BUILD_PATH }}
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build kdocs
+        run: ./gradlew dokkaHtmlMultiModule
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

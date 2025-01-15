@@ -32,16 +32,6 @@ export default defineConfig({
             	label: 'Reference',
             	autogenerate: { directory: 'reference' },
             },
-            {
-            	label: 'Volt API Reference',
-                collapsed: true,
-            	autogenerate: { directory: 'volt' },
-            },
-            {
-            	label: 'TeamCode API Reference',
-                collapsed: true,
-            	autogenerate: { directory: 'teamcode' },
-            },
         ],
         customCss: [
             './src/styles/theme.css',
