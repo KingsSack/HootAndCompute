@@ -2,7 +2,7 @@
 title: Tuning your robot
 ---
 
-[Volt](/api/Volt) uses [RoadRunner](https://rr.brott.dev/) which requires tuning in order to use its drive tools.
+[Volt](../../api/Volt) uses [RoadRunner](https://rr.brott.dev/) which requires tuning in order to use its drive tools.
 
 ## How to tune
 
