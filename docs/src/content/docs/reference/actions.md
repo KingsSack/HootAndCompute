@@ -5,9 +5,9 @@ title: What are Actions?
 [RoadRunner](https://rr.brott.dev/) adds [Actions](https://rr.brott.dev/docs/v1-0/actions/) to FTC:
 > Actions help you define simple behaviors that are easy to combine into large routines.
 
-## Actions in [Volt](../kdoc/volt)
+## Actions in [Volt](/api/Volt)
 
-There are three main type of [Actions](https://rr.brott.dev/docs/v1-0/actions/) in [Volt](../kdoc/volt): Autonomous [Actions](https://rr.brott.dev/docs/v1-0/actions/), Robot [Actions](https://rr.brott.dev/docs/v1-0/actions/), and Control Actions.
+There are three main type of [Actions](https://rr.brott.dev/docs/v1-0/actions/) in [Volt](/api/Volt): Autonomous [Actions](https://rr.brott.dev/docs/v1-0/actions/), Robot [Actions](https://rr.brott.dev/docs/v1-0/actions/), and Control Actions.
 
 ### Autonomous [Actions](https://rr.brott.dev/docs/v1-0/actions/)
 

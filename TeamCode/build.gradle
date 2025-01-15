@@ -52,11 +52,3 @@ dependencies {
     implementation "com.acmerobotics.roadrunner:actions:1.0.1"
     implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
 }
-
-tasks.dokkaJekyll {
-    outputDirectory.set(layout.projectDirectory.dir("../docs/src/content/docs/teamcode"))
-}
-
-tasks.dokkaJekyllPartial {
-    outputDirectory.set(layout.projectDirectory.dir("../docs/src/content/docs/teamcode"))
-}

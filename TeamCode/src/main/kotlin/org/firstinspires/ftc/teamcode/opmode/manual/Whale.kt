@@ -95,7 +95,7 @@ class Whale(
         // else if (gamepad.b) controller.addAction(robot.extendToBasket())
         // else if (gamepad.a) controller.addAction(robot.extendToSubmersible())
         else {
-            robot.shoulder.setPower(gamepad.left_stick_y.toDouble())
+//            robot.shoulder.setPower(gamepad.left_stick_y.toDouble())
             robot.elbow.setPower(-gamepad.right_stick_y.toDouble())
         }
     }

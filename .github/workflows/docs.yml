@@ -1,4 +1,4 @@
-name: Deploy Astro site to Pages
+name: Deploy Documentation Site to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: set up JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -38,7 +38,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build kdocs
-        run: ./gradlew dokkaJekyllMultiModule
+        run: ./gradlew dokkaHtmlMultiModule
       - name: Detect package manager
         id: detect-package-manager
         run: |

@@ -37,3 +37,7 @@ allprojects {
 repositories {
     mavenCentral()
 }
+
+tasks.dokkaHtmlMultiModule {
+    outputDirectory.set(layout.projectDirectory.dir("docs/dist/api"))
+}
