@@ -26,6 +26,6 @@ class OtterR : LinearOpMode() {
 
         // Execute
         if (opModeIsActive())
-            auto.run()
+            auto.execute()
     }
 }

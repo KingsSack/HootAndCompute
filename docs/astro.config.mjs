@@ -8,6 +8,9 @@ import markdoc from '@astrojs/markdoc';
 export default defineConfig({
     integrations: [starlight({
         title: 'HootAndCompute Docs',
+        logo: {
+            src: './src/assets/favicon.svg',
+        },
         social: {
             github: 'https://github.com/KingsSack/HootAndCompute',
             youtube: 'https://www.youtube.com/@HootAndCompute',
@@ -27,6 +30,26 @@ export default defineConfig({
             {
                 label: 'Guides',
                 autogenerate: { directory: 'guides' },
+            },
+            {
+                label: 'Simple Attachments',
+                collapsed: true,
+                autogenerate: { directory: 'simple-attachments' },
+            },
+            {
+                label: 'Simple Robots',
+                collapsed: true,
+                autogenerate: { directory: 'simple-robots' },
+            },
+            {
+                label: 'Simple Autonomous Modes',
+                collapsed: true,
+                autogenerate: { directory: 'simple-autonomous-modes' },
+            },
+            {
+                label: 'Simple Manual Modes',
+                collapsed: true,
+                autogenerate: { directory: 'simple-manual-modes' },
             },
             {
             	label: 'Reference',

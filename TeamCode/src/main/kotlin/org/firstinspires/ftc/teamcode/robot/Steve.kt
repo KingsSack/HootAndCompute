@@ -4,8 +4,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.SequentialAction
-import com.lasteditguild.volt.robot.Robot
-import com.lasteditguild.volt.util.SimpleMecanumDrive
+import com.lasteditguild.volt.robot.SimpleRobotWithMecanumDrive
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -24,11 +23,11 @@ import org.firstinspires.ftc.teamcode.attachment.*
  * @property lift for lifting the claw
  * @property claw for grabbing objects
  * @property shoulder for extending the claw
- * @property elbow for bending the claw
+ * @property elbow for extending the claw
  * @property wrist for rotating the claw
  */
 @Config
-class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
+class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMecanumDrive(hardwareMap, initialPose) {
     /**
      * Params is a companion object that holds the configuration for the robot Steve.
      *
@@ -65,9 +64,6 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
         @JvmField
         var wristName: String = "wr"
     }
-
-    // Drive
-    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
 
     // Sensors
     private val lidarLeft: DistanceSensor = hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
@@ -130,6 +126,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      *
      * @see Shoulder
      * @see Claw
+     * @see Wrist
      */
     fun collectSample(): Action {
         return SequentialAction(
@@ -151,6 +148,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, 
      * @see Lift
      * @see Shoulder
      * @see Claw
+     * @see Wrist
      */
     fun depositSample(basketHeight: Int): Action {
         return SequentialAction(

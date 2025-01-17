@@ -1,0 +1,174 @@
+---
+title: Creating your first Manual Mode
+description: Learn all about Volt manual modes.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Rapidly develop and test new Tele-Operated programs for your robot with the [Volt](../../api/Volt) library.
+
+## What is a [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode)?
+
+A [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode) allows you to control the robot with gamepads.
+
+## Creating a [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode)
+
+Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/manual` package that inherits the [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode) class.
+
+The [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode) class contains:
+
+1. A robot
+2. A list of actions
+3. A function called `tick()` that is called every tick
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin /hardwareMap.*Telemetry/ "ManualMode(telemetry)"
+class ExampleManual(hardwareMap: HardwareMap, telemetry: Telemetry) : ManualMode(telemetry) {
+    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
+        Vector2d(0.0, 0.0),
+        Math.toRadians(0.0) // Make sure to use radians!
+    ))
+
+    init {
+        // Initialize
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Add functionality
+
+#### Create a function
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {4-5} {15-17}
+class ExampleManual(
+    hardwareMap: HardwareMap,
+    telemetry: Telemetry,
+    private val gamepad1: Gamepad,
+    private val gamepad2: Gamepad
+) : ManualMode(telemetry) {
+    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
+        Vector2d(0.0, 0.0),
+        Math.toRadians(0.0)
+    ))
+
+    init {
+        // Initialize
+    }
+
+    fun doSomething(gamepad: Gamepad) {
+        if (gamepad.a) runningActions.add(robot.turnTo(90.0))
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+#### Call the function
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {13}
+class ExampleManual(
+    hardwareMap: HardwareMap,
+    telemetry: Telemetry,
+    private val gamepad1: Gamepad,
+    private val gamepad2: Gamepad
+) : ManualMode(telemetry) {
+    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
+        Vector2d(0.0, 0.0),
+        Math.toRadians(0.0)
+    ))
+
+    init {
+        doSomething(gamepad1)
+    }
+
+    fun doSomething(gamepad: Gamepad) {
+        if (gamepad.a) runningActions.add(robot.turnTo(90.0))
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+## Result
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin
+package org.firstinspires.ftc.teamcode.opmodes.manual
+
+import com.acmerobotics.roadrunner.*
+import com.lasteditguild.volt.autonomous.ManualMode
+import com.qualcomm.robotcore.hardware.Gamepad
+import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import com.lasteditguild.volt.robot.SimpleRobotWithMecanumDrive
+
+class ExampleManual(
+    hardwareMap: HardwareMap,
+    telemetry: Telemetry,
+    private val gamepad1: Gamepad,
+    private val gamepad2: Gamepad
+) : ManualMode(telemetry) {
+    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
+        Vector2d(0.0, 0.0),
+        Math.toRadians(0.0)
+    ))
+
+    init {
+        doSomething(gamepad1)
+    }
+
+    fun doSomething(gamepad: Gamepad) {
+        if (gamepad.a) runningActions.add(robot.turnTo(90.0))
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>

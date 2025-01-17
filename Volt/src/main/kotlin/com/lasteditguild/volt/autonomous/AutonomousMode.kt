@@ -1,17 +1,54 @@
 package com.lasteditguild.volt.autonomous
 
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.canvas.Canvas
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket
+import com.acmerobotics.roadrunner.Action
 import com.lasteditguild.volt.robot.Robot
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * AutonomousMode is an interface that defines the methods for running an autonomous mode.
+ * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
+ *
+ * @param telemetry for logging
  */
-interface AutonomousMode {
-    // Controller
-    val controller: AutonomousController
-
+abstract class AutonomousMode(private val telemetry: Telemetry) {
     // Robot
-    val robot: Robot
+    abstract val robot: Robot
 
-    // Run
-    fun run()
+    private val dash: FtcDashboard? = FtcDashboard.getInstance()
+    private val canvas = Canvas()
+
+    protected val actionSequence = mutableListOf<() -> Action>()
+
+    /**
+     * Execute the autonomous sequence.
+     */
+    fun execute() {
+        for (action in actionSequence) {
+            runAction(action())
+            telemetry.update()
+        }
+        telemetry.addData("Autonomous", "Completed")
+        telemetry.update()
+    }
+
+    /**
+     * Run an action.
+     *
+     * @param action the action to run
+     */
+    private fun runAction(action: Action) {
+        action.preview(canvas)
+
+        var running = true
+        while (running && !Thread.currentThread().isInterrupted) {
+            val p = TelemetryPacket()
+            p.fieldOverlay().operations.addAll(canvas.operations)
+
+            running = action.run(p)
+
+            dash?.sendTelemetryPacket(p)
+        }
+    }
 }

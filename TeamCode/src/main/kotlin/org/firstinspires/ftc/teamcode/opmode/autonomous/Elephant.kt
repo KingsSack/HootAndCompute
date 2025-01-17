@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.AutonomousController
 import com.lasteditguild.volt.autonomous.AutonomousMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -15,7 +14,6 @@ import org.firstinspires.ftc.teamcode.robot.Steve
  * @param telemetry the telemetry
  * @param params the parameters for Elephant
  *
- * @property controller the autonomous controller
  * @property robot the robot
  *
  * @see AutonomousMode
@@ -24,7 +22,7 @@ class Elephant(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
     params: ElephantParams
-) : AutonomousMode {
+) : AutonomousMode(telemetry) {
     /**
      * The parameters for Elephant.
      *
@@ -49,7 +47,6 @@ class Elephant(
         var numSamples: Int = 2
     }
 
-    override val controller = AutonomousController(telemetry)
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
         Math.toRadians(params.initialHeading)
@@ -61,45 +58,37 @@ class Elephant(
         // Autonomous sequence
         if (params.isPreloaded) {
             // If preloaded, deposit the preloaded sample
-            controller.addAction { goToBasket() }
+            actionSequence.add { goToBasket() }
         }
         repeat(params.numSamples) {
             // Collect samples
-            controller.addAction { goToSample() }
-            controller.addAction { goToBasket() }
+            actionSequence.add { goToSample() }
+            actionSequence.add { goToBasket() }
         }
         // Park
-        controller.addAction { goToObservationZone() }
+        actionSequence.add { goToObservationZone() }
     }
 
     private fun goToSample(): Action {
         return SequentialAction(
-            robot.drive.actionBuilder(robot.drive.pose)
-                .strafeTo(Vector2d(37.0, 46.0))
-                .strafeTo(Vector2d(37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
-                .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
-                .build(),
+            robot.strafeTo(Vector2d(37.0, 46.0)),
+            robot.strafeTo(Vector2d(37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
+            robot.strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
             InstantAction { currentSampleIndex++ }
         )
     }
 
     private fun goToBasket(): Action {
-        return robot.drive.actionBuilder(robot.drive.pose)
-            .strafeTo(Vector2d(FieldParams.basketX + 4, FieldParams.basketY + 4))
-            .build()
+        return robot.strafeTo(Vector2d(FieldParams.basketX + 4, FieldParams.basketY + 4))
     }
 
     private fun goToObservationZone(): Action {
-        return robot.drive.actionBuilder(robot.drive.pose)
+        return robot.driveActionBuilder(robot.pose)
             .strafeTo(Vector2d(24.0, 38.0))
             .setTangent(Math.toRadians(0.0))
             .lineToX(FieldParams.observationX)
             .setTangent(Math.toRadians(-90.0))
             .lineToY(FieldParams.observationY)
             .build()
-    }
-
-    override fun run() {
-        controller.execute()
     }
 }

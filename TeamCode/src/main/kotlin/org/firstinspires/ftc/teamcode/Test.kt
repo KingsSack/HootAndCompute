@@ -28,7 +28,7 @@ class OtterTest : LinearOpMode() {
 
         // Execute
         if (opModeIsActive())
-            auto.run()
+            auto.execute()
     }
 }
 
@@ -52,7 +52,7 @@ class ElephantTest : LinearOpMode() {
 
         // Execute
         if (opModeIsActive())
-            auto.run()
+            auto.execute()
     }
 }
 
@@ -76,6 +76,6 @@ class RhinoTest : LinearOpMode() {
 
         // Execute
         if (opModeIsActive())
-            auto.run()
+            auto.execute()
     }
 }

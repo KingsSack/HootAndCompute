@@ -3,6 +3,8 @@ title: Simple Attachments
 description: Learn how to use Volt's simple attachments.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Simple attachments are pre-made attachments in [Volt](../../api/Volt) meant to make development quicker and simpler.
 
 ## What are Simple Attachments?
@@ -26,15 +28,33 @@ There are two main ways to use a simple attachment:
 
 To use a simple attachment as-is, simply create a new instance of the attachment in your robot class.
 
+<Tabs>
+
+<TabItem label="Kotlin">
+
 ```kotlin {2}
 class ExampleRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
     val motor = SimpleAttachmentWithDcMotor(hardwareMap, "motorName")
 }
 ```
 
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
 ### Extended
 
 To extend a simple attachment, create a new class that inherits the simple attachment.
+
+<Tabs>
+
+<TabItem label="Kotlin">
 
 ```kotlin "SimpleAttachmentWithDcMotor(hardwareMap, name)"
 class ExampleAttachment(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcMotor(hardwareMap, name) {
@@ -44,3 +64,13 @@ class ExampleAttachment(hardwareMap: HardwareMap, name: String) : SimpleAttachme
     }
 }
 ```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>

@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.AutonomousController
 import com.lasteditguild.volt.autonomous.AutonomousMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -16,7 +15,6 @@ import org.firstinspires.ftc.teamcode.robot.Steve
  * @param telemetry the telemetry
  * @param params the parameters for Otter
  *
- * @property controller the autonomous controller
  * @property robot the robot
  *
  * @see AutonomousMode
@@ -25,7 +23,7 @@ class Otter(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
     private val params: OtterParams
-) : AutonomousMode {
+) : AutonomousMode(telemetry) {
     /**
      * The parameters for Otter.
      *
@@ -53,7 +51,6 @@ class Otter(
         var numSamples: Int = 2
     }
 
-    override val controller = AutonomousController(telemetry)
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
         Math.toRadians(params.initialHeading)
@@ -65,26 +62,26 @@ class Otter(
         // Autonomous sequence
         if (params.isPreloaded) {
             // If preloaded, deposit the preloaded sample
-            controller.addAction { goToBasket() }
-            controller.addAction { robot.depositSample(Lift.upperBasketHeight) }
+            actionSequence.add { goToBasket() }
+            actionSequence.add { robot.depositSample(Lift.upperBasketHeight) }
         }
         repeat(params.numSamples) {
             // Collect samples
-            controller.addAction { goToSample() }
-            controller.addAction { collectSample() }
-            controller.addAction { goToBasket() }
-            controller.addAction { robot.depositSample(Lift.upperBasketHeight) }
+            actionSequence.add { goToSample() }
+            actionSequence.add { collectSample() }
+            actionSequence.add { goToBasket() }
+            actionSequence.add { robot.depositSample(Lift.upperBasketHeight) }
         }
         // Park
-        controller.addAction { goToObservationZone() }
+        actionSequence.add { goToObservationZone() }
     }
 
     private fun goToSample(): Action {
-        return robot.drive.actionBuilder(robot.drive.pose)
-            .turnTo(Math.toRadians(-90.0))
-            .waitSeconds(1.0)
-            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], 54.0))
-            .build()
+        return SequentialAction(
+            robot.turnTo(Math.toRadians(-90.0)),
+            robot.wait(1.0),
+            robot.strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], 54.0))
+        )
     }
 
     private fun collectSample(): Action {
@@ -95,23 +92,19 @@ class Otter(
     }
 
     private fun goToBasket(): Action {
-        return robot.drive.actionBuilder(robot.drive.pose)
-            .strafeTo(Vector2d(FieldParams.basketX, FieldParams.basketY))
-            .turnTo(Math.toRadians(params.angleOfAttack))
-            .build()
+        return SequentialAction(
+            robot.strafeTo(Vector2d(FieldParams.basketX, FieldParams.basketY)),
+            robot.turnTo(Math.toRadians(params.angleOfAttack))
+        )
     }
 
     private fun goToObservationZone(): Action {
-        return robot.drive.actionBuilder(robot.drive.pose)
+        return robot.driveActionBuilder(robot.pose)
             .lineToY(36.0)
             .setTangent(Math.toRadians(0.0))
             .lineToX(FieldParams.observationX)
             .setTangent(Math.toRadians(-90.0))
             .lineToY(FieldParams.observationY)
             .build()
-    }
-
-    override fun run() {
-        controller.execute()
     }
 }

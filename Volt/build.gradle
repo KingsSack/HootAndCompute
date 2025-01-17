@@ -10,7 +10,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.dokka'
 
 group = 'com.lasteditguild'
-version = '0.0.1'
+version = '0.1.0'
 
 android {
     defaultConfig {

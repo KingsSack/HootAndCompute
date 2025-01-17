@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.AutonomousController
 import com.lasteditguild.volt.autonomous.AutonomousMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -16,7 +15,6 @@ import org.firstinspires.ftc.teamcode.robot.Steve
  * @param telemetry the telemetry
  * @param params the parameters for Rhinoceros
  *
- * @property controller the autonomous controller
  * @property robot the robot
  *
  * @see AutonomousMode
@@ -25,7 +23,7 @@ class Rhinoceros(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
     params: RhinocerosParams
-) : AutonomousMode {
+) : AutonomousMode(telemetry) {
     /**
      * The parameters for Rhinoceros.
      *
@@ -46,7 +44,6 @@ class Rhinoceros(
         var numSamples: Int = 3
     }
 
-    override val controller = AutonomousController(telemetry)
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
         Math.toRadians(params.initialHeading)
@@ -57,23 +54,23 @@ class Rhinoceros(
 
     init {
         // Autonomous sequence
-        controller.addAction { goToSubmersible() }
-        controller.addAction { depositSpecimen() } // Deposit the preloaded specimen
+        actionSequence.add { goToSubmersible() }
+        actionSequence.add { depositSpecimen() } // Deposit the preloaded specimen
         repeat(params.numSamples) {
             // Collect samples
-            controller.addAction { goToSample() }
-            controller.addAction { goToObservationZone() }
-            controller.addAction { retrieveSpecimen() }
-            controller.addAction { goToSubmersible() }
-            controller.addAction { depositSpecimen() }
+            actionSequence.add { goToSample() }
+            actionSequence.add { goToObservationZone() }
+            actionSequence.add { retrieveSpecimen() }
+            actionSequence.add { goToSubmersible() }
+            actionSequence.add { depositSpecimen() }
         }
         // Park
-        controller.addAction { goToObservationZone() }
+        actionSequence.add { goToObservationZone() }
     }
 
     private fun goToSample(): Action {
         return SequentialAction(
-            robot.drive.actionBuilder(robot.drive.pose)
+            robot.driveActionBuilder(robot.pose)
                 .strafeTo(Vector2d(-36.0, 42.0))
                 .splineToLinearHeading(Pose2d(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 16.0), Math.toRadians(90.0)), 0.0)
                 .build(),
@@ -82,9 +79,7 @@ class Rhinoceros(
     }
 
     private fun goToSubmersible(): Action {
-        return robot.drive.actionBuilder(robot.drive.pose)
-            .strafeTo(currentSubmersiblePosition)
-            .build()
+        return robot.strafeTo(currentSubmersiblePosition)
     }
 
     private fun depositSpecimen(): Action {
@@ -97,23 +92,15 @@ class Rhinoceros(
     }
 
     private fun goToObservationZone(): Action {
-        return robot.drive.actionBuilder(robot.drive.pose)
-            .strafeTo(Vector2d(FieldParams.observationX, FieldParams.observationY))
-            .build()
+        return robot.strafeTo(Vector2d(FieldParams.observationX, FieldParams.observationY))
     }
 
     private fun retrieveSpecimen(): Action {
         return SequentialAction(
-            robot.drive.actionBuilder(robot.drive.pose)
-                .strafeTo(Vector2d(FieldParams.observationX, 33.0))
-                .build(),
+            robot.strafeTo(Vector2d(FieldParams.observationX, 33.0)),
             robot.extendArm(),
             robot.claw.close(),
             robot.retractArm()
         )
-    }
-
-    override fun run() {
-        controller.execute()
     }
 }

@@ -15,7 +15,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param potentiometer the potentiometer for the cr servo
  * @param reversed if the cr servo moves the opposite of the potentiometer
  */
-open class CRServoWithPotentiometer(hardwareMap: HardwareMap, private val name: String, private val potentiometer: AnalogInput, private var reversed: Boolean) : Attachment() {
+open class CRServoWithPotentiometer(
+    hardwareMap: HardwareMap,
+    private val name: String,
+    private val potentiometer: AnalogInput,
+    private var reversed: Boolean
+) : Attachment() {
     // Initialize cr servo and potentiometer
     protected val crServo: CRServo = hardwareMap.crservo[name]
 
@@ -27,31 +32,30 @@ open class CRServoWithPotentiometer(hardwareMap: HardwareMap, private val name: 
      * An action to control the cr servo.
      *
      * @param power the power to set the cr servo to
-     * @param angle the angle to run the cr servo to
+     * @param position the position to run the cr servo to
      */
     inner class CRServoWithPotentiometer(
         private val power: Double,
-        private val angle: Double
+        private val position: Double
     ) : ControlAction() {
         private var reversing = false
 
         override fun init() {
             // Check if the target position is valid
-            if (angle < 0.0 || angle > 1.0)
-                throw IllegalArgumentException("Target position is out of bounds")
+            require(position in 0.0..potentiometer.maxVoltage) { "Position must be between 0 and ${potentiometer.maxVoltage}" }
 
             // Determine reversing
-            reversing = angle < potentiometer.voltage / 3.3
+            reversing = position < potentiometer.voltage
 
             // Set power
             crServo.power = if (reversing) -power else power
         }
 
         override fun update(packet: TelemetryPacket): Boolean {
-            // Get the current angle
+            // Get the current position
             val currentAngle = potentiometer.voltage / potentiometer.maxVoltage
-            packet.put("CRServo $name angle", currentAngle)
-            return ((angle > (potentiometer.voltage / 3.3)) xor reversing xor reversed)
+            packet.put("CRServo $name position", currentAngle)
+            return ((position > potentiometer.voltage) xor reversing xor reversed)
         }
 
         override fun handleStop() {
@@ -83,5 +87,6 @@ open class CRServoWithPotentiometer(hardwareMap: HardwareMap, private val name: 
 
     override fun update(telemetry: Telemetry) {
         telemetry.addData("Power", crServo.power)
+        telemetry.addData("Position", potentiometer.voltage)
     }
 }

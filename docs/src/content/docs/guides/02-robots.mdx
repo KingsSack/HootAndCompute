@@ -9,7 +9,9 @@ Rapidly develop and test new robots with the [Volt](../../api/Volt) library.
 
 ## What is a [Robot](../../api/Volt/com.lasteditguild.volt.robot/-robot)?
 
-A [Robot](../../api/Volt/com.lasteditguild.volt.robot/-robot) is a class that contains all of the [Attachments](kdoc/volt/com.lasteditguild.volt.attachment/-attachment) and some [Actions](kdoc/volt/com.lasteditguild.volt.action/-action) that make up a robot.
+A [Robot](../../api/Volt/com.lasteditguild.volt.robot/-robot) is a class
+that contains all [Attachments](kdoc/volt/com.lasteditguild.volt.attachment/-attachment) and some [Actions](kdoc/volt/com.lasteditguild.volt.action/-action)
+that make up a robot.
 
 You should create a new [Robot](../../api/Volt/com.lasteditguild.volt.robot/-robot) class for each physical robot you have built.
 
@@ -20,17 +22,14 @@ Create a new kotlin class in `TeamCode/src/main/kotlin/org/firstinspires/ftc/tea
 The [Robot](../../api/Volt/com.lasteditguild.volt.robot/-robot) class contains:
 
 1. A list of attachments
-2. A drive class
-3. A function called `update(telemetry: Telemetry)` that is called every tick
+2. A function called `update(telemetry: Telemetry)` that is called every tick
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin /hardwareMap.*Pose2d/ "Robot(hardwareMap, initialPose)"
-class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
-    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
-
+```kotlin /hardwareMap.*Pose2d/ "Robot"
+class Example : Robot() {
     init {
         // Initialize
     }
@@ -49,16 +48,14 @@ class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap
 
 ### Add Sensors
 
-Define the sensors that your robot will use and a way to use them. For example, add a HuskyLens sensor to your robot.
+Define the sensors that your robot will use and a way to access them. For example, add a HuskyLens sensor to your robot.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
 ```kotlin {2-3, 6-7, 10-18}
-class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
-    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
-
+class Example : Robot() {
     // Sensors
     private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
 
@@ -98,9 +95,7 @@ Define the attachments that your robot will use. For example, add a SimpleAttach
 <TabItem label="Kotlin">
 
 ```kotlin {5-6, 9}
-class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
-    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
-
+class Example : Robot() {
     // Sensors
     private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
 
@@ -145,9 +140,7 @@ Define actions for your attachments and sensors. For example, add a function to 
 <TabItem label="Kotlin">
 
 ```kotlin {15-18}
-class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
-    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
-
+class Example : Robot() {
     // Sensors
     private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
 
@@ -206,9 +199,7 @@ import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
-class Example(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap, initialPose) {
-    override val drive = SimpleMecanumDrive(hardwareMap, initialPose)
-
+class Example() : Robot() {
     private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
 
     val exampleAttachment: SimpleAttachmentWithDcMotor = SimpleAttachmentWithDcMotor(hardwareMap, "motor")

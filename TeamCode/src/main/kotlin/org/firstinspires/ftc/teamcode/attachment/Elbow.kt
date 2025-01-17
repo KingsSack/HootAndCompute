@@ -1,9 +1,7 @@
 package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.lasteditguild.volt.attachment.Attachment
 import com.lasteditguild.volt.attachment.CRServoWithPotentiometer
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -23,24 +21,24 @@ class Elbow(hardwareMap: HardwareMap, name: String, private val potentiometer: A
      * Params is a companion object that holds the configuration for the elbow attachment.
      *
      * @property maxPower the maximum power of the elbow
-     * @property extendedAngle the max angle
-     * @property retractedAngle the min angle
+     * @property extendedPosition the extended position of the elbow
+     * @property retractedPosition the retracted position of the elbow
      */
     companion object Params {
         @JvmField
         var maxPower: Double = 1.0
         @JvmField
-        var extendedAngle: Double = 0.33
+        var extendedPosition: Double = 1.0
         @JvmField
-        var retractedAngle: Double = 0.75
+        var retractedPosition: Double = 3.0
     }
 
     // Actions
     fun extend(): Action {
-        return CRServoWithPotentiometer(-maxPower, extendedAngle)
+        return CRServoWithPotentiometer(-maxPower, extendedPosition)
     }
     fun retract(): Action {
-        return CRServoWithPotentiometer(maxPower, retractedAngle)
+        return CRServoWithPotentiometer(maxPower, retractedPosition)
     }
 
     override fun update(telemetry: Telemetry) {

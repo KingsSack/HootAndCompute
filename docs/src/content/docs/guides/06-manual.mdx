@@ -1,0 +1,133 @@
+---
+title: Creating a Manual OpMode
+description: Learn how to make a Manual OpMode with Volt.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Create OpModes that appear on the driver station and are controlled manually.
+
+## What is a TeleOp OpMode?
+
+A TeleOp OpMode is a program that runs with user input.
+It is used to control the robot during the driver-controlled period of a match.
+
+TeleOp OpModes appear on the driver station by clicking the arrow on the right.
+Once a TeleOp OpMode is selected, it can be initialized by pressing the `init` button.
+After initialization, the `start` button can be pressed to run the OpMode.
+The OpMode will run until it is stopped.
+
+## Create a TeleOp OpMode
+
+Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/teleop` package
+that inherits the `OpMode` class
+and has the `@TeleOp` annotation.
+
+The OpMode class contains:
+
+1. The `init()` function that is called when the OpMode begins
+2. The `loop()` function that is called every tick
+3. The `telemetry` object that allows you to send messages to the driver station
+4. The `hardwareMap` object that allows you to access the robot's hardware
+5. The `gamepad1` object that allows you to access the first gamepad
+6. The `gamepad2` object that allows you to access the second gamepad
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {1} "OpMode"
+@TeleOp(name = "Example", group = "Examples")
+class ExampleOpMode : OpMode() {
+	override fun init() {
+		// TODO: Implement
+	}
+
+	override fun loop() {
+		// TODO: Implement
+	}
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Add a [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode)
+
+Create a new [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode).
+Initialize it in the `init()` function and call `tick(telemetry)` in the `loop()` function.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {3} {6-7} {11}
+@TeleOp(name = "Example", group = "Examples")
+class ExampleOpMode : OpMode() {
+    private lateinit var manual: ManualMode
+
+    override fun init() {
+        // Initialize
+        manual = ExampleManual(hardwareMap, telemetry, gamepad1, gamepad2)
+    }
+
+    override fun loop() {
+        manual.tick(telemetry)
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+## Result
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin
+package org.firstinspires.ftc.teamcode.opmodes
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import org.firstinspires.ftc.teamcode.manual.Manual
+import com.lasteditguild.volt.manual.ManualMode
+
+@TeleOp(name = "Example", group = "Examples")
+class ExampleOpMode : OpMode() {
+    private lateinit var manual: ManualMode
+
+    override fun init() {
+        manual = ExampleManual(hardwareMap, telemetry, gamepad1, gamepad2)
+    }
+
+    override fun loop() {
+        manual.tick(telemetry)
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>

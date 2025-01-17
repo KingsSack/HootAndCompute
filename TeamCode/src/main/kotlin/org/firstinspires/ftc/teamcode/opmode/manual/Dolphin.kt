@@ -2,8 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.lasteditguild.volt.manual.ManualController
-import com.lasteditguild.volt.manual.ManualMode
+import com.lasteditguild.volt.manual.SimpleManualModeWithSpeedModes
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -19,7 +18,6 @@ import org.firstinspires.ftc.teamcode.robot.Steve
  * @param gamepad1 gamepad for movement
  * @param gamepad2 gamepad for actions
  *
- * @property controller the manual controller
  * @property robot the robot
  */
 class Dolphin(
@@ -28,7 +26,7 @@ class Dolphin(
     private val params: DolphinParams,
     private val gamepad1: Gamepad,
     private val gamepad2: Gamepad
-) : ManualMode {
+) : SimpleManualModeWithSpeedModes(telemetry) {
     /**
      * ManualParams is a configuration object for manual control.
      *
@@ -50,7 +48,6 @@ class Dolphin(
         var shoulderMultiplier: Int = 8
     }
 
-    override val controller = ManualController(telemetry)
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
         Math.toRadians(params.initialHeading)
@@ -58,7 +55,7 @@ class Dolphin(
 
     override fun tick(telemetry: Telemetry) {
         // Drive
-        robot.drive.setDrivePowers(controller.calculatePoseWithGamepad(gamepad1))
+        robot.setDrivePowers(calculatePoseWithGamepad(gamepad1))
 
         // Control lift and claw
         controlLiftWithGamepad(gamepad2)
@@ -67,7 +64,7 @@ class Dolphin(
         extendClawWithGamepad(gamepad2)
 
         // Run actions
-        controller.runActions()
+        runActions()
 
         // Update robot
         robot.update(telemetry)
@@ -78,34 +75,34 @@ class Dolphin(
         if (gamepad.left_stick_button) robot.lift.reset()
 
         // Control lift
-        if (gamepad.right_bumper) controller.addAction(robot.lift.goTo(Lift.upperBasketHeight))
-        else if (gamepad.left_bumper) controller.addAction(robot.lift.drop())
-        else robot.lift.currentGoal += controller.processInput(-gamepad.left_stick_y.toDouble()).toInt() * params.liftMultiplier
+        if (gamepad.right_bumper) runningActions.add(robot.lift.goTo(Lift.upperBasketHeight))
+        else if (gamepad.left_bumper) runningActions.add(robot.lift.drop())
+        else robot.lift.currentGoal += processInput(-gamepad.left_stick_y.toDouble()).toInt() * params.liftMultiplier
     }
 
     private fun controlClawWithGamepad(gamepad: Gamepad) {
         // Control claw
         if (gamepad.a)
-            controller.addAction(robot.claw.open())
+            runningActions.add(robot.claw.open())
         if (gamepad.b)
-            controller.addAction(robot.claw.close())
+            runningActions.add(robot.claw.close())
     }
 
     private fun rotateClawWithGamepad(gamepad: Gamepad) {
         // Control wrist
-        if (gamepad.dpad_down) controller.addAction(robot.wrist.goTo(Wrist.centerPosition))
-        else if (gamepad.dpad_left) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() + 0.005))
-        else if (gamepad.dpad_right) controller.addAction(robot.wrist.goTo(robot.wrist.getPosition() - 0.005))
+        if (gamepad.dpad_down) runningActions.add(robot.wrist.goTo(Wrist.centerPosition))
+        else if (gamepad.dpad_left) runningActions.add(robot.wrist.goTo(robot.wrist.getPosition() + 0.005))
+        else if (gamepad.dpad_right) runningActions.add(robot.wrist.goTo(robot.wrist.getPosition() - 0.005))
     }
 
     private fun extendClawWithGamepad(gamepad: Gamepad) {
         // Control shoulder
-        if (gamepad.x) controller.addAction(robot.shoulder.extend())
-        else if (gamepad.y) controller.addAction(robot.shoulder.retract())
+        if (gamepad.x) runningActions.add(robot.shoulder.extend())
+        else if (gamepad.y) runningActions.add(robot.shoulder.retract())
         else robot.shoulder.currentGoal += (gamepad.right_trigger.toDouble() - gamepad.left_trigger.toDouble()).toInt() * params.shoulderMultiplier
 
         // Control elbow
-        if (gamepad.dpad_up) controller.addAction(robot.elbow.extend())
-        else robot.elbow.setPower(controller.processInput(-gamepad.right_stick_y.toDouble()))
+        if (gamepad.dpad_up) runningActions.add(robot.elbow.extend())
+        else robot.elbow.setPower(processInput(-gamepad.right_stick_y.toDouble()))
     }
 }

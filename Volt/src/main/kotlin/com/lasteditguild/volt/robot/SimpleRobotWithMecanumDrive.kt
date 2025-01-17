@@ -1,33 +1,62 @@
-package com.lasteditguild.volt.util
+package com.lasteditguild.volt.robot
 
 import com.acmerobotics.dashboard.canvas.Canvas
-import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.*
 import com.acmerobotics.roadrunner.ftc.*
-import com.acmerobotics.roadrunner.ftc.FlightRecorder
 import com.lasteditguild.volt.messages.DriveCommandMessage
 import com.lasteditguild.volt.messages.MecanumCommandMessage
 import com.lasteditguild.volt.messages.MecanumLocalizerInputsMessage
 import com.lasteditguild.volt.messages.PoseMessage
+import com.lasteditguild.volt.util.Drawing
+import com.lasteditguild.volt.util.Localizer
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
 
-@Config
-open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
+/**
+ * Represents a robot with attachments and a mecanum drivetrain.
+ *
+ * @param hardwareMap the hardware map
+ * @param pose the initial pose of the robot
+ */
+open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) : Robot() {
+    /**
+     * Parameters for the robot's mecanum drive.
+     * 
+     * @property logoFacingDirection the logo facing direction
+     * @property usbFacingDirection the USB facing direction
+     * @property inPerTick the inches per tick
+     * @property lateralInPerTick the lateral inches per tick
+     * @property trackWidthTicks the track width in ticks
+     * @property kS the static gain
+     * @property kV the velocity gain
+     * @property kA the acceleration gain
+     * @property maxWheelVel the maximum wheel velocity
+     * @property minProfileAccel the minimum profile acceleration
+     * @property maxProfileAccel the maximum profile acceleration
+     * @property maxAngVel the maximum angular velocity
+     * @property maxAngAccel the maximum angular acceleration
+     * @property axialGain the axial gain
+     * @property lateralGain the lateral gain
+     * @property headingGain the heading gain
+     * @property axialVelGain the axial velocity gain
+     * @property lateralVelGain the lateral velocity gain
+     * @property headingVelGain the heading velocity gain
+     */
     companion object DriveParams {
-        // IMU orientation
+        @JvmField
         var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
+        @JvmField
         var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
 
-        // drive model parameters
         @JvmField
         var inPerTick: Double = 0.0227
         @JvmField
@@ -35,15 +64,13 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         @JvmField
         var trackWidthTicks: Double = 1297.32
 
-        // feedforward parameters (in tick units)
         @JvmField
-        var kS: Double = 0.9134 // Represents the static force
+        var kS: Double = 0.9134
         @JvmField
-        var kV: Double = 0.0043 // Represents the linear velocity
+        var kV: Double = 0.0043
         @JvmField
-        var kA: Double = 0.001 // Represents the acceleration
+        var kA: Double = 0.001
 
-        // path profile parameters (in inches)
         @JvmField
         var maxWheelVel: Double = 60.0
         @JvmField
@@ -51,29 +78,27 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         @JvmField
         var maxProfileAccel: Double = 60.0
 
-        // turn profile parameters (in radians)
         @JvmField
-        var maxAngVel: Double = Math.PI // shared with path
+        var maxAngVel: Double = Math.PI
         @JvmField
         var maxAngAccel: Double = Math.PI
 
-        // path controller gains
         @JvmField
         var axialGain: Double = 5.0
         @JvmField
         var lateralGain: Double = 4.0
         @JvmField
-        var headingGain: Double = 1.0 // shared with turn
+        var headingGain: Double = 1.0
 
         @JvmField
         var axialVelGain: Double = 0.0
         @JvmField
         var lateralVelGain: Double = 0.0
         @JvmField
-        var headingVelGain: Double = 0.0 // shared with turn
+        var headingVelGain: Double = 0.0
     }
 
-    val kinematics: MecanumKinematics = MecanumKinematics(
+    private val kinematics: MecanumKinematics = MecanumKinematics(
         inPerTick * trackWidthTicks, inPerTick / lateralInPerTick
     )
 
@@ -88,16 +113,21 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
     )
     private val defaultAccelConstraint: AccelConstraint = ProfileAccelConstraint(minProfileAccel, maxProfileAccel)
 
-    val leftFront: DcMotorEx
-    val leftBack: DcMotorEx
-    val rightBack: DcMotorEx
-    val rightFront: DcMotorEx
+    private val leftFront = hardwareMap.get(DcMotorEx::class.java, "lf")
+    private val leftBack = hardwareMap.get(DcMotorEx::class.java, "lr")
+    private val rightBack = hardwareMap.get(DcMotorEx::class.java, "rr")
+    private val rightFront = hardwareMap.get(DcMotorEx::class.java, "rf")
+    private val driveMotors = listOf(leftFront, leftBack, rightBack, rightFront)
 
-    val voltageSensor: VoltageSensor
+    private val voltageSensor = hardwareMap.voltageSensor.iterator().next()
 
-    val lazyImu: LazyImu
+    private val lazyImu = LazyImu(
+        hardwareMap, "imu", RevHubOrientationOnRobot(
+            logoFacingDirection, usbFacingDirection
+        )
+    )
 
-    val localizer: DriveLocalizer
+    private val localizer = DriveLocalizer()
 
     private val poseHistory = LinkedList<Pose2d>()
 
@@ -107,10 +137,10 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
     private val mecanumCommandWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
 
     inner class DriveLocalizer : Localizer {
-        val leftFront: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.leftFront))
-        val leftBack: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.leftBack))
-        val rightBack: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.rightBack))
-        val rightFront: Encoder = OverflowEncoder(RawEncoder(this@SimpleMecanumDrive.rightFront))
+        private val leftFrontEncoder: Encoder = OverflowEncoder(RawEncoder(leftFront))
+        private val leftBackEncoder: Encoder = OverflowEncoder(RawEncoder(leftBack))
+        private val rightBackEncoder: Encoder = OverflowEncoder(RawEncoder(rightBack))
+        private val rightFrontEncoder: Encoder = OverflowEncoder(RawEncoder(rightFront))
         private val imu: IMU = lazyImu.get()
 
         private var lastLeftFrontPos = 0
@@ -122,17 +152,17 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
 
         init {
             // Set motor directions
-            leftFront.direction = DcMotorSimple.Direction.FORWARD
-            leftBack.direction = DcMotorSimple.Direction.FORWARD
-            rightBack.direction = DcMotorSimple.Direction.REVERSE
-            rightFront.direction = DcMotorSimple.Direction.REVERSE
+            leftFrontEncoder.direction = DcMotorSimple.Direction.FORWARD
+            leftBackEncoder.direction = DcMotorSimple.Direction.FORWARD
+            rightBackEncoder.direction = DcMotorSimple.Direction.REVERSE
+            rightFrontEncoder.direction = DcMotorSimple.Direction.REVERSE
         }
 
         override fun update(): Twist2dDual<Time> {
-            val leftFrontPosVel = leftFront.getPositionAndVelocity()
-            val leftBackPosVel = leftBack.getPositionAndVelocity()
-            val rightBackPosVel = rightBack.getPositionAndVelocity()
-            val rightFrontPosVel = rightFront.getPositionAndVelocity()
+            val leftFrontPosVel = leftFrontEncoder.getPositionAndVelocity()
+            val leftBackPosVel = leftBackEncoder.getPositionAndVelocity()
+            val rightBackPosVel = rightBackEncoder.getPositionAndVelocity()
+            val rightFrontPosVel = rightFrontEncoder.getPositionAndVelocity()
 
             val angles = imu.robotYawPitchRollAngles
 
@@ -212,35 +242,24 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
             module.bulkCachingMode = LynxModule.BulkCachingMode.AUTO
         }
 
-        leftFront = hardwareMap.get(DcMotorEx::class.java, "lf")
-        leftBack = hardwareMap.get(DcMotorEx::class.java, "lr")
-        rightBack = hardwareMap.get(DcMotorEx::class.java, "rr")
-        rightFront = hardwareMap.get(DcMotorEx::class.java, "rf")
-
-        leftFront.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        leftBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rightBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rightFront.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        driveMotors.forEach {
+            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        }
 
         // Set motor directions
         leftFront.direction = DcMotorSimple.Direction.FORWARD
         leftBack.direction = DcMotorSimple.Direction.FORWARD
         rightBack.direction = DcMotorSimple.Direction.REVERSE
         rightFront.direction = DcMotorSimple.Direction.REVERSE
-
-        lazyImu = LazyImu(
-            hardwareMap, "imu", RevHubOrientationOnRobot(
-                logoFacingDirection, usbFacingDirection
-            )
-        )
-
-        voltageSensor = hardwareMap.voltageSensor.iterator().next()
-
-        localizer = DriveLocalizer()
-
-        // FlightRecorder.write("MECANUM_PARAMS", DriveParams)
     }
 
+    /**
+     * Set the drive powers.
+     *
+     * @param powers the drive powers
+     *
+     * @see PoseVelocity2d
+     */
     fun setDrivePowers(powers: PoseVelocity2d) {
         val wheelVels = MecanumKinematics(1.0).inverse(
             PoseVelocity2dDual.constant<Time>(powers, 1)
@@ -447,7 +466,7 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         }
     }
 
-    fun updatePoseEstimate(): PoseVelocity2d {
+    private fun updatePoseEstimate(): PoseVelocity2d {
         val twist: Twist2dDual<Time> = localizer.update()
         pose = pose.plus(twist.value())
 
@@ -478,7 +497,13 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
         c.strokePolyline(xPoints, yPoints)
     }
 
-    fun actionBuilder(beginPose: Pose2d): TrajectoryActionBuilder {
+    /**
+     * Create a new trajectory action builder.
+     *
+     * @param beginPose the current pose of the robot
+     * @return the action builder
+     */
+    fun driveActionBuilder(beginPose: Pose2d): TrajectoryActionBuilder {
         return TrajectoryActionBuilder(
             { turn: TimeTurn -> TurnAction(turn) },
             { t: TimeTrajectory -> FollowTrajectoryAction(t) },
@@ -492,5 +517,34 @@ open class SimpleMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d) {
             defaultTurnConstraints,
             defaultVelConstraint, defaultAccelConstraint
         )
+    }
+
+    /**
+     * Strafe to a target vector.
+     *
+     * @param target the target vector
+     * @return the action
+     */
+    fun strafeTo(target: Vector2d): Action = driveActionBuilder(pose).strafeTo(target).build()
+
+    /**
+     * Turn to a target angle.
+     *
+     * @param target the target angle in radians
+     * @return the action
+     */
+    fun turnTo(target: Double): Action = driveActionBuilder(pose).turnTo(target).build()
+
+    /**
+     * Wait for a certain number of seconds.
+     *
+     * @param seconds the number of seconds to wait
+     * @return the action
+     */
+    fun wait(seconds: Double): Action = driveActionBuilder(pose).waitSeconds(seconds).build()
+
+    override fun update(telemetry: Telemetry) {
+        updatePoseEstimate()
+        super.update(telemetry)
     }
 }

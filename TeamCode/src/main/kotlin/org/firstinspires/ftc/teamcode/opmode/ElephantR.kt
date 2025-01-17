@@ -26,6 +26,6 @@ class ElephantR : LinearOpMode() {
 
         // Execute
         if (opModeIsActive())
-            auto.run()
+            auto.execute()
     }
 }

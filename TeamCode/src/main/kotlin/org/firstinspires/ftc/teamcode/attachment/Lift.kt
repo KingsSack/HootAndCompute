@@ -70,7 +70,7 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
 
         // Set coefficients, zero power behavior, and modes
         listOf(liftRight, liftLeft).forEach {
-            it.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, coefficients)
+            it.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients)
             it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
             it.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             it.mode = DcMotor.RunMode.RUN_USING_ENCODER

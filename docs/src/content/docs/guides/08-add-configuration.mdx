@@ -2,3 +2,213 @@
 title: Adding Configuration
 description: Use FTC Dashboard to configure your robot.
 ---
+
+Everything can be configured using the FTC Dashboard.
+This includes the attachments, autonomous modes, and manual modes.
+
+## How does configuration work?
+
+Configuration is done using the FTC Dashboard.
+
+## Implementing a Config object
+
+Add the `@Config` annotation to your class.
+
+```kotlin {1}
+@Config
+class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
+    val motor = hardwareMap.dcMotor[name]
+
+    init {
+        motor.mode = DcMotorSimple.RunMode.RUN_USING_ENCODER
+        motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        motors = listOf(motor)
+    }
+
+    inner class Control(
+        private val power: Double,
+        private val targetPosition: Int
+    ) : ControlAction() {
+        private var reversing = false
+
+        override fun init() {
+            reversing = targetPosition < motor.currentPosition
+            motor.power = if (reversing) -power else power
+        }
+
+        override fun update(packet: TelemetryPacket): Boolean {
+            val currentPosition = motor.currentPosition
+            if (reversing) {
+                if (currentPosition > targetPosition)
+                    return false
+            } else {
+                if (currentPosition < targetPosition)
+                    return false
+            }
+            return true
+        }
+
+        override fun handleStop() {
+            motor.power = 0.0
+        }
+    }
+    fun goTo(power: Double, position: Int): Action {
+        return Control(power, position)
+    }
+
+    override fun update(telemetry: Telemetry) {
+        telemetry.addLine("==== EXAMPLE ====")
+        telemetry.addData("Position", motor.currentPosition)
+        telemetry.addLine()
+    }
+}
+```
+
+### Add an object
+
+```kotlin
+companion object Params {
+    @JvmField
+    var maxPosition: Int = 2200
+    @JvmField
+    var minPosition: Int = 10
+    @JvmField
+    var maxPower: Double = 0.6
+}
+```
+
+### Implement the configuration
+
+```kotlin {27-28} {31}
+@Config
+class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
+    companion object Params {
+        @JvmField
+        var maxPosition: Int = 2200
+        @JvmField
+        var minPosition: Int = 10
+        @JvmField
+        var maxPower: Double = 0.6
+    }
+
+    val motor = hardwareMap.dcMotor[name]
+
+    init {
+        motor.mode = DcMotorSimple.RunMode.RUN_USING_ENCODER
+        motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        motors = listOf(motor)
+    }
+
+    inner class Control(
+        private val power: Double,
+        private val targetPosition: Int
+    ) : ControlAction() {
+        private var reversing = false
+
+        override fun init() {
+            // Check if the target position is valid
+            require(targetPosition in minPosition..maxPosition) { "Target position out of bounds" }
+
+            reversing = targetPosition < motor.currentPosition
+            motor.power = if (reversing) -power.coerceAtMost(maxPower) else power.coerceAtMost(maxPower)
+        }
+
+        override fun update(packet: TelemetryPacket): Boolean {
+            val currentPosition = motor.currentPosition
+            if (reversing) {
+                if (currentPosition > targetPosition)
+                    return false
+            } else {
+                if (currentPosition < targetPosition)
+                    return false
+            }
+            return true
+        }
+
+        override fun handleStop() {
+            motor.power = 0.0
+        }
+    }
+    fun goTo(power: Double, position: Int): Action {
+        return Control(power, position)
+    }
+
+    override fun update(telemetry: Telemetry) {
+        telemetry.addLine("==== EXAMPLE ====")
+        telemetry.addData("Position", motor.currentPosition)
+        telemetry.addLine()
+    }
+}
+```
+
+## Result
+
+```kotlin
+package org.firstinspires.ftc.teamcode.attachment
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket
+import com.acmerobotics.roadrunner.Action
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
+
+@Config
+class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
+    companion object Params {
+        @JvmField
+        var maxPosition: Int = 2200
+        @JvmField
+        var minPosition: Int = 10
+        @JvmField
+        var maxPower: Double = 0.6
+    }
+
+    val motor = hardwareMap.dcMotor[name]
+
+    init {
+        motor.mode = DcMotorSimple.RunMode.RUN_USING_ENCODER
+        motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        motors = listOf(motor)
+    }
+
+    inner class Control(
+        private val power: Double,
+        private val targetPosition: Int
+    ) : ControlAction() {
+        private var reversing = false
+
+        override fun init() {
+            require(targetPosition in minPosition..maxPosition) { "Target position out of bounds" }
+
+            reversing = targetPosition < motor.currentPosition
+            motor.power = if (reversing) -power.coerceAtMost(maxPower) else power.coerceAtMost(maxPower)
+        }
+
+        override fun update(packet: TelemetryPacket): Boolean {
+            val currentPosition = motor.currentPosition
+            if (reversing) {
+                if (currentPosition > targetPosition)
+                    return false
+            } else {
+                if (currentPosition < targetPosition)
+                    return false
+            }
+            return true
+        }
+
+        override fun handleStop() {
+            motor.power = 0.0
+        }
+    }
+    fun goTo(power: Double, position: Int): Action {
+        return Control(power, position)
+    }
+
+    override fun update(telemetry: Telemetry) {
+        telemetry.addLine("==== EXAMPLE ====")
+        telemetry.addData("Position", motor.currentPosition)
+        telemetry.addLine()
+    }
+}
+```
