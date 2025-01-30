@@ -4,7 +4,7 @@ description: Use FTC Dashboard to configure your robot.
 ---
 
 Everything can be configured using the FTC Dashboard.
-This includes the attachments, autonomous modes, and manual modes.
+This includes attachments, autonomous modes, and manual modes.
 
 ## How does configuration work?
 
@@ -38,13 +38,7 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 
         override fun update(packet: TelemetryPacket): Boolean {
             val currentPosition = motor.currentPosition
-            if (reversing) {
-                if (currentPosition > targetPosition)
-                    return false
-            } else {
-                if (currentPosition < targetPosition)
-                    return false
-            }
+            if ((currentPosition < targetPosition) xor reversing) return false
             return true
         }
 
@@ -115,13 +109,7 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 
         override fun update(packet: TelemetryPacket): Boolean {
             val currentPosition = motor.currentPosition
-            if (reversing) {
-                if (currentPosition > targetPosition)
-                    return false
-            } else {
-                if (currentPosition < targetPosition)
-                    return false
-            }
+            if ((currentPosition < targetPosition) xor reversing) return false
             return true
         }
 
@@ -148,6 +136,7 @@ package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import dev.kingssack.attachment.Attachment
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -187,13 +176,7 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 
         override fun update(packet: TelemetryPacket): Boolean {
             val currentPosition = motor.currentPosition
-            if (reversing) {
-                if (currentPosition > targetPosition)
-                    return false
-            } else {
-                if (currentPosition < targetPosition)
-                    return false
-            }
+            if ((currentPosition < targetPosition) xor reversing) return false
             return true
         }
 

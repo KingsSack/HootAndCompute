@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.AutonomousMode
+import dev.kingssack.volt.autonomous.AutonomousMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Lift
@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 
 /**
  * Rhinoceros is an autonomous mode that places specimens on the top bar of the submersible.
+ *
  *
  * @param hardwareMap the hardware map
  * @param telemetry the telemetry
@@ -22,7 +23,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 class Rhinoceros(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    params: RhinocerosParams
+    private val params: RhinocerosParams = RhinocerosParams()
 ) : AutonomousMode(telemetry) {
     /**
      * The parameters for Rhinoceros.
@@ -32,17 +33,13 @@ class Rhinoceros(
      * @property initialHeading the initial heading
      * @property numSamples the number of samples to convert to a specimen
      */
-    class RhinocerosParams {
-        @JvmField
-        var initialX: Double = -24.0
-        @JvmField
-        var initialY: Double = 63.0
-        @JvmField
-        var initialHeading: Double = -90.0
+    class RhinocerosParams(
+        val initialX: Double = -24.0,
+        val initialY: Double = 63.0,
+        val initialHeading: Double = -90.0,
 
-        @JvmField
-        var numSamples: Int = 3
-    }
+        val numSamples: Int = 3
+    )
 
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
@@ -53,7 +50,6 @@ class Rhinoceros(
     private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 30)
 
     init {
-        // Autonomous sequence
         actionSequence.add { goToSubmersible() }
         actionSequence.add { depositSpecimen() } // Deposit the preloaded specimen
         repeat(params.numSamples) {

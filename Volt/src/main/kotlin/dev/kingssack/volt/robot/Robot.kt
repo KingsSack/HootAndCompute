@@ -1,6 +1,6 @@
-package com.lasteditguild.volt.robot
+package dev.kingssack.volt.robot
 
-import com.lasteditguild.volt.attachment.Attachment
+import dev.kingssack.volt.attachment.Attachment
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**

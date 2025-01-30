@@ -1,4 +1,4 @@
-package com.lasteditguild.volt.attachment
+package dev.kingssack.volt.attachment
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action

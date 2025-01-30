@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.AutonomousMode
+import dev.kingssack.volt.autonomous.AutonomousMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Lift
@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 class Otter(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    private val params: OtterParams
+    private val params: OtterParams = OtterParams()
 ) : AutonomousMode(telemetry) {
     /**
      * The parameters for Otter.
@@ -30,26 +30,21 @@ class Otter(
      * @property initialX the initial x position
      * @property initialY the initial y position
      * @property initialHeading the initial heading
+     * @property angleOfAttack the angle of attack for the robot
      * @property isPreloaded whether the robot is preloaded
      * @property numSamples the number of samples to collect
      */
-    class OtterParams {
-        @JvmField
-        var initialX: Double = 24.0
-        @JvmField
-        var initialY: Double = 63.0
-        @JvmField
-        var initialHeading: Double = 0.0
+    class OtterParams(
+        val initialX: Double = 24.0,
+        val initialY: Double = 63.0,
+        val initialHeading: Double = 0.0,
 
-        @JvmField
-        var angleOfAttack: Double = 45.0
+        val angleOfAttack: Double = 45.0,
 
-        @JvmField
-        var isPreloaded: Boolean = true
+        val isPreloaded: Boolean = true,
 
-        @JvmField
-        var numSamples: Int = 2
-    }
+        val numSamples: Int = 2
+    )
 
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
@@ -59,7 +54,6 @@ class Otter(
     private var currentSampleIndex = 0
 
     init {
-        // Autonomous sequence
         if (params.isPreloaded) {
             // If preloaded, deposit the preloaded sample
             actionSequence.add { goToBasket() }

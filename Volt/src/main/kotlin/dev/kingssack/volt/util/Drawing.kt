@@ -1,4 +1,4 @@
-package com.lasteditguild.volt.util
+package dev.kingssack.volt.util
 
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.roadrunner.Pose2d

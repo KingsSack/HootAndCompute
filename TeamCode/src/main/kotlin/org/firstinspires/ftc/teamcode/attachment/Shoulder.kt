@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
-import com.lasteditguild.volt.attachment.SimpleAttachmentWithDcMotor
+import dev.kingssack.volt.attachment.SimpleAttachmentWithDcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry

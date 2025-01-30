@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.AutonomousMode
+import dev.kingssack.volt.autonomous.AutonomousMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.util.FieldParams
@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 class Elephant(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    params: ElephantParams
+    private val params: ElephantParams = ElephantParams()
 ) : AutonomousMode(telemetry) {
     /**
      * The parameters for Elephant.
@@ -32,20 +32,15 @@ class Elephant(
      * @property isPreloaded whether the robot is preloaded
      * @property numSamples the number of samples to collect
      */
-    class ElephantParams {
-        @JvmField
-        var initialX: Double = 24.0
-        @JvmField
-        var initialY: Double = 63.0
-        @JvmField
-        var initialHeading: Double = 90.0
+    class ElephantParams(
+        val initialX: Double = 24.0,
+        val initialY: Double = 63.0,
+        val initialHeading: Double = 90.0,
 
-        @JvmField
-        var isPreloaded: Boolean = true
+        val isPreloaded: Boolean = true,
 
-        @JvmField
-        var numSamples: Int = 2
-    }
+        val numSamples: Int = 2
+    )
 
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
@@ -55,7 +50,6 @@ class Elephant(
     private var currentSampleIndex = 0
 
     init {
-        // Autonomous sequence
         if (params.isPreloaded) {
             // If preloaded, deposit the preloaded sample
             actionSequence.add { goToBasket() }

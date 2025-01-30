@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
-import com.lasteditguild.volt.attachment.CRServoWithPotentiometer
+import dev.kingssack.volt.attachment.CRServoWithPotentiometer
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -16,7 +16,16 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @see Claw
  */
 @Config
-class Elbow(hardwareMap: HardwareMap, name: String, private val potentiometer: AnalogInput) : CRServoWithPotentiometer(hardwareMap, name, potentiometer, false) {
+class Elbow(
+    hardwareMap: HardwareMap,
+    name: String,
+    private val potentiometer: AnalogInput
+) : CRServoWithPotentiometer(
+    hardwareMap,
+    name,
+    potentiometer,
+    servoReversed
+) {
     /**
      * Params is a companion object that holds the configuration for the elbow attachment.
      *
@@ -25,6 +34,8 @@ class Elbow(hardwareMap: HardwareMap, name: String, private val potentiometer: A
      * @property retractedPosition the retracted position of the elbow
      */
     companion object Params {
+        @JvmField
+        var servoReversed: Boolean = true
         @JvmField
         var maxPower: Double = 1.0
         @JvmField

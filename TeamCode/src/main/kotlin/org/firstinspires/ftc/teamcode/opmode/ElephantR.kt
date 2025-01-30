@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.lasteditguild.volt.autonomous.AutonomousMode
+import dev.kingssack.volt.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.opmode.autonomous.Elephant
 
 @Config

@@ -7,4 +7,6 @@ This repository contains the public FTC SDK for the INTO THE DEEP (2024-2025) co
 
 The SDK has been *modified* to support Kotlin development
 
+Get started by reading our [docs](https://kingssack.github.io/HootAndCompute/).
+
 THINK **CRITICALLY** | DEBUG **CREATIVELY** | ACT **COMPASSIONATELY**

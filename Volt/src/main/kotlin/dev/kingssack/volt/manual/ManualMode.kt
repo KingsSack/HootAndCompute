@@ -1,9 +1,9 @@
-package com.lasteditguild.volt.manual
+package dev.kingssack.volt.manual
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.lasteditguild.volt.robot.Robot
+import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import kotlin.math.abs
 import kotlin.math.pow
@@ -13,19 +13,17 @@ import kotlin.math.pow
  *
  * @param telemetry for logging
  */
-abstract class ManualMode(private val telemetry: Telemetry) {
+abstract class ManualMode(private val telemetry: Telemetry, private val params: ManualParams = ManualParams()) {
     /**
      * Configuration object for manual control.
      *
      * @property deadzone the minimum joystick input to register
      * @property inputExp the input exponential for fine control
      */
-    companion object Config {
-        @JvmField
-        var deadzone: Double = 0.1
-        @JvmField
-        var inputExp: Double = 2.0
-    }
+    class ManualParams(
+        val deadzone: Double = 0.1,
+        val inputExp: Double = 2.0
+    )
 
     // Robot
     abstract val robot: Robot
@@ -59,13 +57,13 @@ abstract class ManualMode(private val telemetry: Telemetry) {
      */
     protected fun processInput(input: Double): Double {
         // Apply deadzone
-        if (abs(input) < deadzone) return 0.0
+        if (abs(input) < params.deadzone) return 0.0
 
         // Normalize input
-        val normalizedInput = (input - deadzone) / (1 - deadzone)
+        val normalizedInput = (input - params.deadzone) / (1 - params.deadzone)
 
         // Apply exponential scaling for fine control
-        return normalizedInput.pow(inputExp) * if (input < 0) -1 else 1
+        return normalizedInput.pow(params.inputExp) * if (input < 0) -1 else 1
     }
 
     /**

@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.lasteditguild.volt.manual.SimpleManualModeWithSpeedModes
+import dev.kingssack.volt.manual.SimpleManualModeWithSpeedModes
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -22,9 +22,9 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 class Whale(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    params: WhaleParams,
     private val gamepad1: Gamepad,
-    private val gamepad2: Gamepad
+    private val gamepad2: Gamepad,
+    private val params: WhaleParams = WhaleParams()
 ) : SimpleManualModeWithSpeedModes(telemetry) {
     /**
      * ManualParams is a configuration object for manual control.
@@ -33,14 +33,11 @@ class Whale(
      * @property initialY the initial y position
      * @property initialHeading the initial heading
      */
-    class WhaleParams {
-        @JvmField
-        var initialX: Double = -48.0
-        @JvmField
-        var initialY: Double = 64.0
-        @JvmField
-        var initialHeading: Double = 90.0
-    }
+    class WhaleParams(
+        val initialX: Double = -48.0,
+        val initialY: Double = 64.0,
+        val initialHeading: Double = 90.0
+    )
 
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),

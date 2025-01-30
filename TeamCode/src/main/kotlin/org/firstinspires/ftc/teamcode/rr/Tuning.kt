@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.org.firstinspires.ftc.teamcode
+package org.firstinspires.ftc.teamcode.rr
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.Config
@@ -14,8 +14,9 @@ import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
-import com.lasteditguild.volt.util.Drawing.drawRobot
-import com.lasteditguild.volt.util.SimpleMecanumDrive
+import dev.kingssack.volt.util.Drawing.drawRobot
+import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
+import org.firstinspires.ftc.teamcode.robot.Steve
 import java.util.*
 
 
@@ -31,7 +32,7 @@ class RoadRunnerTest : LinearOpMode() {
         var initialHeading: Double = -90.0
     }
 
-    private lateinit var drive: SimpleMecanumDrive
+    private lateinit var robot: SimpleRobotWithMecanumDrive
 
     override fun runOpMode() {
         registerDrive(hardwareMap, Pose2d(Vector2d(initialX, initialY), initialHeading))
@@ -39,7 +40,7 @@ class RoadRunnerTest : LinearOpMode() {
         waitForStart()
 
         while (opModeIsActive()) {
-            drive.setDrivePowers(
+            robot.setDrivePowers(
                 PoseVelocity2d(
                     Vector2d(
                         -gamepad1.left_stick_y.toDouble(),
@@ -49,22 +50,22 @@ class RoadRunnerTest : LinearOpMode() {
                 )
             )
 
-            drive.updatePoseEstimate()
+            robot.update(telemetry)
 
-            telemetry.addData("x", drive.pose.position.x)
-            telemetry.addData("y", drive.pose.position.y)
-            telemetry.addData("heading (deg)", Math.toDegrees(drive.pose.heading.toDouble()))
+            telemetry.addData("x", robot.pose.position.x)
+            telemetry.addData("y", robot.pose.position.y)
+            telemetry.addData("heading (deg)", Math.toDegrees(robot.pose.heading.toDouble()))
             telemetry.update()
 
             val packet = TelemetryPacket()
             packet.fieldOverlay().setStroke("#3F51B5")
-            drawRobot(packet.fieldOverlay(), drive.pose)
+            drawRobot(packet.fieldOverlay(), robot.pose)
             FtcDashboard.getInstance().sendTelemetryPacket(packet)
         }
     }
 
     private fun registerDrive(hardwareMap: HardwareMap, initialPose: Pose2d) {
-        drive = SimpleMecanumDrive(hardwareMap, initialPose)
+        robot = SimpleRobotWithMecanumDrive(hardwareMap, initialPose)
     }
 }
 
@@ -82,16 +83,16 @@ class RoadRunnerTuning : LinearOpMode() {
         var distance: Double = 32.0
     }
 
-    private lateinit var drive: SimpleMecanumDrive
+    private lateinit var robot: SimpleRobotWithMecanumDrive
 
     override fun runOpMode() {
-        drive = SimpleMecanumDrive(hardwareMap, Pose2d(initialX, initialY, initialHeading))
+        robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(initialX, initialY, initialHeading))
 
         waitForStart()
 
         while (opModeIsActive()) {
             runBlocking(
-                drive.actionBuilder(Pose2d(initialX, initialY, initialHeading))
+                robot.driveActionBuilder(Pose2d(initialX, initialY, initialHeading))
                     .lineToX(initialX + distance)
                     .lineToX(initialX)
                     .build())
@@ -111,16 +112,16 @@ class RoadRunnerSplineTest : LinearOpMode() {
         var initialHeading: Double = 0.0
     }
 
-    private lateinit var drive: SimpleMecanumDrive
+    private lateinit var robot: SimpleRobotWithMecanumDrive
 
     override fun runOpMode() {
         val beginPose = Pose2d(initialX, initialY, initialHeading)
-        val drive = SimpleMecanumDrive(hardwareMap, beginPose)
+        robot = SimpleRobotWithMecanumDrive(hardwareMap, beginPose)
 
         waitForStart()
 
         runBlocking(
-            drive.actionBuilder(beginPose)
+            robot.driveActionBuilder(beginPose)
                 .splineTo(Vector2d(30.0, 30.0), Math.PI / 2)
                 .splineTo(Vector2d(0.0, 60.0), Math.PI)
                 .build()
@@ -145,24 +146,24 @@ class TuningOpModes {
         fun register(manager: OpModeManager) {
             val dvf: DriveViewFactory = object : DriveViewFactory {
                 override fun make(h: HardwareMap): DriveView {
-                    val md = SimpleMecanumDrive(h, Pose2d(0.0, 0.0, 0.0))
+                    val md = SimpleRobotWithMecanumDrive(h, Pose2d(0.0, 0.0, 0.0))
 
                     val leftEncs = ArrayList<Encoder>()
                     val rightEncs = ArrayList<Encoder>()
                     val parEncs = ArrayList<Encoder>()
                     val perpEncs = ArrayList<Encoder>()
                     val localizer = md.localizer
-                    leftEncs.add(localizer.leftFront)
-                    leftEncs.add(localizer.leftBack)
-                    rightEncs.add(localizer.rightFront)
-                    rightEncs.add(localizer.rightBack)
+                    leftEncs.add(localizer.leftFrontEncoder)
+                    leftEncs.add(localizer.leftBackEncoder)
+                    rightEncs.add(localizer.rightFrontEncoder)
+                    rightEncs.add(localizer.rightBackEncoder)
 
                     return DriveView(
                         DriveType.MECANUM,
-                        SimpleMecanumDrive.inPerTick,
-                        SimpleMecanumDrive.maxWheelVel,
-                        SimpleMecanumDrive.minProfileAccel,
-                        SimpleMecanumDrive.maxProfileAccel,
+                        Steve.inPerTick,
+                        Steve.maxWheelVel,
+                        Steve.minProfileAccel,
+                        Steve.maxProfileAccel,
                         h.getAll(LynxModule::class.java),
                         listOf(md.leftFront, md.leftBack),
                         listOf(md.rightFront, md.rightBack),
@@ -170,9 +171,9 @@ class TuningOpModes {
                         md.lazyImu, md.voltageSensor
                     ) {
                         MotorFeedforward(
-                            SimpleMecanumDrive.kS,
-                            SimpleMecanumDrive.kV / SimpleMecanumDrive.inPerTick,
-                            SimpleMecanumDrive.kA / SimpleMecanumDrive.inPerTick
+                            Steve.kS,
+                            Steve.kV / Steve.inPerTick,
+                            Steve.kA / Steve.inPerTick
                         )
                     }
                 }

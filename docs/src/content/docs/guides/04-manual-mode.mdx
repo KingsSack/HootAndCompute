@@ -7,15 +7,15 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Rapidly develop and test new Tele-Operated programs for your robot with the [Volt](../../api/Volt) library.
 
-## What is a [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode)?
+## What is a [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode)?
 
-A [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode) allows you to control the robot with gamepads.
+A [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) allows you to control the robot with gamepads.
 
-## Creating a [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode)
+## Creating a [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode)
 
-Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/manual` package that inherits the [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode) class.
+Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/manual` package that inherits the [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class.
 
-The [ManualMode](../../api/Volt/com.lasteditguild.volt.manual/-manual-mode) class contains:
+The [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class contains:
 
 1. A robot
 2. A list of actions
@@ -136,11 +136,11 @@ class ExampleManual(
 package org.firstinspires.ftc.teamcode.opmodes.manual
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.ManualMode
+import dev.kingssack.volt.autonomous.ManualMode
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import com.lasteditguild.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 
 class ExampleManual(
     hardwareMap: HardwareMap,

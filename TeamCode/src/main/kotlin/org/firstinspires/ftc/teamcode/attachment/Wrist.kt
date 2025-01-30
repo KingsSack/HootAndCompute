@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.dashboard.config.Config
-import com.lasteditguild.volt.attachment.SimpleAttachmentWithServo
+import dev.kingssack.volt.attachment.SimpleAttachmentWithServo
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 

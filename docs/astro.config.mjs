@@ -58,6 +58,7 @@ export default defineConfig({
         ],
         customCss: [
             './src/styles/theme.css',
+            './src/styles/landing.css',
         ],
 		}), markdoc()],
 });

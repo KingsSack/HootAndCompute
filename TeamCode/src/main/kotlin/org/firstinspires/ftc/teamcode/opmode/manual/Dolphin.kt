@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.lasteditguild.volt.manual.SimpleManualModeWithSpeedModes
+import dev.kingssack.volt.manual.SimpleManualModeWithSpeedModes
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -23,9 +23,9 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 class Dolphin(
     hardwareMap: HardwareMap,
     telemetry: Telemetry,
-    private val params: DolphinParams,
     private val gamepad1: Gamepad,
-    private val gamepad2: Gamepad
+    private val gamepad2: Gamepad,
+    private val params: DolphinParams = DolphinParams(),
 ) : SimpleManualModeWithSpeedModes(telemetry) {
     /**
      * ManualParams is a configuration object for manual control.
@@ -34,19 +34,14 @@ class Dolphin(
      * @property initialY the initial y position
      * @property initialHeading the initial heading
      */
-    class DolphinParams {
-        @JvmField
-        var initialX: Double = -48.0
-        @JvmField
-        var initialY: Double = 64.0
-        @JvmField
-        var initialHeading: Double = 90.0
+    class DolphinParams(
+        val initialX: Double = -48.0,
+        val initialY: Double = 64.0,
+        val initialHeading: Double = 90.0,
 
-        @JvmField
-        var liftMultiplier: Int = 12
-        @JvmField
-        var shoulderMultiplier: Int = 8
-    }
+        val liftMultiplier: Int = 12,
+        val shoulderMultiplier: Int = 8
+    )
 
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
@@ -62,6 +57,9 @@ class Dolphin(
         controlClawWithGamepad(gamepad2)
         rotateClawWithGamepad(gamepad2)
         extendClawWithGamepad(gamepad2)
+
+        // Control the intake
+        toggleIntakeWithGamepad(gamepad2)
 
         // Run actions
         runActions()
@@ -82,10 +80,8 @@ class Dolphin(
 
     private fun controlClawWithGamepad(gamepad: Gamepad) {
         // Control claw
-        if (gamepad.a)
-            runningActions.add(robot.claw.open())
-        if (gamepad.b)
-            runningActions.add(robot.claw.close())
+        if (gamepad.a) runningActions.add(robot.claw.open())
+        if (gamepad.b) runningActions.add(robot.claw.close())
     }
 
     private fun rotateClawWithGamepad(gamepad: Gamepad) {
@@ -97,12 +93,25 @@ class Dolphin(
 
     private fun extendClawWithGamepad(gamepad: Gamepad) {
         // Control shoulder
-        if (gamepad.x) runningActions.add(robot.shoulder.extend())
-        else if (gamepad.y) runningActions.add(robot.shoulder.retract())
-        else robot.shoulder.currentGoal += (gamepad.right_trigger.toDouble() - gamepad.left_trigger.toDouble()).toInt() * params.shoulderMultiplier
+        robot.shoulder.currentGoal += (gamepad.right_trigger.toDouble() - gamepad.left_trigger.toDouble()).toInt() * params.shoulderMultiplier
 
         // Control elbow
-        if (gamepad.dpad_up) runningActions.add(robot.elbow.extend())
+        if (gamepad.right_stick_button) runningActions.add(robot.elbow.extend())
         else robot.elbow.setPower(processInput(-gamepad.right_stick_y.toDouble()))
+
+        // Control both
+        if (gamepad.dpad_up) runningActions.add(robot.extendArm())
+    }
+
+    private fun toggleIntakeWithGamepad(gamepad: Gamepad) {
+        // Control intake
+        if (gamepad.x) {
+            if (robot.intake.enabled) runningActions.add(robot.intake.disableIntake())
+            else runningActions.add(robot.intake.enableIntake())
+        }
+        if (gamepad.y) {
+            if (robot.intake.enabled) runningActions.add(robot.intake.disableIntake())
+            else runningActions.add(robot.intake.reverseIntake())
+        }
     }
 }

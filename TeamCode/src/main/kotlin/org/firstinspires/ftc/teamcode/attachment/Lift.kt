@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.attachment
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.lasteditguild.volt.attachment.Attachment
+import dev.kingssack.volt.attachment.Attachment
 import com.qualcomm.robotcore.hardware.*
 import com.qualcomm.robotcore.util.ElapsedTime
 import org.firstinspires.ftc.robotcore.external.Telemetry

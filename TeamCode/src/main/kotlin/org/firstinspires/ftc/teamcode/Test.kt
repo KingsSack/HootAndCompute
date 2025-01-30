@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.config.Config
 import org.firstinspires.ftc.teamcode.opmode.autonomous.Otter
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.lasteditguild.volt.autonomous.AutonomousMode
+import dev.kingssack.volt.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.opmode.autonomous.Elephant
 import org.firstinspires.ftc.teamcode.opmode.autonomous.Rhinoceros
 

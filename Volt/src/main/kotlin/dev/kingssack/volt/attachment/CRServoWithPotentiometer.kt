@@ -1,4 +1,4 @@
-package com.lasteditguild.volt.attachment
+package dev.kingssack.volt.attachment
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
@@ -32,30 +32,30 @@ open class CRServoWithPotentiometer(
      * An action to control the cr servo.
      *
      * @param power the power to set the cr servo to
-     * @param position the position to run the cr servo to
+     * @param target the target voltage to run the cr servo to
      */
     inner class CRServoWithPotentiometer(
         private val power: Double,
-        private val position: Double
+        private val target: Double
     ) : ControlAction() {
         private var reversing = false
 
         override fun init() {
-            // Check if the target position is valid
-            require(position in 0.0..potentiometer.maxVoltage) { "Position must be between 0 and ${potentiometer.maxVoltage}" }
+            // Check if the target voltage is valid
+            require(target in 0.0..potentiometer.maxVoltage) { "Position must be between 0 and ${potentiometer.maxVoltage}" }
 
             // Determine reversing
-            reversing = position < potentiometer.voltage
+            reversing = target < potentiometer.voltage
 
             // Set power
             crServo.power = if (reversing) -power else power
         }
 
         override fun update(packet: TelemetryPacket): Boolean {
-            // Get the current position
-            val currentAngle = potentiometer.voltage / potentiometer.maxVoltage
-            packet.put("CRServo $name position", currentAngle)
-            return ((position > potentiometer.voltage) xor reversing xor reversed)
+            // Get the current target
+            packet.put("CRServo $name voltage", potentiometer.voltage)
+            packet.put("CRServo $name target voltage", target)
+            return ((target > potentiometer.voltage) xor reversing xor reversed)
         }
 
         override fun handleStop() {

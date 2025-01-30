@@ -1,4 +1,4 @@
-package com.lasteditguild.volt.util
+package dev.kingssack.volt.util
 
 import com.acmerobotics.roadrunner.Time
 import com.acmerobotics.roadrunner.Twist2dDual

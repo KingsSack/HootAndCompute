@@ -7,16 +7,16 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Rapidly develop and test new Autonomous programs for your robot with the [Volt](../../api/Volt) library.
 
-## What is an [AutonomousMode](../../api/Volt/com.lasteditguild.volt.autonomous/-autonomous-mode)?
+## What is an [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode)?
 
-An [AutonomousMode](../../api/Volt/com.lasteditguild.volt.autonomous/-autonomous-mode) allows you to "assemble"
+An [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode) allows you to "assemble"
 a sequence of [Actions](../../reference/actions) to run without any user input.
 
-## Creating an [AutonomousMode](../../api/Volt/com.lasteditguild.volt.autonomous/-autonomous-mode)
+## Creating an [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode)
 
-Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/autonomous` package that inherits the [AutonomousMode](../../api/Volt/com.lasteditguild.volt.autonomous/-autonomous-mode) class.
+Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/autonomous` package that inherits the [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode) class.
 
-The [AutonomousMode](../../api/Volt/com.lasteditguild.volt.autonomous/-autonomous-mode) class contains:
+The [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode) class contains:
 
 1. A robot
 2. A list of actions
@@ -137,10 +137,10 @@ class ExampleAuto(hardwareMap: HardwareMap, telemetry: Telemetry) : AutonomousMo
 package org.firstinspires.ftc.teamcode.opmodes.autonomous
 
 import com.acmerobotics.roadrunner.*
-import com.lasteditguild.volt.autonomous.AutonomousMode
+import dev.kingssack.volt.autonomous.AutonomousMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import com.lasteditguild.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 
 class ExampleAuto(hardwareMap: HardwareMap, telemetry: Telemetry) : AutonomousMode(telemetry) {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(

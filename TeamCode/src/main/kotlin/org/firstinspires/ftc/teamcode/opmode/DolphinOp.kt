@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import com.lasteditguild.volt.manual.ManualMode
+import dev.kingssack.volt.manual.ManualMode
 import org.firstinspires.ftc.teamcode.opmode.manual.Dolphin
 
 @Config
@@ -19,7 +19,7 @@ class DolphinOp : OpMode() {
 
     override fun init() {
         // Initialize
-        manual = Dolphin(hardwareMap, telemetry, params, gamepad1, gamepad2)
+        manual = Dolphin(hardwareMap, telemetry, gamepad1, gamepad2, params)
     }
 
     override fun loop() {

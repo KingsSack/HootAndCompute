@@ -1,9 +1,13 @@
 ---
-title: Welcome to the HootAndCompute Documentation
+title: Develop for FTC like HootAndCompute
 description: Documentation for the Team 24123 HootAndCompute FTC team.
 template: splash
+editUrl: false
+lastUpdated: false
 hero:
-  tagline: Documentation for the Team 24123 HootAndCompute FTC team.
+  tagline: HootAndCompute is FTC Team 24123 and also the creators of Volt.
+  image:
+    file: ../../assets/logo.png
   actions:
     - text: Get Started
       link: getting-started/01-contributing
@@ -12,3 +16,14 @@ hero:
       link: api/TeamCode
       variant: minimal
 ---
+
+import { CardGrid, Card } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+    <Card title="For all FTC teams" icon="open-book">
+        Any FTC team can code the way HootAndCompute does!
+    </Card>
+    <Card title="Powered by Volt" icon="seti:kotlin">
+        Volt is a powerful, extendable, and easy-to-use library for FTC.
+    </Card>
+</CardGrid>

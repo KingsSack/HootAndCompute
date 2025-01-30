@@ -9,8 +9,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.dokka'
 
-group = 'com.lasteditguild'
-version = '0.1.0'
+group = 'dev.kingssack'
+version = '0.1.1'
 
 android {
     defaultConfig {
@@ -38,7 +38,7 @@ android {
         jvmTarget = "1.8"
     }
 
-    namespace = 'com.lasteditguild.volt'
+    namespace = 'dev.kingssack.volt'
 }
 
 repositories {

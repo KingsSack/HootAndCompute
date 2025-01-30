@@ -4,8 +4,10 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.SequentialAction
-import com.lasteditguild.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 import com.qualcomm.hardware.dfrobot.HuskyLens
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
@@ -21,13 +23,29 @@ import org.firstinspires.ftc.teamcode.attachment.*
  * @param initialPose for setting the initial pose
  *
  * @property lift for lifting the claw
+ * @property intake for collecting samples
  * @property claw for grabbing objects
  * @property shoulder for extending the claw
  * @property elbow for extending the claw
  * @property wrist for rotating the claw
  */
 @Config
-class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMecanumDrive(hardwareMap, initialPose) {
+class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMecanumDrive(
+    hardwareMap, initialPose, DriveParams(
+        trackWidthTicks = trackWidthTicks,
+        lateralInPerTick = lateralInPerTick,
+        kV = kV,
+        kA = kA,
+        kS = kS,
+        maxWheelVel = maxWheelVel,
+        maxProfileAccel = maxProfileAccel,
+        maxAngVel = maxAngVel,
+        maxAngAccel = maxAngAccel,
+        axialGain = axialGain,
+        lateralGain = lateralGain,
+        headingGain = headingGain
+    )
+) {
     /**
      * Params is a companion object that holds the configuration for the robot Steve.
      *
@@ -37,6 +55,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      * @property potentiometerName the name of the potentiometer
      * @property liftRightName the name of the right lift motor
      * @property liftLeftName the name of the left lift motor
+     * @property intakeRightName the name of the right intake servo
+     * @property intakeLeftName the name of the left intake servo
      * @property clawName the name of the claw motor
      * @property shoulderName the name of the shoulder motor
      * @property elbowName the name of the elbow motor
@@ -56,6 +76,10 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
         @JvmField
         var liftLeftName: String = "liftl"
         @JvmField
+        var intakeRightName: String = "inr"
+        @JvmField
+        var intakeLeftName: String = "inl"
+        @JvmField
         var clawName: String = "claw"
         @JvmField
         var shoulderName: String = "sh"
@@ -63,6 +87,44 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
         var elbowName: String = "el"
         @JvmField
         var wristName: String = "wr"
+
+        @JvmField
+        var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
+        @JvmField
+        var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
+
+        @JvmField
+        var inPerTick: Double = 0.0227
+        @JvmField
+        var lateralInPerTick: Double = 0.02
+        @JvmField
+        var trackWidthTicks: Double = 1297.32
+
+        @JvmField
+        var kS: Double = 0.9134
+        @JvmField
+        var kV: Double = 0.0043
+        @JvmField
+        var kA: Double = 0.001
+
+        @JvmField
+        var maxWheelVel: Double = 60.0
+        @JvmField
+        var minProfileAccel: Double = -30.0
+        @JvmField
+        var maxProfileAccel: Double = 60.0
+
+        @JvmField
+        var maxAngVel: Double = Math.PI
+        @JvmField
+        var maxAngAccel: Double = Math.PI
+
+        @JvmField
+        var axialGain: Double = 5.0
+        @JvmField
+        var lateralGain: Double = 4.0
+        @JvmField
+        var headingGain: Double = 1.0
     }
 
     // Sensors
@@ -73,13 +135,14 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
 
     // Attachments
     val lift: Lift = Lift(hardwareMap, liftRightName, liftLeftName)
+    val intake: Intake = Intake(hardwareMap, intakeLeftName, intakeRightName)
     val claw: Claw = Claw(hardwareMap, clawName)
     val shoulder: Shoulder = Shoulder(hardwareMap, shoulderName)
     val elbow: Elbow = Elbow(hardwareMap, elbowName, potentiometer)
     val wrist: Wrist = Wrist(hardwareMap, wristName)
 
     init {
-        attachments = listOf(lift, claw, shoulder, elbow, wrist)
+        attachments = listOf(lift, intake, claw, shoulder, elbow, wrist)
 
         // Set huskylens mode
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
