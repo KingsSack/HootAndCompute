@@ -67,6 +67,7 @@ class Rhinoceros(
     private fun goToSample(): Action {
         return SequentialAction(
             robot.strafeTo(Vector2d(-37.0, 42.0)),
+            robot.turnTo(Math.toRadians(90.0)),
             robot.strafeTo(Vector2d(-37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
             robot.strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
             InstantAction { currentSampleIndex++ }
@@ -98,7 +99,9 @@ class Rhinoceros(
             robot.strafeTo(Vector2d(FieldParams.observationX, 33.0)),
             robot.extendArm(),
             robot.claw.close(),
-            robot.retractArm()
+            robot.retractArm(),
+            robot.strafeTo(Vector2d(currentSubmersiblePosition.x, 33.0)),
+            robot.turnTo(Math.toRadians(90.0))
         )
     }
 }
