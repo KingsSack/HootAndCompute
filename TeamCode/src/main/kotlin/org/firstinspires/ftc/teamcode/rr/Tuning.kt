@@ -15,7 +15,6 @@ import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import dev.kingssack.volt.util.Drawing.drawRobot
-import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 import org.firstinspires.ftc.teamcode.robot.Steve
 import java.util.*
 
@@ -25,14 +24,14 @@ import java.util.*
 class RoadRunnerTest : LinearOpMode() {
     companion object Config {
         @JvmField
-        var initialX: Double = 24.0
+        var initialX: Double = -24.0
         @JvmField
-        var initialY: Double = 66.0
+        var initialY: Double = 63.0
         @JvmField
         var initialHeading: Double = -90.0
     }
 
-    private lateinit var robot: SimpleRobotWithMecanumDrive
+    private lateinit var robot: Steve
 
     override fun runOpMode() {
         registerDrive(hardwareMap, Pose2d(Vector2d(initialX, initialY), initialHeading))
@@ -65,7 +64,7 @@ class RoadRunnerTest : LinearOpMode() {
     }
 
     private fun registerDrive(hardwareMap: HardwareMap, initialPose: Pose2d) {
-        robot = SimpleRobotWithMecanumDrive(hardwareMap, initialPose)
+        robot = Steve(hardwareMap, initialPose)
     }
 }
 
@@ -83,10 +82,10 @@ class RoadRunnerTuning : LinearOpMode() {
         var distance: Double = 32.0
     }
 
-    private lateinit var robot: SimpleRobotWithMecanumDrive
+    private lateinit var robot: Steve
 
     override fun runOpMode() {
-        robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(initialX, initialY, initialHeading))
+        robot = Steve(hardwareMap, Pose2d(initialX, initialY, initialHeading))
 
         waitForStart()
 
@@ -112,11 +111,11 @@ class RoadRunnerSplineTest : LinearOpMode() {
         var initialHeading: Double = 0.0
     }
 
-    private lateinit var robot: SimpleRobotWithMecanumDrive
+    private lateinit var robot: Steve
 
     override fun runOpMode() {
         val beginPose = Pose2d(initialX, initialY, initialHeading)
-        robot = SimpleRobotWithMecanumDrive(hardwareMap, beginPose)
+        robot = Steve(hardwareMap, beginPose)
 
         waitForStart()
 
@@ -146,7 +145,7 @@ class TuningOpModes {
         fun register(manager: OpModeManager) {
             val dvf: DriveViewFactory = object : DriveViewFactory {
                 override fun make(h: HardwareMap): DriveView {
-                    val md = SimpleRobotWithMecanumDrive(h, Pose2d(0.0, 0.0, 0.0))
+                    val md = Steve(h, Pose2d(0.0, 0.0, 0.0))
 
                     val leftEncs = ArrayList<Encoder>()
                     val rightEncs = ArrayList<Encoder>()

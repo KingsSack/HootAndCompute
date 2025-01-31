@@ -36,7 +36,7 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
         @JvmField
         var retractPower: Double = 0.45
         @JvmField
-        var idlePower: Double = 0.4
+        var idlePower: Double = 0.0
     }
 
     init {

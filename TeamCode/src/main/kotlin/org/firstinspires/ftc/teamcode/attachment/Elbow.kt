@@ -30,32 +30,31 @@ class Elbow(
      * Params is a companion object that holds the configuration for the elbow attachment.
      *
      * @property maxPower the maximum power of the elbow
-     * @property extendedPosition the extended position of the elbow
-     * @property retractedPosition the retracted position of the elbow
+     * @property extendedVoltage the extended position of the elbow
+     * @property retractedVoltage the retracted position of the elbow
      */
     companion object Params {
         @JvmField
-        var servoReversed: Boolean = true
+        var servoReversed: Boolean = false
         @JvmField
         var maxPower: Double = 1.0
         @JvmField
-        var extendedPosition: Double = 1.0
+        var extendedVoltage: Double = 1.36
         @JvmField
-        var retractedPosition: Double = 3.0
+        var retractedVoltage: Double = 0.3
     }
 
     // Actions
     fun extend(): Action {
-        return CRServoWithPotentiometer(-maxPower, extendedPosition)
+        return CRServoWithPotentiometer(maxPower, extendedVoltage)
     }
     fun retract(): Action {
-        return CRServoWithPotentiometer(maxPower, retractedPosition)
+        return CRServoWithPotentiometer(maxPower, retractedVoltage)
     }
 
     override fun update(telemetry: Telemetry) {
         telemetry.addLine("==== ELBOW ====")
         super.update(telemetry)
-        telemetry.addData("Position", potentiometer.voltage / 3.3)
         telemetry.addLine()
     }
 }

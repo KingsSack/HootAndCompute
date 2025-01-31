@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.attachment.*
  * Steve is a robot for the 2024-2025 INTO THE DEEP FTC Season.
  *
  * Steve can collect samples, deposit samples, detect objects, and detect distances.
- * Steve has a lift, claw, shoulder, wrist, IMU, two distance sensors, and HuskyLens.
+ * Steve has a lift, claw, shoulder, wrist, intake, two distance sensors, and HuskyLens.
  *
  * @param hardwareMap for initializing hardware components
  * @param initialPose for setting the initial pose
@@ -32,12 +32,16 @@ import org.firstinspires.ftc.teamcode.attachment.*
 @Config
 class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMecanumDrive(
     hardwareMap, initialPose, DriveParams(
-        trackWidthTicks = trackWidthTicks,
+        logoFacingDirection = logoFacingDirection,
+        usbFacingDirection = usbFacingDirection,
+        inPerTick = inPerTick,
         lateralInPerTick = lateralInPerTick,
+        trackWidthTicks = trackWidthTicks,
+        kS = kS,
         kV = kV,
         kA = kA,
-        kS = kS,
         maxWheelVel = maxWheelVel,
+        minProfileAccel = minProfileAccel,
         maxProfileAccel = maxProfileAccel,
         maxAngVel = maxAngVel,
         maxAngAccel = maxAngAccel,
@@ -108,11 +112,11 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
         var kA: Double = 0.001
 
         @JvmField
-        var maxWheelVel: Double = 60.0
+        var maxWheelVel: Double = 50.0
         @JvmField
         var minProfileAccel: Double = -30.0
         @JvmField
-        var maxProfileAccel: Double = 60.0
+        var maxProfileAccel: Double = 50.0
 
         @JvmField
         var maxAngVel: Double = Math.PI
@@ -166,7 +170,10 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      * @return action to extend the arm to the submersible
      */
     fun extendArmToSubmersible(): Action {
-        return shoulder.extend()
+        return SequentialAction(
+            shoulder.extend(),
+            elbow.goTo(1.0, 0.68)
+        )
     }
 
     /**

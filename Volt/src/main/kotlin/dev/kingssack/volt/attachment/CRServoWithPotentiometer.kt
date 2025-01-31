@@ -41,8 +41,9 @@ open class CRServoWithPotentiometer(
         private var reversing = false
 
         override fun init() {
-            // Check if the target voltage is valid
+            // Check if the target voltage and power are valid
             require(target in 0.0..potentiometer.maxVoltage) { "Position must be between 0 and ${potentiometer.maxVoltage}" }
+            require(power in 0.0..1.0) { "Power must be between 0.0 and 1.0" }
 
             // Determine reversing
             reversing = target < potentiometer.voltage
@@ -55,7 +56,8 @@ open class CRServoWithPotentiometer(
             // Get the current target
             packet.put("CRServo $name voltage", potentiometer.voltage)
             packet.put("CRServo $name target voltage", target)
-            return ((target > potentiometer.voltage) xor reversing xor reversed)
+            packet.put("CRServo $name power", crServo.power)
+            return ((potentiometer.voltage > target) xor reversing xor reversed)
         }
 
         override fun handleStop() {
@@ -82,7 +84,7 @@ open class CRServoWithPotentiometer(
      * @param power the power to set the cr servo to
      */
     fun setPower(power: Double) {
-        crServo.power = power
+        if (!running) crServo.power = power
     }
 
     override fun update(telemetry: Telemetry) {

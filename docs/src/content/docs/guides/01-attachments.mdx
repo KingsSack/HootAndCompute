@@ -190,7 +190,7 @@ Determine whether the motor has reached the `targetPosition`. Stop the motor in 
 
 <TabItem label="Kotlin">
 
-```kotlin {2-3, 5, 8-12, 16-28, 32-33}
+```kotlin {2-3, 5, 8-12, 16-26, 30-31}
 inner class Control(
     private val power: Double,
     private val targetPosition: Int
@@ -211,12 +211,10 @@ inner class Control(
 
         if (reversing) {
             // Reverse
-            if (currentPosition > targetPosition)
-                return false
+            if (currentPosition > targetPosition) return false
         } else {
             // Forward
-            if (currentPosition < targetPosition)
-                return false
+            if (currentPosition < targetPosition) return false
         }
         return true
     }
@@ -336,11 +334,9 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
         override fun update(packet: TelemetryPacket): Boolean {
             val currentPosition = motor.currentPosition
             if (reversing) {
-                if (currentPosition > targetPosition)
-                    return false
+                if (currentPosition > targetPosition) return false
             } else {
-                if (currentPosition < targetPosition)
-                    return false
+                if (currentPosition < targetPosition) return false
             }
             return true
         }

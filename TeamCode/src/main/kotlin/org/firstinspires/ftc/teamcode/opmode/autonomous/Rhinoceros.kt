@@ -47,7 +47,7 @@ class Rhinoceros(
     ))
 
     private var currentSampleIndex = 0
-    private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 30)
+    private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 14)
 
     init {
         actionSequence.add { goToSubmersible() }
@@ -66,10 +66,9 @@ class Rhinoceros(
 
     private fun goToSample(): Action {
         return SequentialAction(
-            robot.driveActionBuilder(robot.pose)
-                .strafeTo(Vector2d(-36.0, 42.0))
-                .splineToLinearHeading(Pose2d(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 16.0), Math.toRadians(90.0)), 0.0)
-                .build(),
+            robot.strafeTo(Vector2d(-37.0, 42.0)),
+            robot.strafeTo(Vector2d(-37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
+            robot.strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
             InstantAction { currentSampleIndex++ }
         )
     }
@@ -80,9 +79,12 @@ class Rhinoceros(
 
     private fun depositSpecimen(): Action {
         return SequentialAction(
-            robot.lift.goTo(Lift.upperSubmersibleBarHeight),
             robot.extendArmToSubmersible(),
+            robot.lift.goTo(Lift.upperSubmersibleBarHeight),
+            robot.extendArmToSubmersible(), // For redundancy
             robot.lift.drop(),
+            robot.claw.open(),
+            robot.retractArm(),
             InstantAction { currentSubmersiblePosition = Vector2d(currentSubmersiblePosition.x + 6.0, currentSubmersiblePosition.y) },
         )
     }
