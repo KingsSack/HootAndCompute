@@ -25,7 +25,7 @@ class Rhinoceros(
     telemetry: Telemetry,
     private val params: RhinocerosParams = RhinocerosParams()
 ) : AutonomousMode(telemetry) {
-    /**
+    /**`
      * The parameters for Rhinoceros.
      *
      * @property initialX the initial x position
@@ -68,6 +68,7 @@ class Rhinoceros(
         return SequentialAction(
             robot.strafeTo(Vector2d(-37.0, 42.0)),
             robot.turnTo(Math.toRadians(90.0)),
+            robot.wait(1.0),
             robot.strafeTo(Vector2d(-37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
             robot.strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
             InstantAction { currentSampleIndex++ }
@@ -80,13 +81,8 @@ class Rhinoceros(
 
     private fun depositSpecimen(): Action {
         return SequentialAction(
-            robot.extendArmToSubmersible(),
-            robot.lift.goTo(Lift.upperSubmersibleBarHeight),
-            robot.extendArmToSubmersible(), // For redundancy
-            robot.lift.drop(),
-            robot.claw.open(),
-            robot.retractArm(),
-            InstantAction { currentSubmersiblePosition = Vector2d(currentSubmersiblePosition.x + 6.0, currentSubmersiblePosition.y) },
+            robot.depositSpecimen(Lift.upperSubmersibleBarHeight),
+            InstantAction { currentSubmersiblePosition = Vector2d(currentSubmersiblePosition.x + 4.0, currentSubmersiblePosition.y) },
         )
     }
 

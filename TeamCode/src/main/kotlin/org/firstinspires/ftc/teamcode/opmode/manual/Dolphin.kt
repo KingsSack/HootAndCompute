@@ -37,7 +37,7 @@ class Dolphin(
     class DolphinParams(
         val initialX: Double = -48.0,
         val initialY: Double = 64.0,
-        val initialHeading: Double = 90.0,
+        val initialHeading: Double = -90.0,
 
         val liftMultiplier: Int = 12,
         val shoulderMultiplier: Int = 8
@@ -51,6 +51,7 @@ class Dolphin(
     override fun tick(telemetry: Telemetry) {
         // Drive
         robot.setDrivePowers(calculatePoseWithGamepad(gamepad1))
+        quickMovements(gamepad1)
 
         // Control lift and claw
         controlLiftWithGamepad(gamepad2)
@@ -59,6 +60,7 @@ class Dolphin(
         extendClawWithGamepad(gamepad2)
 
         // Control the intake
+        moveIntakeWithGamepad(gamepad2)
         toggleIntakeWithGamepad(gamepad2)
 
         // Run actions
@@ -68,14 +70,18 @@ class Dolphin(
         robot.update(telemetry)
     }
 
+    private fun quickMovements(gamepad: Gamepad) {
+        if (gamepad.dpad_up) runningActions.add(robot.turnTo(Math.toRadians(-90.0)))
+        else if (gamepad.dpad_left) runningActions.add(robot.turnTo(Math.toRadians(45.0)))
+        else if (gamepad.dpad_right) runningActions.add(robot.depositSpecimen(Lift.upperSubmersibleBarHeight))
+    }
+
     private fun controlLiftWithGamepad(gamepad: Gamepad) {
         // Check reset
         if (gamepad.left_stick_button) robot.lift.reset()
 
         // Control lift
-        if (gamepad.right_bumper) runningActions.add(robot.lift.goTo(Lift.upperBasketHeight))
-        else if (gamepad.left_bumper) runningActions.add(robot.lift.drop())
-        else robot.lift.currentGoal += processInput(-gamepad.left_stick_y.toDouble()).toInt() * params.liftMultiplier
+        robot.lift.currentGoal += processInput(-gamepad.left_stick_y.toDouble()).toInt() * params.liftMultiplier
     }
 
     private fun controlClawWithGamepad(gamepad: Gamepad) {
@@ -101,6 +107,12 @@ class Dolphin(
 
         // Control both
         if (gamepad.dpad_up) runningActions.add(robot.extendArm())
+    }
+
+    private fun moveIntakeWithGamepad(gamepad: Gamepad) {
+        // Control tail
+        if (gamepad.left_bumper) runningActions.add(robot.tail.retract())
+        else if (gamepad.right_bumper) runningActions.add(robot.tail.extend())
     }
 
     private fun toggleIntakeWithGamepad(gamepad: Gamepad) {

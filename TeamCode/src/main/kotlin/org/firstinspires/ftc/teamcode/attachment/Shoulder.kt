@@ -28,15 +28,15 @@ class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcM
      */
     companion object Params {
         @JvmField
-        var maxPosition: Int = 100
+        var maxPosition: Int = 140
         @JvmField
-        var minPosition: Int = 20
+        var minPosition: Int = 0
         @JvmField
         var extendPower: Double = 0.25
         @JvmField
         var retractPower: Double = 0.45
         @JvmField
-        var idlePower: Double = 0.0
+        var idlePower: Double = 1.0
     }
 
     init {

@@ -44,9 +44,9 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         @JvmField
         var lowerBasketHeight: Int = 500
         @JvmField
-        var upperSubmersibleBarHeight: Int = 1200
+        var upperSubmersibleBarHeight: Int = 570
         @JvmField
-        var lowerSubmersibleBarHeight: Int = 500
+        var lowerSubmersibleBarHeight: Int = 300
         @JvmField
         var minPosition: Int = 10
         @JvmField

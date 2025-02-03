@@ -1,9 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.Action
-import com.acmerobotics.roadrunner.Pose2d
-import com.acmerobotics.roadrunner.SequentialAction
+import com.acmerobotics.roadrunner.*
 import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
@@ -59,6 +57,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      * @property potentiometerName the name of the potentiometer
      * @property liftRightName the name of the right lift motor
      * @property liftLeftName the name of the left lift motor
+     * @property tailName the name of the tail servo
      * @property intakeRightName the name of the right intake servo
      * @property intakeLeftName the name of the left intake servo
      * @property clawName the name of the claw motor
@@ -79,6 +78,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
         var liftRightName: String = "liftr"
         @JvmField
         var liftLeftName: String = "liftl"
+        @JvmField
+        var tailName: String = "tl"
         @JvmField
         var intakeRightName: String = "inr"
         @JvmField
@@ -139,6 +140,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
 
     // Attachments
     val lift: Lift = Lift(hardwareMap, liftRightName, liftLeftName)
+    val tail: Tail = Tail(hardwareMap, tailName)
     val intake: Intake = Intake(hardwareMap, intakeLeftName, intakeRightName)
     val claw: Claw = Claw(hardwareMap, clawName)
     val shoulder: Shoulder = Shoulder(hardwareMap, shoulderName)
@@ -146,7 +148,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     val wrist: Wrist = Wrist(hardwareMap, wristName)
 
     init {
-        attachments = listOf(lift, intake, claw, shoulder, elbow, wrist)
+        attachments = listOf(lift, tail, intake, claw, shoulder, elbow, wrist)
 
         // Set huskylens mode
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
@@ -165,14 +167,15 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     }
 
     /**
-     * Extend the arm to the submersible by extending the shoulder and then elbow.
+     * Extend the arm to the submersible or basket by extending the shoulder and then elbow.
      *
      * @return action to extend the arm to the submersible
      */
-    fun extendArmToSubmersible(): Action {
+    fun extendArmTo(elbowVoltage: Double): Action {
         return SequentialAction(
             shoulder.extend(),
-            elbow.goTo(1.0, 0.68)
+            elbow.goTo(1.0, elbowVoltage),
+            wrist.goTo(Wrist.centerPosition)
         )
     }
 
@@ -223,11 +226,36 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     fun depositSample(basketHeight: Int): Action {
         return SequentialAction(
             lift.goTo(basketHeight + 50),
-            shoulder.extend(),
+            extendArmTo(0.6),
             wrist.goTo(Wrist.centerPosition),
             claw.open(),
             retractArm(),
             lift.drop()
+        )
+    }
+
+    /**
+     * Deposit a specimen by extending the arm, raising the lift,
+     * extending the arm, opening the claw, and retracting the arm.
+     *
+     * @param barHeight height of the submersible bar
+     * @return action to deposit a specimen
+     *
+     * @see Shoulder
+     * @see Elbow
+     * @see Wrist
+     * @see Lift
+     * @see Claw
+     */
+    fun depositSpecimen(barHeight: Int): Action {
+        return SequentialAction(
+            extendArmTo(0.64),
+            lift.goTo(barHeight + 80),
+            extendArmTo(0.54),
+            lift.goTo(barHeight - 220),
+            claw.open(),
+            lift.drop(),
+            retractArm()
         )
     }
 

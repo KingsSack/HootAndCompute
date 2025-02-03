@@ -32,7 +32,7 @@ object FieldParams {
     var samplePositionsY: DoubleArray = doubleArrayOf(24.0, 24.0, 24.0)
 
     @JvmField
-    var submersibleX: Double = -12.0
+    var submersibleX: Double = -8.0
     @JvmField
     var submersibleY: Double = 24.0
 }

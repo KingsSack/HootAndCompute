@@ -47,6 +47,7 @@ class Whale(
     override fun tick(telemetry: Telemetry) {
         // Drive
         robot.setDrivePowers(calculatePoseWithGamepad(gamepad1))
+        quickMovements(gamepad1)
 
         // Control lift and claw
         controlLiftWithGamepad(gamepad2)
@@ -59,6 +60,12 @@ class Whale(
 
         // Update robot
         robot.update(telemetry)
+    }
+
+    private fun quickMovements(gamepad: Gamepad) {
+        // Quick movements
+        if (gamepad.dpad_up) runningActions.add(robot.turnTo(Math.toRadians(-90.0)))
+        else if (gamepad.dpad_left) runningActions.add(robot.turnTo(Math.toRadians(45.0)))
     }
 
     private fun controlLiftWithGamepad(gamepad: Gamepad) {
