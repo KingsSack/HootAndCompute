@@ -15,7 +15,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @see Intake
  */
 @Config
-class Tail(hardwareMap: HardwareMap, name: String): SimpleAttachmentWithServo(hardwareMap, name) {
+class Tail(
+    hardwareMap: HardwareMap,
+    name: String
+): SimpleAttachmentWithServo(
+    hardwareMap,
+    name
+) {
     /**
      * Params is a companion object that holds the configuration for the tail attachment.
      *

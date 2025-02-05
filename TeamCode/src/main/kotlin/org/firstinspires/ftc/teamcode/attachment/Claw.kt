@@ -13,7 +13,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param name the name of the claw servo
  */
 @Config
-class Claw(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithServo(hardwareMap, name) {
+class Claw(
+    hardwareMap: HardwareMap,
+    name: String
+) : SimpleAttachmentWithServo(
+    hardwareMap,
+    name
+) {
     /**
      * Params is a companion object that holds the configuration for the claw attachment.
      *

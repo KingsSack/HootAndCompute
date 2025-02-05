@@ -6,10 +6,12 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 abstract class SimpleManualModeWithSpeedModes(
+    gamepad1: Gamepad,
+    gamepad2: Gamepad,
     telemetry: Telemetry,
     private val params: SimpleManualModeWithSpeedModesParams = SimpleManualModeWithSpeedModesParams(),
     manualParams: ManualParams = ManualParams()
-) : ManualMode(telemetry, manualParams) {
+) : ManualMode(gamepad1, gamepad2,telemetry, manualParams) {
     /**
      * Configuration object for manual control.
      *
@@ -36,15 +38,15 @@ abstract class SimpleManualModeWithSpeedModes(
     )
     private var currentSpeedMode = "NORMAL"
 
-    private fun updateSpeedMode(gamepad: Gamepad) {
+    private fun updateSpeedMode() {
         when {
-            gamepad.y -> {
+            isButtonTapped("y1") -> {
                 currentSpeedMode = "TURBO"
             }
-            gamepad.b -> {
+            isButtonTapped("b1") -> {
                 currentSpeedMode = "NORMAL"
             }
-            gamepad.a -> {
+            isButtonTapped("a1") -> {
                 currentSpeedMode = "PRECISE"
             }
         }
@@ -53,17 +55,16 @@ abstract class SimpleManualModeWithSpeedModes(
     /**
      * Calculates the pose velocity of the robot based on the gamepad input.
      *
-     * @param gamepad the gamepad input
      * @return the pose velocity
      */
-    fun calculatePoseWithGamepad(gamepad: Gamepad): PoseVelocity2d {
+    fun calculatePoseWithGamepad(): PoseVelocity2d {
         // Handle speed mode changes
-        updateSpeedMode(gamepad)
+        updateSpeedMode()
 
         // Get gamepad input with deadzone and exponential scaling
-        val x = processInput(-gamepad.left_stick_x.toDouble())
-        val y = processInput(-gamepad.left_stick_y.toDouble())
-        val rx = processInput(-gamepad.right_stick_x.toDouble()) * params.turnScale
+        val x = -getAnalogValue("left_stick_x1")
+        val y = -getAnalogValue("left_stick_y1")
+        val rx = -getAnalogValue("right_stick_x1") * params.turnScale
 
         // Apply current speed mode scaling
         val scale = speedModes[currentSpeedMode]!!

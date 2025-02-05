@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.attachment.*
+import org.firstinspires.ftc.teamcode.util.FieldParams
 
 /**
  * Steve is a robot for the 2024-2025 INTO THE DEEP FTC Season.
@@ -231,6 +232,17 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
             claw.open(),
             retractArm(),
             lift.drop()
+        )
+    }
+
+    /**
+     * Retrieve a specimen
+     */
+    fun retrieveSpecimen(): Action {
+        return SequentialAction(
+            extendArm(),
+            claw.close(),
+            retractArm()
         )
     }
 

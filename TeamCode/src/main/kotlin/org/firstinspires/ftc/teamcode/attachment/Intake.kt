@@ -18,7 +18,7 @@ class Intake(hardwareMap: HardwareMap, leftName: String, rightName: String) : At
     private val intakeLeft = hardwareMap.crservo[leftName]
     private val intakeRight = hardwareMap.crservo[rightName]
 
-    var enabled = false
+    var reversing = false
 
     init {
         intakeLeft.direction = DcMotorSimple.Direction.REVERSE
@@ -41,15 +41,15 @@ class Intake(hardwareMap: HardwareMap, leftName: String, rightName: String) : At
     }
 
     fun enableIntake(): Action {
-        enabled = true
+        reversing = false
         return Control(maxPower)
     }
     fun disableIntake(): Action {
-        enabled = false
+        reversing = false
         return Control(0.0)
     }
     fun reverseIntake(): Action {
-        enabled = true
+        reversing = true
         return Control(-maxPower)
     }
 

@@ -16,7 +16,16 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @see Claw
  */
 @Config
-class Shoulder(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithDcMotor(hardwareMap, name, idlePower, maxPosition, minPosition) {
+class Shoulder(
+    hardwareMap: HardwareMap,
+    name: String
+) : SimpleAttachmentWithDcMotor(
+    hardwareMap,
+    name,
+    idlePower,
+    maxPosition,
+    minPosition
+) {
     /**
      * Params is a companion object that holds the configuration for the shoulder attachment.
      *
