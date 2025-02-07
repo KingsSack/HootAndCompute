@@ -114,11 +114,11 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
         var kA: Double = 0.001
 
         @JvmField
-        var maxWheelVel: Double = 50.0
+        var maxWheelVel: Double = 60.0
         @JvmField
         var minProfileAccel: Double = -30.0
         @JvmField
-        var maxProfileAccel: Double = 50.0
+        var maxProfileAccel: Double = 60.0
 
         @JvmField
         var maxAngVel: Double = Math.PI
@@ -130,7 +130,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
         @JvmField
         var lateralGain: Double = 4.0
         @JvmField
-        var headingGain: Double = 1.0
+        var headingGain: Double = 3.0
     }
 
     // Sensors
@@ -161,7 +161,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      * @return action to extend the arm
      */
     fun extendArm(): Action {
-        return SequentialAction(
+        return ParallelAction(
             shoulder.extend(),
             elbow.extend()
         )
@@ -173,7 +173,7 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      * @return action to extend the arm to the submersible
      */
     fun extendArmTo(elbowVoltage: Double): Action {
-        return SequentialAction(
+        return ParallelAction(
             shoulder.extend(),
             elbow.goTo(1.0, elbowVoltage),
             wrist.goTo(Wrist.centerPosition)
@@ -261,13 +261,15 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      */
     fun depositSpecimen(barHeight: Int): Action {
         return SequentialAction(
-            extendArmTo(0.64),
-            lift.goTo(barHeight + 80),
-            extendArmTo(0.54),
+            extendArmTo(0.57),
+            lift.goTo(barHeight + 75),
+            extendArmTo(0.53),
             lift.goTo(barHeight - 220),
-            claw.open(),
-            lift.drop(),
-            retractArm()
+            ParallelAction(
+                claw.open(),
+                lift.drop(),
+                retractArm()
+            )
         )
     }
 

@@ -38,7 +38,7 @@ class Rhinoceros(
         val initialY: Double = 63.0,
         val initialHeading: Double = -90.0,
 
-        val numSamples: Int = 3
+        val numSamples: Int = 1
     )
 
     override val robot = Steve(hardwareMap, Pose2d(
@@ -47,7 +47,7 @@ class Rhinoceros(
     ))
 
     private var currentSampleIndex = 0
-    private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 13)
+    private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 14)
 
     init {
         actionSequence.add { goToSubmersible() }
@@ -66,10 +66,12 @@ class Rhinoceros(
 
     private fun goToSample(): Action {
         return SequentialAction(
-            robot.strafeTo(Vector2d(-37.0, 42.0)),
-            robot.turnTo(Math.toRadians(90.0)),
-            robot.strafeTo(Vector2d(-37.0, FieldParams.samplePositionsY[currentSampleIndex] - 14.0)),
-            robot.strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
+            robot.driveActionBuilder(robot.pose)
+                .strafeToLinearHeading(Vector2d(-37.0, 42.0), Math.toRadians(90.0))
+                .strafeTo(Vector2d(-37.0, FieldParams.samplePositionsY[currentSampleIndex] - 14.0))
+                .strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
+                .waitSeconds(1.0)
+                .build(),
             InstantAction { currentSampleIndex++ }
         )
     }
@@ -81,7 +83,7 @@ class Rhinoceros(
     private fun depositSpecimen(): Action {
         return SequentialAction(
             robot.depositSpecimen(Lift.upperSubmersibleBarHeight),
-            InstantAction { currentSubmersiblePosition = Vector2d(currentSubmersiblePosition.x + 4.0, currentSubmersiblePosition.y) },
+            InstantAction { currentSubmersiblePosition = Vector2d(currentSubmersiblePosition.x + 5.0, currentSubmersiblePosition.y) },
         )
     }
 
@@ -91,10 +93,9 @@ class Rhinoceros(
 
     private fun retrieveSpecimen(): Action {
         return SequentialAction(
-            robot.strafeTo(Vector2d(FieldParams.observationX, 33.0)),
+            robot.strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], 46.0)),
             robot.retrieveSpecimen(),
-            robot.strafeTo(Vector2d(currentSubmersiblePosition.x, 33.0)),
-            robot.turnTo(Math.toRadians(-90.0))
+            robot.strafeToLinearHeading(Vector2d(currentSubmersiblePosition.x, 33.0), Math.toRadians(-90.0)),
         )
     }
 }

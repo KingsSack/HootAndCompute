@@ -27,18 +27,12 @@ abstract class AutonomousMode(private val telemetry: Telemetry) {
     fun execute() {
         for (action in actionSequence) {
             runAction(action())
-            // robot.update(telemetry)
             telemetry.update()
         }
         telemetry.addData("Autonomous", "Completed")
         telemetry.update()
     }
 
-    /**
-     * Run an action.
-     *
-     * @param action the action to run
-     */
     private fun runAction(action: Action) {
         action.preview(canvas)
 

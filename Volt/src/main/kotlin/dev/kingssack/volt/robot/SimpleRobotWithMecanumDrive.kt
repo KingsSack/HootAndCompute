@@ -396,13 +396,8 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
             val command = HolonomicController(
                 params.axialGain, params.lateralGain, params.headingGain,
                 params.axialVelGain, params.lateralVelGain, params.headingVelGain
-            )
-                .compute(txWorldTarget, pose, robotVelRobot)
-            driveCommandWriter.write(
-                DriveCommandMessage(
-                    command
-                )
-            )
+            ).compute(txWorldTarget, pose, robotVelRobot)
+            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
@@ -486,8 +481,8 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
      */
     fun driveActionBuilder(beginPose: Pose2d): TrajectoryActionBuilder {
         return TrajectoryActionBuilder(
-            { turn: TimeTurn -> TurnAction(turn) },
-            { t: TimeTrajectory -> FollowTrajectoryAction(t) },
+            ::TurnAction,
+            ::FollowTrajectoryAction,
             TrajectoryBuilderParams(
                 1e-6,
                 ProfileParams(
@@ -506,7 +501,20 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
      * @param target the target vector
      * @return the action
      */
-    fun strafeTo(target: Vector2d): Action = driveActionBuilder(pose).strafeTo(target).build()
+    fun strafeTo(target: Vector2d): Action {
+        return driveActionBuilder(pose).strafeTo(target).build()
+    }
+
+    /**
+     * Strafe to a target vector with a linear heading.
+     *
+     * @param target the target vector
+     * @param heading the linear heading
+     * @return the action
+     */
+    fun strafeToLinearHeading(target: Vector2d, heading: Double): Action {
+        return driveActionBuilder(pose).strafeToLinearHeading(target, heading).build()
+    }
 
     /**
      * Turn to a target angle.
@@ -514,7 +522,19 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
      * @param target the target angle in radians
      * @return the action
      */
-    fun turnTo(target: Double): Action = driveActionBuilder(pose).turnTo(target).build()
+    fun turnTo(target: Double): Action {
+        return driveActionBuilder(pose).turnTo(target).build()
+    }
+
+    /**
+     * Turn a certain number of radians.
+     *
+     * @param radians the number of radians to turn
+     * @return the action
+     */
+    fun turn(radians: Double): Action {
+        return driveActionBuilder(pose).turn(radians).build()
+    }
 
     /**
      * Wait for a certain number of seconds.
@@ -522,7 +542,9 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
      * @param seconds the number of seconds to wait
      * @return the action
      */
-    fun wait(seconds: Double): Action = driveActionBuilder(pose).waitSeconds(seconds).build()
+    fun wait(seconds: Double): Action {
+        return driveActionBuilder(pose).waitSeconds(seconds).build()
+    }
 
     override fun update(telemetry: Telemetry) {
         updatePoseEstimate()

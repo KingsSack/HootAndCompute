@@ -77,6 +77,9 @@ class Dolphin(
 
     private val extendArm = Interaction({ isButtonTapped("dpad_up2") }, { robot.extendArm() })
 
+    private val extendTail = Interaction({ isButtonTapped("left_bumper2") }, { robot.tail.retract() })
+    private val retractTail = Interaction({ isButtonTapped("right_bumper2") }, { robot.tail.extend() })
+
     private val toggleIntake = ToggleInteraction({ isButtonTapped("x2") },
         { robot.intake.enableIntake() }, { robot.intake.reverseIntake() })
     private val disableIntake = Interaction({ isButtonHeld("x2", 200.0) }, { robot.intake.disableIntake() })
@@ -97,84 +100,15 @@ class Dolphin(
             controlElbow,
             extendElbow,
             extendArm,
+            extendTail,
+            retractTail,
             toggleIntake,
             disableIntake
         ))
     }
 
     override fun tick(telemetry: Telemetry) {
-        // Drive
         robot.setDrivePowers(calculatePoseWithGamepad())
-        // quickMovements()
-
-        // Control lift and claw
-        /* controlLiftWithGamepad()
-        controlClawWithGamepad()
-        rotateClawWithGamepad()
-        extendClawWithGamepad() */
-
-        // Control the intake
-        /* moveIntakeWithGamepad()
-        toggleIntakeWithGamepad() */
-
         super.tick(telemetry)
     }
-
-    /* private fun quickMovements() {
-        if (isButtonTapped("dpad_up1")) runningActions.add(robot.turnTo(Math.toRadians(-90.0)))
-        else if (isButtonTapped("dpad_left1")) runningActions.add(robot.turnTo(Math.toRadians(45.0)))
-        else if (isButtonTapped("dpad_right1")) runningActions.add(robot.depositSpecimen(Lift.upperSubmersibleBarHeight))
-        else if (isButtonTapped("x1")) runningActions.add(robot.retrieveSpecimen())
-    }
-
-    private fun controlLiftWithGamepad() {
-        // Check reset
-        if (isButtonTapped("left_stick_button1")) robot.lift.reset()
-
-        // Control lift
-        robot.lift.currentGoal += -getAnalogValue("left_stick_y2").toInt() * params.liftMultiplier
-    }
-
-    private fun controlClawWithGamepad() {
-        // Control claw
-        if (isButtonTapped("a2")) runningActions.add(robot.claw.open())
-        if (isButtonTapped("b2")) runningActions.add(robot.claw.close())
-    }
-
-    private fun rotateClawWithGamepad() {
-        // Control wrist
-        if (isButtonTapped("dpad_down2")) runningActions.add(robot.wrist.goTo(Wrist.centerPosition))
-        else if (isButtonPressed("dpad_left2")) runningActions.add(robot.wrist.goTo(robot.wrist.getPosition() + 0.005))
-        else if (isButtonPressed("dpad_right2")) runningActions.add(robot.wrist.goTo(robot.wrist.getPosition() - 0.005))
-    }
-
-    private fun extendClawWithGamepad() {
-        // Control shoulder
-        if (isButtonTapped("y2")) {
-            if (robot.shoulder.currentGoal >= Shoulder.maxPosition) runningActions.add(robot.shoulder.retract())
-            else runningActions.add(robot.shoulder.extend())
-        }
-
-        // Control elbow
-        if (isButtonTapped("right_stick_button2")) runningActions.add(robot.elbow.extend())
-        else robot.elbow.setPower(-getAnalogValue("right_stick_y2"))
-
-        // Control both
-        if (isButtonTapped("dpad_up2")) runningActions.add(robot.extendArm())
-    }
-
-    private fun moveIntakeWithGamepad() {
-        // Control tail
-        if (isButtonTapped("left_bumper2")) runningActions.add(robot.tail.retract())
-        else if (isButtonTapped("right_bumper2")) runningActions.add(robot.tail.extend())
-    }
-
-    private fun toggleIntakeWithGamepad() {
-        // Control intake
-        if (isButtonTapped("x2")) {
-            if (robot.intake.reversing) runningActions.add(robot.intake.enableIntake())
-            else runningActions.add(robot.intake.reverseIntake())
-        }
-        if (isButtonHeld("x2", 200.0)) runningActions.add(robot.intake.disableIntake())
-    } */
 }

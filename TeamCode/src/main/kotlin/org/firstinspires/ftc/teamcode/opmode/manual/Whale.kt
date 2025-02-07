@@ -95,48 +95,7 @@ class Whale(
     }
 
     override fun tick(telemetry: Telemetry) {
-        // Drive
         robot.setDrivePowers(calculatePoseWithGamepad())
-        // quickMovements()
-
-        // Control lift and claw
-        /* controlLiftWithGamepad(gamepad2)
-        controlClawWithGamepad(gamepad2)
-        rotateClawWithGamepad(gamepad2)
-        extendClawWithGamepad(gamepad2) */
-
         super.tick(telemetry)
     }
-
-    /* private fun quickMovements() {
-        // Quick movements
-        if (isButtonTapped("dpad_up1")) runningActions.add(robot.turnTo(Math.toRadians(-90.0)))
-        else if (isButtonTapped("dpad_left1")) runningActions.add(robot.turnTo(Math.toRadians(45.0)))
-    }
-
-    private fun controlLiftWithGamepad(gamepad: Gamepad) {
-        // Control lifters
-        if (gamepad.right_bumper) runningActions.add(robot.lift.goTo(Lift.upperBasketHeight))
-        else if (gamepad.left_bumper) runningActions.add(robot.lift.drop())
-    }
-
-    private fun controlClawWithGamepad(gamepad: Gamepad) {
-        // Control claw
-        if (gamepad.a) runningActions.add(robot.claw.open())
-        if (gamepad.b) runningActions.add(robot.claw.close())
-    }
-
-    private fun rotateClawWithGamepad(gamepad: Gamepad) {
-        // Control claw rotation
-        if (gamepad.dpad_right) runningActions.add(robot.wrist.goTo(0.5))
-        else if (gamepad.dpad_up) runningActions.add(robot.wrist.goTo(robot.wrist.getPosition() + 0.05))
-        else if (gamepad.dpad_down) runningActions.add(robot.wrist.goTo(robot.wrist.getPosition() - 0.05))
-    }
-
-    private fun extendClawWithGamepad(gamepad: Gamepad) {
-        // Control shoulder and elbow
-        if (gamepad.x) runningActions.add(robot.retractArm())
-        else if (gamepad.y) runningActions.add(robot.extendArm())
-        else robot.elbow.setPower(-gamepad.right_stick_y.toDouble())
-    } */
 }

@@ -14,7 +14,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @see Claw
  */
 @Config
-class Wrist(hardwareMap: HardwareMap, name: String) : SimpleAttachmentWithServo(hardwareMap, name) {
+class Wrist(
+    hardwareMap: HardwareMap,
+    name: String
+) : SimpleAttachmentWithServo(
+    hardwareMap,
+    name
+) {
     /**
      * Params is a companion object that holds the configuration for the wrist attachment.
      *
