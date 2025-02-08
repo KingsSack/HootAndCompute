@@ -1,0 +1,27 @@
+{
+  "name": "Dev Container Template",
+  "build": {
+    "dockerfile": "./Dockerfile"
+  },
+  "forwardPorts": [],
+  "containerEnv": {
+    
+  },
+  "features": {
+    
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-gradle",
+        "Oracle.oracle-java",
+        "mathiasfrohlich.Kotlin",
+        "adelphes.android-dev-ext"
+      ],
+      "settings": {
+
+      }
+    }
+  },
+  "postCreateCommand": "nix develop --experimental-features 'nix-command flakes'"
+}

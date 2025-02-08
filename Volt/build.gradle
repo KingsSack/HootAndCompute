@@ -1,0 +1,59 @@
+buildscript {
+    ext.min_sdk_version = "10.1.1"
+    ext.min_rr_ftc_version = "0.1.15"
+    ext.min_rr_version = "1.0.1"
+    ext.min_dash_version = "0.4.16"
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'org.jetbrains.dokka'
+
+group = 'dev.kingssack'
+version = '0.1.1'
+
+android {
+    defaultConfig {
+        minSdkVersion 24
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 28
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    compileSdk 34
+
+    packagingOptions {
+        jniLibs.useLegacyPackaging true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    namespace = 'dev.kingssack.volt'
+}
+
+repositories {
+    maven {
+        url = 'https://maven.brott.dev/'
+    }
+}
+
+dependencies {
+    api "org.firstinspires.ftc:RobotCore:$min_sdk_version"
+
+    api "com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version"
+
+    api "com.acmerobotics.roadrunner:core:$min_rr_version"
+    api "com.acmerobotics.roadrunner:actions:$min_rr_version"
+
+    api "com.acmerobotics.dashboard:dashboard:$min_dash_version"
+}
