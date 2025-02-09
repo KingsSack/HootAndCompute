@@ -30,16 +30,13 @@ class Otter(
      * @property initialX the initial x position
      * @property initialY the initial y position
      * @property initialHeading the initial heading
-     * @property angleOfAttack the angle of attack for the robot
      * @property isPreloaded whether the robot is preloaded
      * @property numSamples the number of samples to collect
      */
     class OtterParams(
         val initialX: Double = 24.0,
         val initialY: Double = 63.0,
-        val initialHeading: Double = 0.0,
-
-        val angleOfAttack: Double = 45.0,
+        val initialHeading: Double = -90.0,
 
         val isPreloaded: Boolean = true,
 
@@ -71,11 +68,10 @@ class Otter(
     }
 
     private fun goToSample(): Action {
-        return SequentialAction(
-            robot.turnTo(Math.toRadians(-90.0)),
-            robot.wait(1.0),
-            robot.strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], 54.0))
-        )
+        return robot.driveActionBuilder(robot.pose)
+            .turn(Math.toRadians(-135.0))
+            .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], 45.0))
+            .build()
     }
 
     private fun collectSample(): Action {
@@ -86,10 +82,7 @@ class Otter(
     }
 
     private fun goToBasket(): Action {
-        return SequentialAction(
-            robot.strafeTo(Vector2d(FieldParams.basketX, FieldParams.basketY)),
-            robot.turnTo(Math.toRadians(params.angleOfAttack))
-        )
+        return robot.strafeToLinearHeading(Vector2d(FieldParams.basketX - 1.0, FieldParams.basketY - 1.0), Math.toRadians(45.0))
     }
 
     private fun goToObservationZone(): Action {

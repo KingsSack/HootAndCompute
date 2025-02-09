@@ -39,12 +39,11 @@ class Elbow(
         @JvmField
         var maxPower: Double = 1.0
         @JvmField
-        var extendedVoltage: Double = 1.36
+        var extendedVoltage: Double = 2.9
         @JvmField
-        var retractedVoltage: Double = 0.3
+        var retractedVoltage: Double = 1.15
     }
 
-    // Actions
     fun extend(): Action {
         return CRServoWithPotentiometer(maxPower, extendedVoltage)
     }

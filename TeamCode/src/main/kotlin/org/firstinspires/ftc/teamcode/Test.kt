@@ -1,15 +1,13 @@
 package org.firstinspires.ftc.teamcode
 
 import com.acmerobotics.dashboard.config.Config
-import org.firstinspires.ftc.teamcode.opmode.autonomous.Otter
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import dev.kingssack.volt.autonomous.AutonomousMode
-import org.firstinspires.ftc.teamcode.opmode.autonomous.Elephant
-import org.firstinspires.ftc.teamcode.opmode.autonomous.Rhinoceros
+import org.firstinspires.ftc.teamcode.opmode.autonomous.*
 
 @Config
-@Autonomous(name = "Otter - Test", group = "Test", preselectTeleOp = "Dolphin")
+@Autonomous(name = "Otter - Test", group = "Test", preselectTeleOp = "Whale")
 class OtterTest : LinearOpMode() {
     companion object Config {
         @JvmField
@@ -75,6 +73,32 @@ class RhinoTest : LinearOpMode() {
         waitForStart()
 
         // Execute
+        if (opModeIsActive())
+            auto.execute()
+    }
+}
+
+@Config
+@Autonomous(name = "Capybara - Test", group = "Test", preselectTeleOp = "Dolphin")
+class CapybaraTest : LinearOpMode() {
+    private lateinit var auto: AutonomousMode
+
+    override fun runOpMode() {
+        auto = Capybara(hardwareMap, telemetry)
+        waitForStart()
+        if (opModeIsActive())
+            auto.execute()
+    }
+}
+
+@Config
+@Autonomous(name = "Human - Test", group = "Test", preselectTeleOp = "Whale")
+class HumanTest : LinearOpMode() {
+    private lateinit var auto: AutonomousMode
+
+    override fun runOpMode() {
+        auto = Human(hardwareMap, telemetry)
+        waitForStart()
         if (opModeIsActive())
             auto.execute()
     }

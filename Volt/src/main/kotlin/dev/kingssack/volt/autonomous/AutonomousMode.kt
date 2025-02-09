@@ -27,7 +27,6 @@ abstract class AutonomousMode(private val telemetry: Telemetry) {
     fun execute() {
         for (action in actionSequence) {
             runAction(action())
-            telemetry.update()
         }
         telemetry.addData("Autonomous", "Completed")
         telemetry.update()
@@ -43,6 +42,7 @@ abstract class AutonomousMode(private val telemetry: Telemetry) {
 
             running = action.run(p)
 
+            robot.update(telemetry)
             dash?.sendTelemetryPacket(p)
         }
     }

@@ -31,18 +31,21 @@ class Tail(
      */
     companion object Params {
         @JvmField
-        var minPosition: Double = 0.41
+        var minPosition: Double = 0.0
         @JvmField
-        var centerPosition: Double = 0.45
+        var centerPosition: Double = 0.47
         @JvmField
-        var maxPosition: Double = 0.51
+        var maxPosition: Double = 0.486
     }
 
     fun extend(): Action {
         return SimpleAttachmentWithServoControl(maxPosition)
     }
-    fun retract(): Action {
+    fun center(): Action {
         return SimpleAttachmentWithServoControl(centerPosition)
+    }
+    fun retract(): Action {
+        return SimpleAttachmentWithServoControl(minPosition)
     }
 
     override fun update(telemetry: Telemetry) {

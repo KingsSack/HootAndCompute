@@ -50,12 +50,13 @@ class Rhinoceros(
     private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 14)
 
     init {
+        actionSequence.add { initialize() }
+        // Deposit the preloaded specimen
         actionSequence.add { goToSubmersible() }
-        actionSequence.add { depositSpecimen() } // Deposit the preloaded specimen
+        actionSequence.add { depositSpecimen() }
         repeat(params.numSamples) {
             // Collect samples
-            actionSequence.add { goToSample() }
-            actionSequence.add { goToObservationZone() }
+            actionSequence.add { getSample() }
             actionSequence.add { retrieveSpecimen() }
             actionSequence.add { goToSubmersible() }
             actionSequence.add { depositSpecimen() }
@@ -64,16 +65,8 @@ class Rhinoceros(
         actionSequence.add { goToObservationZone() }
     }
 
-    private fun goToSample(): Action {
-        return SequentialAction(
-            robot.driveActionBuilder(robot.pose)
-                .strafeToLinearHeading(Vector2d(-37.0, 42.0), Math.toRadians(90.0))
-                .strafeTo(Vector2d(-37.0, FieldParams.samplePositionsY[currentSampleIndex] - 14.0))
-                .strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
-                .waitSeconds(1.0)
-                .build(),
-            InstantAction { currentSampleIndex++ }
-        )
+    private fun initialize(): Action {
+        return robot.tail.retract()
     }
 
     private fun goToSubmersible(): Action {
@@ -87,15 +80,27 @@ class Rhinoceros(
         )
     }
 
-    private fun goToObservationZone(): Action {
-        return robot.strafeTo(Vector2d(FieldParams.observationX, FieldParams.observationY))
+    private fun getSample(): Action {
+        return SequentialAction(
+            robot.driveActionBuilder(robot.pose)
+                .strafeToLinearHeading(Vector2d(-37.0, 42.0), Math.toRadians(90.0))
+                .strafeTo(Vector2d(-37.0, FieldParams.samplePositionsY[currentSampleIndex] - 14.0))
+                .strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
+                .strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], FieldParams.observationY))
+                .build(),
+        )
     }
 
     private fun retrieveSpecimen(): Action {
         return SequentialAction(
-            robot.strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], 46.0)),
+            robot.strafeTo(Vector2d(-FieldParams.samplePositionsX[currentSampleIndex], 44.0)),
             robot.retrieveSpecimen(),
-            robot.strafeToLinearHeading(Vector2d(currentSubmersiblePosition.x, 33.0), Math.toRadians(-90.0)),
+            InstantAction { currentSampleIndex++ },
+            robot.turnTo(Math.toRadians(-90.0))
         )
+    }
+
+    private fun goToObservationZone(): Action {
+        return robot.strafeTo(Vector2d(FieldParams.observationX, FieldParams.observationY))
     }
 }

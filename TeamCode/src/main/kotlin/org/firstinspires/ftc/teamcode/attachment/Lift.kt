@@ -38,17 +38,17 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
      */
     companion object Params {
         @JvmField
-        var maxPosition: Int = 2200
+        var maxPosition: Int = 2222
         @JvmField
-        var upperBasketHeight: Int = 2000
+        var upperBasketHeight: Int = 2100
         @JvmField
         var lowerBasketHeight: Int = 500
         @JvmField
-        var upperSubmersibleBarHeight: Int = 570
+        var upperSubmersibleBarHeight: Int = 750
         @JvmField
         var lowerSubmersibleBarHeight: Int = 300
         @JvmField
-        var minPosition: Int = 10
+        var minPosition: Int = 0
         @JvmField
         var maxPower: Double = 0.6
         @JvmField
@@ -140,7 +140,6 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
         }
     }
 
-    // Actions
     fun raise(): Action {
         return Control(maxPower, maxPosition)
     }
@@ -161,6 +160,7 @@ class Lift(hardwareMap: HardwareMap, rightName: String, leftName: String) : Atta
             it.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             it.mode = DcMotor.RunMode.RUN_USING_ENCODER
         }
+        currentGoal = 0
     }
 
     override fun update(telemetry: Telemetry) {

@@ -33,7 +33,6 @@ class Claw(
         var maxPosition: Double = 1.0
     }
 
-    // Actions
     fun open(): Action {
         return SimpleAttachmentWithServoControl(minPosition)
     }

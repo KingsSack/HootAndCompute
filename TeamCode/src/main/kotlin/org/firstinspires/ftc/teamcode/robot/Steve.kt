@@ -114,11 +114,11 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
         var kA: Double = 0.001
 
         @JvmField
-        var maxWheelVel: Double = 60.0
+        var maxWheelVel: Double = 69.0
         @JvmField
         var minProfileAccel: Double = -30.0
         @JvmField
-        var maxProfileAccel: Double = 60.0
+        var maxProfileAccel: Double = 69.0
 
         @JvmField
         var maxAngVel: Double = Math.PI
@@ -163,7 +163,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     fun extendArm(): Action {
         return ParallelAction(
             shoulder.extend(),
-            elbow.extend()
+            elbow.extend(),
+            wrist.goTo(Wrist.centerPosition)
         )
     }
 
@@ -205,8 +206,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     fun collectSample(): Action {
         return SequentialAction(
             claw.open(),
-            extendArm(),
             wrist.goTo(Wrist.centerPosition),
+            extendArm(),
             claw.close(),
             retractArm()
         )
@@ -226,12 +227,14 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      */
     fun depositSample(basketHeight: Int): Action {
         return SequentialAction(
-            lift.goTo(basketHeight + 50),
-            extendArmTo(0.6),
+            lift.goTo(basketHeight + 72),
             wrist.goTo(Wrist.centerPosition),
+            extendArmTo(3.3),
             claw.open(),
-            retractArm(),
-            lift.drop()
+            ParallelAction(
+                retractArm(),
+                lift.drop()
+            )
         )
     }
 
@@ -261,15 +264,16 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
      */
     fun depositSpecimen(barHeight: Int): Action {
         return SequentialAction(
-            extendArmTo(0.57),
-            lift.goTo(barHeight + 75),
-            extendArmTo(0.53),
-            lift.goTo(barHeight - 220),
+            extendArmTo(1.6),
+            lift.goTo(barHeight),
+            extendArmTo(1.32),
+            lift.goTo(barHeight - 300),
             ParallelAction(
                 claw.open(),
                 lift.drop(),
                 retractArm()
             )
+            // InstantAction { lift.reset() }
         )
     }
 

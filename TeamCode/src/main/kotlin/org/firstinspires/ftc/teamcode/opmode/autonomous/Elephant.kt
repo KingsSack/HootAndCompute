@@ -65,9 +65,11 @@ class Elephant(
 
     private fun goToSample(): Action {
         return SequentialAction(
-            robot.strafeTo(Vector2d(37.0, 46.0)),
-            robot.strafeTo(Vector2d(37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
-            robot.strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0)),
+            robot.driveActionBuilder(robot.pose)
+                .strafeTo(Vector2d(37.0, 46.0))
+                .strafeTo(Vector2d(37.0, FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
+                .strafeTo(Vector2d(FieldParams.samplePositionsX[currentSampleIndex], FieldParams.samplePositionsY[currentSampleIndex] - 12.0))
+                .build(),
             InstantAction { currentSampleIndex++ }
         )
     }

@@ -59,6 +59,8 @@ class Whale(
     private val lowerLift = Interaction({ isButtonTapped("left_bumper2") }, { robot.lift.drop() })
     private val controlLift = Interaction({ true },
         { InstantAction { robot.lift.currentGoal += -getAnalogValue("left_stick_y2").toInt() * params.liftMultiplier } })
+    /* private val resetLift = Interaction({ isButtonTapped("left_stick_button") },
+        { InstantAction { robot.lift.reset() } }) */
 
     private val openClaw = Interaction({ isButtonTapped("a2") }, { robot.claw.open() })
     private val closeClaw = Interaction({ isButtonTapped("b2") }, { robot.claw.close() })
@@ -83,6 +85,7 @@ class Whale(
             raiseLift,
             lowerLift,
             controlLift,
+            // resetLift,
             openClaw,
             closeClaw,
             centerWrist,

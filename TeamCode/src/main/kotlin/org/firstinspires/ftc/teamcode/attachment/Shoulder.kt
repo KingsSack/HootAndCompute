@@ -41,11 +41,11 @@ class Shoulder(
         @JvmField
         var minPosition: Int = 0
         @JvmField
-        var extendPower: Double = 0.25
+        var extendPower: Double = 0.3
         @JvmField
-        var retractPower: Double = 0.45
+        var retractPower: Double = 0.64
         @JvmField
-        var idlePower: Double = 1.0
+        var idlePower: Double = 0.0
     }
 
     init {
@@ -59,9 +59,6 @@ class Shoulder(
     }
     fun retract(): Action {
         return SimpleAttachmentWithDcMotorControl(retractPower, minPosition)
-    }
-    fun goTo(position: Int): Action {
-        return goTo(extendPower, position)
     }
 
     override fun update(telemetry: Telemetry) {

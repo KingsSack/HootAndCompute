@@ -54,10 +54,11 @@ class Dolphin(
         { robot.turnTo(Math.toRadians(-90.0)) })
     private val quickDepositSpecimen = Interaction({ isButtonTapped("dpad_right1") },
         { robot.depositSpecimen(Lift.upperSubmersibleBarHeight) })
-    private val quickRetrieveSpecimen = Interaction({ isButtonTapped("x1") }, { robot.retrieveSpecimen() })
 
     private val controlLift = Interaction({ true },
         { InstantAction { robot.lift.currentGoal += -getAnalogValue("left_stick_y2").toInt() * params.liftMultiplier } })
+    /* private val resetLift = Interaction({ isButtonTapped("left_stick_button") },
+        { InstantAction { robot.lift.reset() } }) */
 
     private val openClaw = Interaction({ isButtonTapped("a2") }, { robot.claw.open() })
     private val closeClaw = Interaction({ isButtonTapped("b2") }, { robot.claw.close() })
@@ -77,8 +78,8 @@ class Dolphin(
 
     private val extendArm = Interaction({ isButtonTapped("dpad_up2") }, { robot.extendArm() })
 
-    private val extendTail = Interaction({ isButtonTapped("left_bumper2") }, { robot.tail.retract() })
-    private val retractTail = Interaction({ isButtonTapped("right_bumper2") }, { robot.tail.extend() })
+    private val extendTail = ToggleInteraction({ isButtonTapped("left_bumper2") }, { robot.tail.extend() }, { robot.tail.center() })
+    private val retractTail = ToggleInteraction({ isButtonTapped("right_bumper2") }, { robot.tail.retract() }, { robot.tail.center() })
 
     private val toggleIntake = ToggleInteraction({ isButtonTapped("x2") },
         { robot.intake.enableIntake() }, { robot.intake.reverseIntake() })
@@ -89,8 +90,9 @@ class Dolphin(
             quickTurnTowardBaskets,
             quickTurnTowardSubmersible,
             quickDepositSpecimen,
-            quickRetrieveSpecimen,
+            // quickRetrieveSpecimen,
             controlLift,
+            // resetLift,
             openClaw,
             closeClaw,
             centerWrist,

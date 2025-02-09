@@ -23,18 +23,20 @@ abstract class SimpleManualModeWithSpeedModes(
      */
     class SimpleManualModeWithSpeedModesParams (
         val minPower: Double = 0.05,
-        val turnScale: Double = 0.8,
+        val turnScale: Double = 0.9,
 
         val turbo: Double = 1.0,
         val normal: Double = 0.5,
         val precise: Double = 0.2,
+        val slow: Double = 0.1,
     )
 
     // Speed modes
     private val speedModes = mapOf(
         "TURBO" to params.turbo,
         "NORMAL" to params.normal,
-        "PRECISE" to params.precise
+        "PRECISE" to params.precise,
+        "SLOW" to params.slow
     )
     private var currentSpeedMode = "NORMAL"
 
@@ -48,6 +50,9 @@ abstract class SimpleManualModeWithSpeedModes(
             }
             isButtonTapped("a1") -> {
                 currentSpeedMode = "PRECISE"
+            }
+            isButtonTapped("x1") -> {
+                currentSpeedMode = "SLOW"
             }
         }
     }

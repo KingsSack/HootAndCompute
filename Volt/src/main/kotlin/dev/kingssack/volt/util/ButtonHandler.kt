@@ -32,8 +32,8 @@ class ButtonHandler(private val doubleTapThreshold: Double = 300.0) {
         }
     }
 
-    fun tapped(): Boolean {
-        if (tapCount == 1 && !pressed) {
+    fun tapped(maxTimeMilliseconds: Double = 300.0): Boolean {
+        if (tapCount == 1 && !pressed && runtime.milliseconds() - lastPressTime <= maxTimeMilliseconds) {
             tapCount = 0 // Reset tap count after detecting a tap
             return true
         }
