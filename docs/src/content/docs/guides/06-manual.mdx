@@ -75,7 +75,7 @@ class ExampleOpMode : OpMode() {
 
     override fun init() {
         // Initialize
-        manual = ExampleManual(hardwareMap, telemetry, gamepad1, gamepad2)
+        manual = ExampleManual(hardwareMap, gamepad1, gamepad2, telemetry)
     }
 
     override fun loop() {
@@ -113,7 +113,7 @@ class ExampleOpMode : OpMode() {
     private lateinit var manual: ManualMode
 
     override fun init() {
-        manual = ExampleManual(hardwareMap, telemetry, gamepad1, gamepad2)
+        manual = ExampleManual(hardwareMap, gamepad1, gamepad2, telemetry)
     }
 
     override fun loop() {

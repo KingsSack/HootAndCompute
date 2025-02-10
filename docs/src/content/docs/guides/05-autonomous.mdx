@@ -65,7 +65,7 @@ Initialize it in the `runOpMode` function and execute it.
 
 <TabItem label="Kotlin">
 
-```kotlin {3-4} {7-15}
+```kotlin {3-4} {7-14}
 @Autonomous(name = "Example", group = "Examples")
 class ExampleOpMode : LinearOpMode() {
     // Autonomous script
@@ -79,8 +79,7 @@ class ExampleOpMode : LinearOpMode() {
         waitForStart()
 
         // Execute
-        if (opModeIsActive())
-            auto.execute()
+        if (opModeIsActive()) auto.execute()
     }
 }
 ```
@@ -124,8 +123,7 @@ class ExampleOpMode : LinearOpMode() {
   
         waitForStart()
   
-        if (opModeIsActive())
-            auto.execute()
+        if (opModeIsActive()) auto.execute()
     }
 }
 ```

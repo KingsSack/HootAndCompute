@@ -25,8 +25,17 @@ The [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class co
 
 <TabItem label="Kotlin">
 
-```kotlin /hardwareMap.*Telemetry/ "ManualMode(telemetry)"
-class ExampleManual(hardwareMap: HardwareMap, telemetry: Telemetry) : ManualMode(telemetry) {
+```kotlin {2-9}"
+class ExampleManual(
+    hardwareMap: HardwareMap,
+    gamepad1: Gamepad,
+    gamepad2: Gamepad,
+    telemetry: Telemetry
+) : ManualMode(
+    gamepad1,
+    gamepad2,
+    telemetry
+) {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
         Math.toRadians(0.0) // Make sure to use radians!
@@ -50,68 +59,34 @@ class ExampleManual(hardwareMap: HardwareMap, telemetry: Telemetry) : ManualMode
 
 ### Add functionality
 
-#### Create a function
+#### Create an interaction
+
+An [Interaction](../../api/Volt/dev.kingssack.volt.manual/-manual-mode/-interaction) takes a condition and an action.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {4-5} {16-18}
+```kotlin {16} {19}
 class ExampleManual(
     hardwareMap: HardwareMap,
-    telemetry: Telemetry,
-    private val gamepad1: Gamepad,
-    private val gamepad2: Gamepad
-) : ManualMode(telemetry) {
+    gamepad1: Gamepad,
+    gamepad2: Gamepad,
+    telemetry: Telemetry
+) : ManualMode(
+    gamepad1,
+    gamepad2,
+    telemetry
+) {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
         Math.toRadians(0.0)
     ))
 
-    init {
-        // Initialize
-    }
-
-    fun doSomething(gamepad: Gamepad) {
-        if (gamepad.a) runningActions.add(robot.turnTo(90.0))
-    }
-}
-```
-
-</TabItem>
-
-<TabItem label="Java">
-
-(Coming Soon)
-
-</TabItem>
-
-</Tabs>
-
-#### Call the function
-
-<Tabs>
-
-<TabItem label="Kotlin">
-
-```kotlin {13}
-class ExampleManual(
-    hardwareMap: HardwareMap,
-    telemetry: Telemetry,
-    private val gamepad1: Gamepad,
-    private val gamepad2: Gamepad
-) : ManualMode(telemetry) {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
+    private val doSomething = Interaction({ isButtonTapped("a1") }, { robot.turnTo(90.0) })
 
     init {
-        doSomething(gamepad1)
-    }
-
-    fun doSomething(gamepad: Gamepad) {
-        if (gamepad.a) runningActions.add(robot.turnTo(90.0))
+        interactions.add(doSomething)
     }
 }
 ```
@@ -135,7 +110,6 @@ class ExampleManual(
 ```kotlin
 package org.firstinspires.ftc.teamcode.opmodes.manual
 
-import com.acmerobotics.roadrunner.*
 import dev.kingssack.volt.autonomous.ManualMode
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -144,21 +118,23 @@ import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 
 class ExampleManual(
     hardwareMap: HardwareMap,
-    telemetry: Telemetry,
-    private val gamepad1: Gamepad,
-    private val gamepad2: Gamepad
-) : ManualMode(telemetry) {
+    gamepad1: Gamepad,
+    gamepad2: Gamepad,
+    telemetry: Telemetry
+) : ManualMode(
+    gamepad1,
+    gamepad2,
+    telemetry
+) {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
         Math.toRadians(0.0)
     ))
 
-    init {
-        doSomething(gamepad1)
-    }
+    private val doSomething = Interaction({ isButtonTapped("a1") }, { robot.turnTo(90.0) })
 
-    fun doSomething(gamepad: Gamepad) {
-        if (gamepad.a) runningActions.add(robot.turnTo(90.0))
+    init {
+        interactions.add(doSomething)
     }
 }
 ```
