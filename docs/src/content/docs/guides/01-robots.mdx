@@ -10,10 +10,11 @@ Rapidly develop and test new robots with the [Volt](../../api/Volt) library.
 ## What is a [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot)?
 
 A [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) is a class
-that contains all [Attachments](kdoc/volt/dev.kingssack.volt.attachment/-attachment) and some [Actions](kdoc/volt/dev.kingssack.volt.action/-action)
+that contains all [Attachments](kdoc/volt/dev.kingssack.volt.attachment/-attachment),
+sensors, and shared [Actions](kdoc/volt/dev.kingssack.volt.action/-action)
 that make up a robot.
 
-You should create a new [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) class for each physical robot you have built.
+You should create a new [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) class for each physical robot you've built.
 
 ## Creating a [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot)
 
@@ -88,7 +89,7 @@ class Example : Robot() {
 
 ### Add Attachments
 
-Define the attachments that your robot will use. For example, add a SimpleAttachmentWithDcMotor to your robot.
+Define the [Attachments](../02-attachments) that your robot will use. For example, add a [SimpleAttachmentWithDcMotor](../../simple-attachments/simple-attachment-with-dc-motor) to your [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot).
 
 <Tabs>
 
@@ -131,9 +132,9 @@ class Example : Robot() {
 
 </Tabs>
 
-### Add Actions
+### Add [Actions](../../reference/actions)
 
-Define actions for your attachments and sensors. For example, add a function to move a motor to a specific position.
+Define [Actions](../../reference/actions) for your [Attachments](../02-attachments) and sensors. For example, add a function to move a motor to a specific position.
 
 <Tabs>
 
