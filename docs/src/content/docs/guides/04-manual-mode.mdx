@@ -21,6 +21,14 @@ The [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class co
 2. A list of actions
 3. A function called `tick()` that is called every tick
 
+The [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class also contains methods for:
+
+1. `isButtonPressed(button: String)`: Returns true if the button is pressed
+2. `isButtonTapped(button: String)`: Returns true if the button was released
+3. `isButtonDoubleTapped(button: String)`: Returns true if the button was double tapped
+4. `isButtonHeld(button: String, milliseconds: Double)`: Returns true if the button was held for the specified time
+5. `getAnalogValue(name: String)`: Returns the value of an analog input
+
 <Tabs>
 
 <TabItem label="Kotlin">
