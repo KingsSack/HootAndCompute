@@ -2,18 +2,8 @@ package dev.kingssack.volt.web
 
 import android.util.Log
 import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import dev.kingssack.volt.opmode.CustomOpModes
-import dev.kingssack.volt.opmode.autonomous.AutonomousMode
-import dev.kingssack.volt.opmode.manual.ManualMode
-import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.robot.RobotWithMecanumDrive
 import fi.iki.elonen.NanoHTTPD
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler
-import java.io.File
-import java.io.IOException
-import java.lang.reflect.Method
 
 /**
  * Handler for the mode creator API endpoints.
