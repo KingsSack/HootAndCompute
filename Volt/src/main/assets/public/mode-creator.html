@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volt Mode Creator</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script>
+        function modeCreator() {
+            return {
+                activeTab: 'autonomous',
+                robotTypes: ['RobotWithMecanumDrive', 'CustomRobot'],
+                availableActions: [],
+                
+                autonomousMode: {
+                    name: '',
+                    robotType: '',
+                    sequence: []
+                },
+                
+                manualMode: {
+                    name: '',
+                    robotType: '',
+                    mappings: []
+                },
+                
+                savedAutonomousModes: [],
+                savedManualModes: [],
+                
+                get canSaveAutonomousMode() {
+                    return this.autonomousMode.name && 
+                           this.autonomousMode.robotType && 
+                           this.autonomousMode.sequence.length > 0;
+                },
+                
+                get canSaveManualMode() {
+                    return this.manualMode.name && 
+                           this.manualMode.robotType && 
+                           this.manualMode.mappings.length > 0;
+                },
+                
+                loadAvailableActions() {
+                    // In a real implementation, this would fetch from the server
+                    this.availableActions = [
+                        {
+                            id: 'move_forward',
+                            name: 'Move Forward',
+                            description: 'Move the robot forward',
+                            parameters: [
+                                { name: 'distance', type: 'number', value: 10 }
+                            ]
+                        },
+                        {
+                            id: 'turn',
+                            name: 'Turn',
+                            description: 'Turn the robot',
+                            parameters: [
+                                { name: 'angle', type: 'number', value: 90 }
+                            ]
+                        },
+                        {
+                            id: 'wait',
+                            name: 'Wait',
+                            description: 'Wait for a specified time',
+                            parameters: [
+                                { name: 'seconds', type: 'number', value: 1 }
+                            ]
+                        }
+                    ];
+                },
+                
+                addActionToSequence(action) {
+                    // Clone the action to avoid reference issues
+                    const actionCopy = JSON.parse(JSON.stringify(action));
+                    this.autonomousMode.sequence.push(actionCopy);
+                },
+                
+                removeAction(index) {
+                    this.autonomousMode.sequence.splice(index, 1);
+                },
+                
+                moveActionUp(index) {
+                    if (index > 0) {
+                        const temp = this.autonomousMode.sequence[index];
+                        this.autonomousMode.sequence[index] = this.autonomousMode.sequence[index - 1];
+                        this.autonomousMode.sequence[index - 1] = temp;
+                    }
+                },
+                
+                moveActionDown(index) {
+                    if (index < this.autonomousMode.sequence.length - 1) {
+                        const temp = this.autonomousMode.sequence[index];
+                        this.autonomousMode.sequence[index] = this.autonomousMode.sequence[index + 1];
+                        this.autonomousMode.sequence[index + 1] = temp;
+                    }
+                },
+                
+                clearAutonomousMode() {
+                    this.autonomousMode = {
+                        name: '',
+                        robotType: '',
+                        sequence: []
+                    };
+                },
+                
+                saveAutonomousMode() {
+                    // In a real implementation, this would send to the server
+                    const modeCopy = JSON.parse(JSON.stringify(this.autonomousMode));
+                    this.savedAutonomousModes.push(modeCopy);
+                    this.clearAutonomousMode();
+                    alert('Autonomous mode saved!');
+                },
+                
+                loadAutonomousMode(mode) {
+                    this.autonomousMode = JSON.parse(JSON.stringify(mode));
+                    this.activeTab = 'autonomous';
+                },
+                
+                deleteAutonomousMode(index) {
+                    this.savedAutonomousModes.splice(index, 1);
+                },
+                
+                addMapping(action, controlType, control) {
+                    this.manualMode.mappings.push({
+                        action: JSON.parse(JSON.stringify(action)),
+                        controlType,
+                        control
+                    });
+                },
+                
+                removeMapping(index) {
+                    this.manualMode.mappings.splice(index, 1);
+                },
+                
+                clearManualMode() {
+                    this.manualMode = {
+                        name: '',
+                        robotType: '',
+                        mappings: []
+                    };
+                },
+                
+                saveManualMode() {
+                    // In a real implementation, this would send to the server
+                    const modeCopy = JSON.parse(JSON.stringify(this.manualMode));
+                    this.savedManualModes.push(modeCopy);
+                    this.clearManualMode();
+                    alert('Manual mode saved!');
+                },
+                
+                loadManualMode(mode) {
+                    this.manualMode = JSON.parse(JSON.stringify(mode));
+                    this.activeTab = 'manual';
+                },
+                
+                deleteManualMode(index) {
+                    this.savedManualModes.splice(index, 1);
+                },
+                
+                init() {
+                    this.loadAvailableActions();
+                }
+            };
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen" x-data="modeCreator()">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-blue-600">Volt Mode Creator</h1>
+            <p class="text-gray-600">Create autonomous and manual modes for your robot</p>
+        </header>
+
+        <nav class="mb-8">
+            <ul class="flex border-b">
+                <li class="mr-1">
+                    <button 
+                        @click="activeTab = 'autonomous'" 
+                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'autonomous', 'text-blue-500 hover:text-blue-800': activeTab !== 'autonomous' }"
+                        class="py-2 px-4 font-semibold">
+                        Autonomous Mode
+                    </button>
+                </li>
+                <li class="mr-1">
+                    <button 
+                        @click="activeTab = 'manual'" 
+                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'manual', 'text-blue-500 hover:text-blue-800': activeTab !== 'manual' }"
+                        class="py-2 px-4 font-semibold">
+                        Manual Mode
+                    </button>
+                </li>
+                <li class="mr-1">
+                    <button 
+                        @click="activeTab = 'saved'" 
+                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'saved', 'text-blue-500 hover:text-blue-800': activeTab !== 'saved' }"
+                        class="py-2 px-4 font-semibold">
+                        Saved Modes
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="bg-white p-6 rounded-lg shadow-md">
+            <!-- Content will be added here in future updates -->
+            <p class="text-center text-gray-500">Mode creator interface is under development.</p>
+        </main>
+    </div>
+</body>
+</html>

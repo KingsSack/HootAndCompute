@@ -22,10 +22,7 @@ open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val nam
     }
 
     /**
-     * An action to control the cr servo.
-     *
-     * @param power the power to set the cr servo to
-     * @param seconds the amount of time to run the cr servo
+     * An action that controls the cr servo by powering it for specified number of [seconds] and at a specified [power].
      */
     inner class SimpleAttachmentWithCRServoControl(
         private val power: Double,
@@ -50,10 +47,7 @@ open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val nam
     }
 
     /**
-     * Move the cr servo for a certain amount of time.
-     *
-     * @param power the power to set the cr servo to
-     * @param seconds the amount of time to run the cr servo
+     * Move for a specified amount of [seconds] and a specified [power].
      *
      * @return an action to move the cr servo for a certain amount of time
      */
@@ -62,11 +56,10 @@ open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val nam
     }
 
     /**
-     * Set the power of the cr servo.
-     *
-     * @param power the power to set the cr servo to
+     * Set the [power].
      */
     fun setPower(power: Double) {
+        require(power in -1.0..1.0) { "Power must be between -1.0 and 1.0" }
         crServo.power = power
     }
 

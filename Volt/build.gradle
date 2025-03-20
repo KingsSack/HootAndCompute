@@ -1,8 +1,9 @@
 buildscript {
-    ext.min_sdk_version = "10.1.1"
-    ext.min_rr_ftc_version = "0.1.15"
+    ext.min_sdk_version = "10.2.0"
+    ext.min_rr_ftc_version = "0.1.21"
     ext.min_rr_version = "1.0.1"
     ext.min_dash_version = "0.4.16"
+    ext.min_pp_version = "1.0.7"
 }
 
 apply plugin: 'com.android.library'
@@ -10,7 +11,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.dokka'
 
 group = 'dev.kingssack'
-version = '0.1.1'
+version = '0.2.0'
 
 android {
     defaultConfig {
@@ -45,10 +46,14 @@ repositories {
     maven {
         url = 'https://maven.brott.dev/'
     }
+    maven {
+        url = 'https://maven.pedropathing.com/'
+    }
 }
 
 dependencies {
     api "org.firstinspires.ftc:RobotCore:$min_sdk_version"
+    api "org.firstinspires.ftc:Hardware:$min_sdk_version"
 
     api "com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version"
 
@@ -56,4 +61,12 @@ dependencies {
     api "com.acmerobotics.roadrunner:actions:$min_rr_version"
 
     api "com.acmerobotics.dashboard:dashboard:$min_dash_version"
+
+    api "com.pedropathing:pedro:$min_pp_version"
+
+    implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
+        exclude module: "nanohttpd"
+    }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 }

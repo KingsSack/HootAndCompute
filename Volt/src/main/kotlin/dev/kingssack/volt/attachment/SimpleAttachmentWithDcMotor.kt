@@ -16,7 +16,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param maxPosition the maximum position of the motor
  * @param minPosition the minimum position of the motor
  */
-open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val name: String, private val idlePower: Double, private val maxPosition: Int, private val minPosition: Int = 0) : Attachment() {
+open class SimpleAttachmentWithDcMotor(
+    hardwareMap: HardwareMap,
+    private val name: String,
+    private val idlePower: Double,
+    private val maxPosition: Int,
+    private val minPosition: Int = 0
+) : Attachment() {
     // Initialize motor
     protected val motor: DcMotor = hardwareMap.dcMotor[name]
 
@@ -41,10 +47,7 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
         }
 
     /**
-     * An action that extends or retracts the motor to a target position.
-     *
-     * @param power for the power of the motor
-     * @param targetPosition for the target position of the motor
+     * An action that moves the motor to a [targetPosition] at a specified [power].
      */
     inner class SimpleAttachmentWithDcMotorControl(
         private val power: Double,
@@ -90,10 +93,7 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
     }
 
     /**
-     * Move the motor.
-     *
-     * @param power the power to set the motor to
-     * @param position the target position of the motor
+     * Move to a [position] at a specified [power].
      *
      * @return an action to move the motor to a position
      */

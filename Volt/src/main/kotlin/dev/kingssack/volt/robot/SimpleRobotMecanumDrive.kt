@@ -4,10 +4,6 @@ import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.*
 import com.acmerobotics.roadrunner.ftc.*
-import com.lasteditguild.volt.messages.DriveCommandMessage
-import com.lasteditguild.volt.messages.MecanumCommandMessage
-import com.lasteditguild.volt.messages.MecanumLocalizerInputsMessage
-import com.lasteditguild.volt.messages.PoseMessage
 import dev.kingssack.volt.util.Drawing
 import dev.kingssack.volt.util.Localizer
 import com.qualcomm.hardware.lynx.LynxModule
@@ -15,6 +11,10 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
+import dev.kingssack.volt.messages.DriveCommandMessage
+import dev.kingssack.volt.messages.MecanumCommandMessage
+import dev.kingssack.volt.messages.MecanumLocalizerInputsMessage
+import dev.kingssack.volt.messages.PoseMessage
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import java.util.*
@@ -27,10 +27,14 @@ import kotlin.math.max
  * @param hardwareMap the hardware map
  * @param pose the initial pose of the robot
  */
-open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d, private val params: DriveParams = DriveParams()) : Robot() {
+open class SimpleRobotWithMecanumDrive(
+    hardwareMap: HardwareMap,
+    var pose: Pose2d,
+    private val params: DriveParams = DriveParams()
+) : Robot() {
     /**
      * Parameters for the robot's mecanum drive.
-     * 
+     *
      * @property logoFacingDirection the direction the Control Hub's logo is facing
      * @property usbFacingDirection the direction the Control Hub's USB port is facing
      * @property inPerTick the inches per tick
@@ -496,9 +500,7 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
     }
 
     /**
-     * Strafe to a target vector.
-     *
-     * @param target the target vector
+     * Strafe to a [target] vector.
      * @return the action
      */
     fun strafeTo(target: Vector2d): Action {
@@ -506,10 +508,7 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
     }
 
     /**
-     * Strafe to a target vector with a linear heading.
-     *
-     * @param target the target vector
-     * @param heading the linear heading
+     * Strafe to a [target] vector with a linear [heading].
      * @return the action
      */
     fun strafeToLinearHeading(target: Vector2d, heading: Double): Action {
@@ -517,9 +516,7 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
     }
 
     /**
-     * Turn to a target angle.
-     *
-     * @param target the target angle in radians
+     * Turn to a [target] angle in radians.
      * @return the action
      */
     fun turnTo(target: Double): Action {
@@ -527,9 +524,7 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
     }
 
     /**
-     * Turn a certain number of radians.
-     *
-     * @param radians the number of radians to turn
+     * Turn a certain number of [radians].
      * @return the action
      */
     fun turn(radians: Double): Action {
@@ -537,9 +532,7 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
     }
 
     /**
-     * Wait for a certain number of seconds.
-     *
-     * @param seconds the number of seconds to wait
+     * Wait for a certain number of [seconds].
      * @return the action
      */
     fun wait(seconds: Double): Action {

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volt Web Server</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100 min-h-screen" x-data="{ activeTab: 'dashboard' }">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-blue-600">Volt Web Server</h1>
+            <p class="text-gray-600">A web interface for your FTC robot</p>
+        </header>
+
+        <nav class="mb-8">
+            <ul class="flex border-b">
+                <li class="mr-1">
+                    <button 
+                        @click="activeTab = 'dashboard'" 
+                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'dashboard', 'text-blue-500 hover:text-blue-800': activeTab !== 'dashboard' }"
+                        class="py-2 px-4 font-semibold">
+                        Dashboard
+                    </button>
+                </li>
+                <li class="mr-1">
+                    <button 
+                        @click="activeTab = 'controls'" 
+                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'controls', 'text-blue-500 hover:text-blue-800': activeTab !== 'controls' }"
+                        class="py-2 px-4 font-semibold">
+                        Controls
+                    </button>
+                </li>
+                <li class="mr-1">
+                    <button 
+                        @click="activeTab = 'logs'" 
+                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'logs', 'text-blue-500 hover:text-blue-800': activeTab !== 'logs' }"
+                        class="py-2 px-4 font-semibold">
+                        Logs
+                    </button>
+                </li>
+                <li class="mr-1">
+                    <button 
+                        @click="activeTab = 'about'" 
+                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'about', 'text-blue-500 hover:text-blue-800': activeTab !== 'about' }"
+                        class="py-2 px-4 font-semibold">
+                        About
+                    </button>
+                </li>
+                <li class="mr-1">
+                    <a href="/volt/mode-creator.html" class="py-2 px-4 font-semibold text-blue-500 hover:text-blue-800">
+                        Mode Creator
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="bg-white p-6 rounded-lg shadow-md">
+            <!-- Dashboard Tab -->
+            <div x-show="activeTab === 'dashboard'" class="space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800">Robot Status</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h3 class="text-lg font-semibold text-blue-800">Battery</h3>
+                        <p class="text-3xl font-bold text-blue-600">12.8V</p>
+                        <p class="text-sm text-blue-500">85% Remaining</p>
+                    </div>
+
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h3 class="text-lg font-semibold text-green-800">Motors</h3>
+                        <p class="text-3xl font-bold text-green-600">Online</p>
+                        <p class="text-sm text-green-500">All systems operational</p>
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <h3 class="text-lg font-semibold text-purple-800">Sensors</h3>
+                        <p class="text-3xl font-bold text-purple-600">Calibrated</p>
+                        <p class="text-sm text-purple-500">4 active sensors</p>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h3>
+                    <ul class="space-y-2">
+                        <li class="p-2 bg-gray-50 rounded">
+                            <span class="text-gray-500 text-sm">10:23 AM</span>
+                            <span class="ml-2">Autonomous mode completed successfully</span>
+                        </li>
+                        <li class="p-2 bg-gray-50 rounded">
+                            <span class="text-gray-500 text-sm">10:21 AM</span>
+                            <span class="ml-2">Robot initialized and ready</span>
+                        </li>
+                        <li class="p-2 bg-gray-50 rounded">
+                            <span class="text-gray-500 text-sm">10:20 AM</span>
+                            <span class="ml-2">Connection established</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Controls Tab -->
+            <div x-show="activeTab === 'controls'" class="space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800">Robot Controls</h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
+                        Forward
+                    </button>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
+                        Backward
+                    </button>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
+                        Left
+                    </button>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
+                        Right
+                    </button>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Arm Control</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Arm Height</label>
+                            <input type="range" min="0" max="100" value="50" class="w-full">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Gripper</label>
+                            <div class="flex space-x-4">
+                                <button class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded font-semibold">
+                                    Open
+                                </button>
+                                <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded font-semibold">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div x-show="activeTab === 'logs'" class="space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800">System Logs</h2>
+
+                <div class="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto">
+                    <div>[10:23:45] INFO: Autonomous mode completed</div>
+                    <div>[10:23:40] DEBUG: Moving to position (12, 34)</div>
+                    <div>[10:23:35] INFO: Object detected at distance: 25cm</div>
+                    <div>[10:23:30] DEBUG: Sensor readings: [0.2, 0.3, 0.1, 0.5]</div>
+                    <div>[10:23:25] INFO: Autonomous mode started</div>
+                    <div>[10:23:20] DEBUG: Calibrating gyro sensor</div>
+                    <div>[10:23:15] INFO: Robot initialized</div>
+                    <div>[10:23:10] DEBUG: Loading configuration</div>
+                    <div>[10:23:05] INFO: System startup</div>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded font-semibold">
+                        Clear Logs
+                    </button>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-semibold">
+                        Download Logs
+                    </button>
+                </div>
+            </div>
+
+            <!-- About Tab -->
+            <div x-show="activeTab === 'about'" class="space-y-6">
+                <h2 class="text-2xl font-bold text-gray-800">About Volt Web Server</h2>
+
+                <p class="text-gray-600">
+                    Volt Web Server is a simple web interface for your FTC robot. It allows you to monitor your robot's status,
+                    control it remotely, and view system logs.
+                </p>
+
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-semibold text-blue-800">Version Information</h3>
+                    <ul class="mt-2 space-y-1">
+                        <li><span class="font-semibold">Volt:</span> v0.2.0</li>
+                        <li><span class="font-semibold">Web Server:</span> v1.0.0</li>
+                        <li><span class="font-semibold">Robot Controller:</span> v8.2</li>
+                    </ul>
+                </div>
+
+                <p class="text-gray-600">
+                    For more information, visit the <a href="https://github.com/your-repo/volt" class="text-blue-600 hover:underline">GitHub repository</a>.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <footer class="mt-8 text-center text-gray-500 text-sm">
+        <p>© 2023 Volt Web Server. All rights reserved.</p>
+    </footer>
+</body>
+</html>

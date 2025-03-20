@@ -1,4 +1,4 @@
-package dev.kingssack.volt.manual
+package dev.kingssack.volt.opmode.manual
 
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d

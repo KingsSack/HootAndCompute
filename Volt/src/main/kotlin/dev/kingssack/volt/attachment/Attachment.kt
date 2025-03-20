@@ -59,7 +59,7 @@ abstract class Attachment {
     /**
      * Updates the attachment.
      *
-     * @param telemetry For logging
+     * @param telemetry for logging
      */
     abstract fun update(telemetry: Telemetry)
 

@@ -1,4 +1,4 @@
-package dev.kingssack.volt.manual
+package dev.kingssack.volt.opmode.manual
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
