@@ -4,8 +4,6 @@ import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.*
 import com.acmerobotics.roadrunner.ftc.*
-import dev.kingssack.volt.util.Drawing
-import dev.kingssack.volt.util.Localizer
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
@@ -15,11 +13,14 @@ import dev.kingssack.volt.messages.DriveCommandMessage
 import dev.kingssack.volt.messages.MecanumCommandMessage
 import dev.kingssack.volt.messages.MecanumLocalizerInputsMessage
 import dev.kingssack.volt.messages.PoseMessage
+import dev.kingssack.volt.util.Drawing
+import dev.kingssack.volt.util.Localizer
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
+
 
 /**
  * Represents a robot with attachments and a mecanum drivetrain.
@@ -29,7 +30,7 @@ import kotlin.math.max
  */
 open class SimpleRobotWithMecanumDrive(
     hardwareMap: HardwareMap,
-    var pose: Pose2d,
+    pose: Pose2d,
     private val params: DriveParams = DriveParams()
 ) : Robot() {
     /**
@@ -106,13 +107,13 @@ open class SimpleRobotWithMecanumDrive(
 
     val voltageSensor: VoltageSensor = hardwareMap.voltageSensor.iterator().next()
 
-    val lazyImu = LazyImu(
-        hardwareMap, "imu", RevHubOrientationOnRobot(
-            params.logoFacingDirection, params.usbFacingDirection
-        )
+    val lazyImu = LazyHardwareMapImu(
+        hardwareMap,
+        "imu",
+        RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection)
     )
 
-    val localizer = DriveLocalizer()
+    val localizer = DriveLocalizer(pose)
 
     private val poseHistory = LinkedList<Pose2d>()
 
@@ -121,7 +122,7 @@ open class SimpleRobotWithMecanumDrive(
     private val driveCommandWriter = DownsampledWriter("DRIVE_COMMAND", 50000000)
     private val mecanumCommandWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
 
-    inner class DriveLocalizer : Localizer {
+    inner class DriveLocalizer(override var pose: Pose2d) : Localizer {
         val leftFrontEncoder: Encoder = OverflowEncoder(RawEncoder(leftFront))
         val leftBackEncoder: Encoder = OverflowEncoder(RawEncoder(leftBack))
         val rightBackEncoder: Encoder = OverflowEncoder(RawEncoder(rightBack))
@@ -143,7 +144,7 @@ open class SimpleRobotWithMecanumDrive(
             rightFrontEncoder.direction = DcMotorSimple.Direction.REVERSE
         }
 
-        override fun update(): Twist2dDual<Time> {
+        override fun update(): PoseVelocity2d {
             val leftFrontPosVel = leftFrontEncoder.getPositionAndVelocity()
             val leftBackPosVel = leftBackEncoder.getPositionAndVelocity()
             val rightBackPosVel = rightBackEncoder.getPositionAndVelocity()
@@ -170,37 +171,34 @@ open class SimpleRobotWithMecanumDrive(
 
                 lastHeading = heading
 
-                return Twist2dDual(
-                    Vector2dDual.constant(Vector2d(0.0, 0.0), 2),
-                    DualNum.constant(0.0, 2)
-                )
+                return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
             }
 
             val headingDelta = heading.minus(lastHeading!!)
-            val twist = kinematics.forward(
+            val twist: Twist2dDual<Time> = kinematics.forward(
                 MecanumKinematics.WheelIncrements(
                     DualNum<Time>(
                         doubleArrayOf(
                             (leftFrontPosVel.position - lastLeftFrontPos).toDouble(),
-                            leftFrontPosVel.velocity.toDouble(),
+                            leftFrontPosVel.velocity!!.toDouble(),
                         )
                     ).times(params.inPerTick),
                     DualNum<Time>(
                         doubleArrayOf(
                             (leftBackPosVel.position - lastLeftBackPos).toDouble(),
-                            leftBackPosVel.velocity.toDouble(),
+                            leftBackPosVel.velocity!!.toDouble(),
                         )
                     ).times(params.inPerTick),
                     DualNum<Time>(
                         doubleArrayOf(
                             (rightBackPosVel.position - lastRightBackPos).toDouble(),
-                            rightBackPosVel.velocity.toDouble(),
+                            rightBackPosVel.velocity!!.toDouble(),
                         )
                     ).times(params.inPerTick),
                     DualNum<Time>(
                         doubleArrayOf(
                             (rightFrontPosVel.position - lastRightFrontPos).toDouble(),
-                            rightFrontPosVel.velocity.toDouble(),
+                            rightFrontPosVel.velocity!!.toDouble(),
                         )
                     ).times(params.inPerTick)
                 )
@@ -213,10 +211,14 @@ open class SimpleRobotWithMecanumDrive(
 
             lastHeading = heading
 
-            return Twist2dDual(
-                twist.line,
-                DualNum.cons(headingDelta, twist.angle.drop(1))
+            pose = pose.plus(
+                Twist2d(
+                    twist.line.value(),
+                    headingDelta
+                )
             )
+
+            return twist.velocity().value()
         }
     }
 
@@ -308,7 +310,7 @@ open class SimpleRobotWithMecanumDrive(
                 params.axialGain, params.lateralGain, params.headingGain,
                 params.axialVelGain, params.lateralVelGain, params.headingVelGain
             )
-                .compute(txWorldTarget, pose, robotVelRobot)
+                .compute(txWorldTarget, localizer.pose, robotVelRobot)
             driveCommandWriter.write(
                 DriveCommandMessage(
                     command
@@ -338,11 +340,11 @@ open class SimpleRobotWithMecanumDrive(
             rightBack.power = rightBackPower
             rightFront.power = rightFrontPower
 
-            p.put("x", pose.position.x)
-            p.put("y", pose.position.y)
-            p.put("heading (deg)", Math.toDegrees(pose.heading.toDouble()))
+            p.put("x", localizer.pose.position.x);
+            p.put("y", localizer.pose.position.y);
+            p.put("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()));
 
-            val error = txWorldTarget.value().minusExp(pose)
+            val error = txWorldTarget.value().minusExp(localizer.pose)
             p.put("xError", error.position.x)
             p.put("yError", error.position.y)
             p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()))
@@ -355,7 +357,7 @@ open class SimpleRobotWithMecanumDrive(
             Drawing.drawRobot(c, txWorldTarget.value())
 
             c.setStroke("#3F51B5")
-            Drawing.drawRobot(c, pose)
+            Drawing.drawRobot(c, localizer.pose)
 
             c.setStroke("#4CAF50FF")
             c.setStrokeWidth(1)
@@ -400,7 +402,7 @@ open class SimpleRobotWithMecanumDrive(
             val command = HolonomicController(
                 params.axialGain, params.lateralGain, params.headingGain,
                 params.axialVelGain, params.lateralVelGain, params.headingVelGain
-            ).compute(txWorldTarget, pose, robotVelRobot)
+            ).compute(txWorldTarget, localizer.pose, robotVelRobot)
             driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
@@ -432,7 +434,7 @@ open class SimpleRobotWithMecanumDrive(
             Drawing.drawRobot(c, txWorldTarget.value())
 
             c.setStroke("#3F51B5")
-            Drawing.drawRobot(c, pose)
+            Drawing.drawRobot(c, localizer.pose)
 
             c.setStroke("#7C4DFFFF")
             c.fillCircle(turn.beginPose.position.x, turn.beginPose.position.y, 2.0)
@@ -447,17 +449,16 @@ open class SimpleRobotWithMecanumDrive(
     }
 
     private fun updatePoseEstimate(): PoseVelocity2d {
-        val twist: Twist2dDual<Time> = localizer.update()
-        pose = pose.plus(twist.value())
+        val vel = localizer.update()
+        poseHistory.add(localizer.pose)
 
-        poseHistory.add(pose)
         while (poseHistory.size > 100) {
             poseHistory.removeFirst()
         }
 
-        estimatedPoseWriter.write(PoseMessage(pose))
+        estimatedPoseWriter.write(PoseMessage(localizer.pose))
 
-        return twist.velocity().value()
+        return vel
     }
 
     private fun drawPoseHistory(c: Canvas) {
@@ -504,7 +505,7 @@ open class SimpleRobotWithMecanumDrive(
      * @return the action
      */
     fun strafeTo(target: Vector2d): Action {
-        return driveActionBuilder(pose).strafeTo(target).build()
+        return driveActionBuilder(localizer.pose).strafeTo(target).build()
     }
 
     /**
@@ -512,7 +513,7 @@ open class SimpleRobotWithMecanumDrive(
      * @return the action
      */
     fun strafeToLinearHeading(target: Vector2d, heading: Double): Action {
-        return driveActionBuilder(pose).strafeToLinearHeading(target, heading).build()
+        return driveActionBuilder(localizer.pose).strafeToLinearHeading(target, heading).build()
     }
 
     /**
@@ -520,7 +521,7 @@ open class SimpleRobotWithMecanumDrive(
      * @return the action
      */
     fun turnTo(target: Double): Action {
-        return driveActionBuilder(pose).turnTo(target).build()
+        return driveActionBuilder(localizer.pose).turnTo(target).build()
     }
 
     /**
@@ -528,7 +529,7 @@ open class SimpleRobotWithMecanumDrive(
      * @return the action
      */
     fun turn(radians: Double): Action {
-        return driveActionBuilder(pose).turn(radians).build()
+        return driveActionBuilder(localizer.pose).turn(radians).build()
     }
 
     /**
@@ -536,7 +537,7 @@ open class SimpleRobotWithMecanumDrive(
      * @return the action
      */
     fun wait(seconds: Double): Action {
-        return driveActionBuilder(pose).waitSeconds(seconds).build()
+        return driveActionBuilder(localizer.pose).waitSeconds(seconds).build()
     }
 
     override fun update(telemetry: Telemetry) {
