@@ -5,13 +5,14 @@ import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import dev.kingssack.volt.robot.Robot
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
  *
  * @param telemetry for logging
  */
-abstract class AutonomousMode() {
+abstract class AutonomousMode(private val telemetry: Telemetry) {
     // Robot
     abstract val robot: Robot
 

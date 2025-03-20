@@ -42,7 +42,7 @@ class VoltWebServer {
         /**
          * Create a simple handler that returns a fixed response.
          * 
-         * @param contentType The content type of the response (e.g., "text/html")
+         * @param contentType The content type of the response
          * @param content The content of the response
          * @return A WebHandler that returns the specified content
          */
