@@ -11,19 +11,11 @@ import org.firstinspires.ftc.teamcode.robot.Steve
 /**
  * Otter is an autonomous mode that collects samples and deposits them in the basket.
  *
- * @param hardwareMap the hardware map
- * @param telemetry the telemetry
- * @param params the parameters for Otter
- *
  * @property robot the robot
  *
  * @see AutonomousMode
  */
-class Otter(
-    hardwareMap: HardwareMap,
-    telemetry: Telemetry,
-    private val params: OtterParams = OtterParams()
-) : AutonomousMode(telemetry) {
+class Otter : AutonomousMode() {
     /**
      * The parameters for Otter.
      *
@@ -42,6 +34,8 @@ class Otter(
 
         val numSamples: Int = 2
     )
+
+    private val params: OtterParams = OtterParams()
 
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),
