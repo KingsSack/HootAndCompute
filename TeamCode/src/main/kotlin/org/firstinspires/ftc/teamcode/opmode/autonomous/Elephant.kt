@@ -2,27 +2,17 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
 import dev.kingssack.volt.autonomous.AutonomousMode
-import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.util.FieldParams
 import org.firstinspires.ftc.teamcode.robot.Steve
+import org.firstinspires.ftc.teamcode.util.FieldParams
 
 /**
  * Elephant is an autonomous mode that pushes samples under the basket.
- *
- * @param hardwareMap the hardware map
- * @param telemetry the telemetry
- * @param params the parameters for Elephant
  *
  * @property robot the robot
  *
  * @see AutonomousMode
  */
-class Elephant(
-    hardwareMap: HardwareMap,
-    telemetry: Telemetry,
-    private val params: ElephantParams = ElephantParams()
-) : AutonomousMode(telemetry) {
+class Elephant : AutonomousMode() {
     /**
      * The parameters for Elephant.
      *
@@ -41,6 +31,8 @@ class Elephant(
 
         val numSamples: Int = 2
     )
+
+    private val params: ElephantParams = ElephantParams()
 
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(params.initialX, params.initialY),

@@ -66,7 +66,7 @@ abstract class Attachment {
     /**
      * Stops the attachment.
      */
-    fun stop() {
+    open fun stop() {
         motors.forEach { it.power = 0.0 }
         crServos.forEach { it.power = 0.0 }
     }

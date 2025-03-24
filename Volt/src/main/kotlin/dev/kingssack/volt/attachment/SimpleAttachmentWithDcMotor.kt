@@ -16,7 +16,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param maxPosition the maximum position of the motor
  * @param minPosition the minimum position of the motor
  */
-open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val name: String, private val idlePower: Double, private val maxPosition: Int, private val minPosition: Int = 0) : Attachment() {
+open class SimpleAttachmentWithDcMotor(
+    hardwareMap: HardwareMap,
+    private val name: String,
+    private val idlePower: Double,
+    private val maxPosition: Int,
+    private val minPosition: Int = 0
+) : Attachment() {
     // Initialize motor
     protected val motor: DcMotor = hardwareMap.dcMotor[name]
 
@@ -53,6 +59,7 @@ open class SimpleAttachmentWithDcMotor(hardwareMap: HardwareMap, private val nam
         override fun init() {
             // Check if the target position is valid
             require(targetPosition in minPosition..maxPosition) { "Target position out of bounds" }
+            require(power in 0.0..1.0) { "Power out of bounds" }
 
             // Update current goal
             currentGoal = targetPosition

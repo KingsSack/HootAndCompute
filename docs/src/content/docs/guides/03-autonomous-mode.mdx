@@ -27,7 +27,7 @@ The [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mo
 <TabItem label="Kotlin">
 
 ```kotlin /hardwareMap.*Telemetry/ "AutonomousMode(telemetry)"
-class ExampleAuto(hardwareMap: HardwareMap, telemetry: Telemetry) : AutonomousMode(telemetry) {
+class ExampleAuto : AutonomousMode() {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
         Math.toRadians(0.0) // Make sure to use radians!
@@ -60,7 +60,7 @@ Create a new private function that returns a `SequentialAction`.
 <TabItem label="Kotlin">
 
 ```kotlin {12-16}
-class ExampleAuto(hardwareMap: HardwareMap, telemetry: Telemetry) : AutonomousMode(telemetry) {
+class ExampleAuto : AutonomousMode() {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
         Math.toRadians(0.0)
@@ -98,7 +98,7 @@ In `init`, add the action to the action sequence.
 <TabItem label="Kotlin">
 
 ```kotlin {8}
-class ExampleAuto(hardwareMap: HardwareMap, telemetry: Telemetry) : AutonomousMode(telemetry) {
+class ExampleAuto : AutonomousMode() {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
         Math.toRadians(0.0)
@@ -138,11 +138,9 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous
 
 import com.acmerobotics.roadrunner.*
 import dev.kingssack.volt.autonomous.AutonomousMode
-import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 
-class ExampleAuto(hardwareMap: HardwareMap, telemetry: Telemetry) : AutonomousMode(telemetry) {
+class ExampleAuto : AutonomousMode() {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
         Math.toRadians(0.0)

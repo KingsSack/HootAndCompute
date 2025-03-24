@@ -171,6 +171,8 @@ class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     /**
      * Extend the arm to the submersible or basket by extending the shoulder and then elbow.
      *
+     * @param elbowVoltage voltage to set the elbow to
+     *
      * @return action to extend the arm to the submersible
      */
     fun extendArmTo(elbowVoltage: Double): Action {

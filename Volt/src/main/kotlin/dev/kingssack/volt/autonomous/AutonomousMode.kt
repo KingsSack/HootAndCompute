@@ -4,22 +4,24 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import dev.kingssack.volt.robot.Robot
-import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
- *
- * @param telemetry for logging
  */
-abstract class AutonomousMode(private val telemetry: Telemetry) {
-    // Robot
+abstract class AutonomousMode : LinearOpMode() {
     abstract val robot: Robot
 
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
 
     protected val actionSequence = mutableListOf<() -> Action>()
+
+    override fun runOpMode() {
+        waitForStart()
+        execute()
+    }
 
     /**
      * Execute the autonomous sequence.
