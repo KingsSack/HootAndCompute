@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.robot.Steve
 import org.firstinspires.ftc.teamcode.util.FieldParams
 
+@Autonomous(name = "Human", group = "Competition")
 class Human : AutonomousMode() {
     override val robot = Steve(hardwareMap, Pose2d(
         Vector2d(24.0, 63.4),

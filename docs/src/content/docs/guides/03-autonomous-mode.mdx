@@ -26,7 +26,7 @@ The [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mo
 
 <TabItem label="Kotlin">
 
-```kotlin /hardwareMap.*Telemetry/ "AutonomousMode(telemetry)"
+```kotlin "AutonomousMode" {2-5}
 class ExampleAuto : AutonomousMode() {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
@@ -59,7 +59,7 @@ Create a new private function that returns a `SequentialAction`.
 
 <TabItem label="Kotlin">
 
-```kotlin {12-16}
+```kotlin {11-16}
 class ExampleAuto : AutonomousMode() {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
@@ -127,6 +127,45 @@ class ExampleAuto : AutonomousMode() {
 
 </Tabs>
 
+### Make it an OpMode
+
+Add the `@Autonomous` annotation to the class definition.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {1}
+@Autonomous(name = "Example", group = "Examples")
+class ExampleAuto : AutonomousMode() {
+    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
+        Vector2d(0.0, 0.0),
+        Math.toRadians(0.0)
+    ))
+
+    init {
+        actionSequence.add { doAnAction() } // Lambda function
+    }
+
+    private fun doAnAction(): Action {
+        return SequentialAction(
+            robot.turnTo(90.0),
+            robot.strafeTo(Vector2d(24.0, 0.0))
+        )
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
 ## Result
 
 <Tabs>
@@ -137,9 +176,11 @@ class ExampleAuto : AutonomousMode() {
 package org.firstinspires.ftc.teamcode.opmodes.autonomous
 
 import com.acmerobotics.roadrunner.*
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.autonomous.AutonomousMode
 import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 
+@Autonomous(name = "Example", group = "Examples")
 class ExampleAuto : AutonomousMode() {
     override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
         Vector2d(0.0, 0.0),
