@@ -3,7 +3,7 @@ package dev.kingssack.volt.manual
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.hardware.Gamepad
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.AnalogHandler
 import dev.kingssack.volt.util.ButtonHandler
@@ -12,14 +12,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
  *
- * @param telemetry for logging
+ * @property params the configuration object for manual control
  */
-abstract class ManualMode(
-    gamepad1: Gamepad,
-    gamepad2: Gamepad,
-    private val telemetry: Telemetry,
-    private val params: ManualParams = ManualParams()
-) {
+abstract class ManualMode(private val params: ManualParams = ManualParams()) : LinearOpMode() {
     /**
      * Configuration object for manual control.
      *
@@ -30,6 +25,13 @@ abstract class ManualMode(
         val deadzone: Double = 0.1,
         val inputExp: Double = 2.0
     )
+
+    override fun runOpMode() {
+        waitForStart()
+        while (opModeIsActive()) {
+            tick()
+        }
+    }
 
     // Buttons
     private val buttonHandlers = mutableMapOf<String, ButtonHandler>()
@@ -140,10 +142,8 @@ abstract class ManualMode(
 
     /**
      * Tick the manual mode.
-     *
-     * @param telemetry for logging
      */
-    open fun tick(telemetry: Telemetry) {
+    open fun tick() {
         updateButtonHandlers()
         updateAnalogHandlers()
 

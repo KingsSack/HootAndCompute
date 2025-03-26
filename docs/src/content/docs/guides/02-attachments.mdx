@@ -198,7 +198,7 @@ Determine whether the motor has reached the `targetPosition`. Stop the motor in 
 
 <TabItem label="Kotlin">
 
-```kotlin {2-3, 5, 8-12, 16-26, 30-31}
+```kotlin {2-3, 5, 8-12, 16-21, 25-26}
 inner class Control(
     private val power: Double,
     private val targetPosition: Int
@@ -217,13 +217,8 @@ inner class Control(
         // Get position
         val currentPosition = motor.currentPosition
 
-        if (reversing) {
-            // Reverse
-            if (currentPosition > targetPosition) return false
-        } else {
-            // Forward
-            if (currentPosition < targetPosition) return false
-        }
+        // Determine if at target position
+        if ((currentPosition < targetPosition) xor reversing) return false
         return true
     }
 
@@ -252,7 +247,7 @@ It is usually recommended to use `RUN_TO_POSITION` rather than manually checking
 
 ### Add a callable action
 
-Create a function called `use(time: Double)` that returns a new `Action`.
+Create a function called `goTo(power: Double, position: Int)` that returns a new `Action`.
 
 <Tabs>
 
@@ -341,11 +336,7 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 
         override fun update(packet: TelemetryPacket): Boolean {
             val currentPosition = motor.currentPosition
-            if (reversing) {
-                if (currentPosition > targetPosition) return false
-            } else {
-                if (currentPosition < targetPosition) return false
-            }
+            if ((currentPosition < targetPosition) xor reversing) return false
             return true
         }
 

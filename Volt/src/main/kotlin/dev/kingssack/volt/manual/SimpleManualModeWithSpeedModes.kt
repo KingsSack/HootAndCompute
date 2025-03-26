@@ -2,16 +2,17 @@ package dev.kingssack.volt.manual
 
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.qualcomm.robotcore.hardware.Gamepad
-import org.firstinspires.ftc.robotcore.external.Telemetry
 
+/**
+ * SimpleManualModeWithSpeedModes is an abstract class
+ * that defines the methods for running a manual mode with speed modes.
+ *
+ * @property params the configuration object for manual control
+ */
 abstract class SimpleManualModeWithSpeedModes(
-    gamepad1: Gamepad,
-    gamepad2: Gamepad,
-    telemetry: Telemetry,
     private val params: SimpleManualModeWithSpeedModesParams = SimpleManualModeWithSpeedModesParams(),
     manualParams: ManualParams = ManualParams()
-) : ManualMode(gamepad1, gamepad2,telemetry, manualParams) {
+) : ManualMode(manualParams) {
     /**
      * Configuration object for manual control.
      *

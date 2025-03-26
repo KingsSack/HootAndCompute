@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
+import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.robot.Steve
@@ -13,28 +15,32 @@ import org.firstinspires.ftc.teamcode.util.FieldParams
  *
  * @see AutonomousMode
  */
+@Config
+@Autonomous(name = "Rhinoceros", group = "Competition")
 class Rhinoceros : AutonomousMode() {
     /**`
      * The parameters for Rhinoceros.
      *
-     * @property initialX the initial x position
-     * @property initialY the initial y position
-     * @property initialHeading the initial heading
-     * @property numSamples the number of samples to convert to a specimen
+     * @property INITIAL_X the initial x position
+     * @property INITIAL_Y the initial y position
+     * @property INITIAL_HEADING the initial heading
+     * @property NUM_SAMPLES the number of samples to convert to a specimen
      */
-    class RhinocerosParams(
-        val initialX: Double = -24.0,
-        val initialY: Double = 63.0,
-        val initialHeading: Double = -90.0,
+    companion object RhinocerosParams {
+        @JvmField
+        var INITIAL_X: Double = -24.0
+        @JvmField
+        var INITIAL_Y: Double = 63.0
+        @JvmField
+        var INITIAL_HEADING: Double = -90.0
 
-        val numSamples: Int = 1
-    )
-
-    private val params: RhinocerosParams = RhinocerosParams()
+        @JvmField
+        var NUM_SAMPLES: Int = 1
+    }
 
     override val robot = Steve(hardwareMap, Pose2d(
-        Vector2d(params.initialX, params.initialY),
-        Math.toRadians(params.initialHeading)
+        Vector2d(INITIAL_X, INITIAL_Y),
+        Math.toRadians(INITIAL_HEADING)
     ))
 
     private var currentSampleIndex = 0
@@ -45,7 +51,7 @@ class Rhinoceros : AutonomousMode() {
         // Deposit the preloaded specimen
         actionSequence.add { goToSubmersible() }
         actionSequence.add { depositSpecimen() }
-        repeat(params.numSamples) {
+        repeat(NUM_SAMPLES) {
             // Collect samples
             actionSequence.add { getSample() }
             actionSequence.add { retrieveSpecimen() }

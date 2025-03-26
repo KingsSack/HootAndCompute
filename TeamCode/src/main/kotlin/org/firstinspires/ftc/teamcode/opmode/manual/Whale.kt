@@ -1,51 +1,45 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
+import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.kingssack.volt.manual.SimpleManualModeWithSpeedModes
-import com.qualcomm.robotcore.hardware.Gamepad
-import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.attachment.Wrist
 import org.firstinspires.ftc.teamcode.robot.Steve
 
 /**
- * Whale is a manual mode focused on functionality
- *
- * @param hardwareMap the hardware map
- * @param telemetry the telemetry
- * @param gamepad1 gamepad for movement
- * @param gamepad2 gamepad for actions
+ * Whale is a manual mode focused on capability
  *
  * @property robot the robot
  */
-class Whale(
-    hardwareMap: HardwareMap,
-    telemetry: Telemetry,
-    private val gamepad1: Gamepad,
-    private val gamepad2: Gamepad,
-    private val params: WhaleParams = WhaleParams()
-) : SimpleManualModeWithSpeedModes(gamepad1, gamepad2, telemetry) {
+@Config
+@TeleOp(name = "Whale", group = "Competition")
+class Whale : SimpleManualModeWithSpeedModes() {
     /**
-     * ManualParams is a configuration object for manual control.
+     * WhaleParams is a configuration object for manual control.
      *
-     * @property initialX the initial x position
-     * @property initialY the initial y position
-     * @property initialHeading the initial heading
+     * @property INITIAL_X the initial x position
+     * @property INITIAL_Y the initial y position
+     * @property INITIAL_HEADING the initial heading
+     * @property LIFT_MULTIPLIER the lift multiplier
      */
-    class WhaleParams(
-        val initialX: Double = -48.0,
-        val initialY: Double = 64.0,
-        val initialHeading: Double = 90.0,
-
-        val liftMultiplier: Int = 12
-    )
+    companion object WhaleParams {
+        @JvmField
+        var INITIAL_X: Double = -48.0
+        @JvmField
+        var INITIAL_Y: Double = 64.0
+        @JvmField
+        var INITIAL_HEADING: Double = 90.0
+        @JvmField
+        var LIFT_MULTIPLIER: Int = 12
+    }
 
     override val robot = Steve(hardwareMap, Pose2d(
-        Vector2d(params.initialX, params.initialY),
-        Math.toRadians(params.initialHeading)
+        Vector2d(INITIAL_X, INITIAL_Y),
+        Math.toRadians(INITIAL_HEADING)
     ))
 
     private val quickTurnTowardBaskets = Interaction({ isButtonTapped("dpad_left1") },
@@ -58,7 +52,7 @@ class Whale(
     private val raiseLift = Interaction({ isButtonTapped("right_bumper2") }, { robot.lift.goTo(Lift.upperBasketHeight) })
     private val lowerLift = Interaction({ isButtonTapped("left_bumper2") }, { robot.lift.drop() })
     private val controlLift = Interaction({ true },
-        { InstantAction { robot.lift.currentGoal += -getAnalogValue("left_stick_y2").toInt() * params.liftMultiplier } })
+        { InstantAction { robot.lift.currentGoal += -getAnalogValue("left_stick_y2").toInt() * LIFT_MULTIPLIER } })
     /* private val resetLift = Interaction({ isButtonTapped("left_stick_button") },
         { InstantAction { robot.lift.reset() } }) */
 
@@ -97,8 +91,8 @@ class Whale(
         ))
     }
 
-    override fun tick(telemetry: Telemetry) {
+    override fun tick() {
         robot.setDrivePowers(calculatePoseWithGamepad())
-        super.tick(telemetry)
+        super.tick()
     }
 }
