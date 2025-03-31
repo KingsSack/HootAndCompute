@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.manual.SimpleManualModeWithSpeedModes
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.attachment.Wrist
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
  */
 @Config
 @TeleOp(name = "Whale", group = "Competition")
-class Whale : SimpleManualModeWithSpeedModes() {
+class Whale : SimpleManualModeWithSpeedModes<Steve>() {
     /**
      * WhaleParams is a configuration object for manual control.
      *
@@ -37,10 +38,12 @@ class Whale : SimpleManualModeWithSpeedModes() {
         var LIFT_MULTIPLIER: Int = 12
     }
 
-    override val robot = Steve(hardwareMap, Pose2d(
-        Vector2d(INITIAL_X, INITIAL_Y),
-        Math.toRadians(INITIAL_HEADING)
-    ))
+    override fun createRobot(hardwareMap: HardwareMap): Steve {
+        return Steve(hardwareMap, Pose2d(
+            Vector2d(INITIAL_X, INITIAL_Y),
+            Math.toRadians(INITIAL_HEADING)
+        ))
+    }
 
     private val quickTurnTowardBaskets = Interaction({ isButtonTapped("dpad_left1") },
         { robot.turnTo(Math.toRadians(45.0)) })

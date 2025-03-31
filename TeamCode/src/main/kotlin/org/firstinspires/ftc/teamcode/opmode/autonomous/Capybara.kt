@@ -2,17 +2,20 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.robot.Steve
 import org.firstinspires.ftc.teamcode.util.FieldParams
 
 @Autonomous(name = "Capybara", group = "Competition")
-class Capybara : AutonomousMode() {
-    override val robot = Steve(hardwareMap, Pose2d(
-        Vector2d(-24.0, 63.4),
-        Math.toRadians(-90.0)
-    ))
+class Capybara : AutonomousMode<Steve>() {
+    override fun createRobot(hardwareMap: HardwareMap): Steve {
+        return Steve(hardwareMap, Pose2d(
+            Vector2d(-24.0, 63.4),
+            Math.toRadians(-90.0)
+        ))
+    }
 
     private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 14)
 
