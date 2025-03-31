@@ -5,13 +5,17 @@ import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
  */
-abstract class AutonomousMode : LinearOpMode() {
-    abstract val robot: Robot
+abstract class AutonomousMode<R : Robot> : LinearOpMode() {
+    protected lateinit var robot : R
+        private set
+
+    abstract fun createRobot(hardwareMap: HardwareMap): R
 
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
@@ -19,6 +23,7 @@ abstract class AutonomousMode : LinearOpMode() {
     protected val actionSequence = mutableListOf<() -> Action>()
 
     override fun runOpMode() {
+        robot = createRobot(hardwareMap)
         waitForStart()
         execute()
     }
@@ -26,7 +31,7 @@ abstract class AutonomousMode : LinearOpMode() {
     /**
      * Execute the autonomous sequence.
      */
-    fun execute() {
+    protected fun execute() {
         for (action in actionSequence) {
             runAction(action())
         }

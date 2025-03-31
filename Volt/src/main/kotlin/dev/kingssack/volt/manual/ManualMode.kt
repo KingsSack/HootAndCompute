@@ -4,17 +4,17 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.AnalogHandler
 import dev.kingssack.volt.util.ButtonHandler
-import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
  *
  * @property params the configuration object for manual control
  */
-abstract class ManualMode(private val params: ManualParams = ManualParams()) : LinearOpMode() {
+abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualParams()) : LinearOpMode() {
     /**
      * Configuration object for manual control.
      *
@@ -26,7 +26,13 @@ abstract class ManualMode(private val params: ManualParams = ManualParams()) : L
         val inputExp: Double = 2.0
     )
 
+    protected lateinit var robot: R
+        private set
+
+    abstract fun createRobot(hardwareMap: HardwareMap): R
+
     override fun runOpMode() {
+        robot = createRobot(hardwareMap)
         waitForStart()
         while (opModeIsActive()) {
             tick()
@@ -73,9 +79,6 @@ abstract class ManualMode(private val params: ManualParams = ManualParams()) : L
     private fun updateAnalogHandlers() {
         analogButtons.forEach { (name, analogGetter) -> analogHandlers[name]?.update(analogGetter.get().toDouble()) }
     }
-
-    // Robot
-    abstract val robot: Robot
 
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
 

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.robot.Steve
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.util.FieldParams
  */
 @Config
 @Autonomous(name = "Rhinoceros", group = "Competition")
-class Rhinoceros : AutonomousMode() {
+class Rhinoceros : AutonomousMode<Steve>() {
     /**`
      * The parameters for Rhinoceros.
      *
@@ -38,10 +39,12 @@ class Rhinoceros : AutonomousMode() {
         var NUM_SAMPLES: Int = 1
     }
 
-    override val robot = Steve(hardwareMap, Pose2d(
-        Vector2d(INITIAL_X, INITIAL_Y),
-        Math.toRadians(INITIAL_HEADING)
-    ))
+    override fun createRobot(hardwareMap: HardwareMap): Steve {
+        return Steve(hardwareMap, Pose2d(
+            Vector2d(INITIAL_X, INITIAL_Y),
+            Math.toRadians(INITIAL_HEADING)
+        ))
+    }
 
     private var currentSampleIndex = 0
     private var currentSubmersiblePosition = Vector2d(FieldParams.submersibleX, FieldParams.submersibleY + 14)

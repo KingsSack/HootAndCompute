@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.util.FieldParams
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.robot.Steve
  */
 @Config
 @Autonomous(name = "Otter", group = "Competition")
-class Otter : AutonomousMode() {
+class Otter : AutonomousMode<Steve>() {
     /**
      * The parameters for Otter.
      *
@@ -42,10 +43,12 @@ class Otter : AutonomousMode() {
         var NUM_SAMPLES: Int = 2
     }
 
-    override val robot = Steve(hardwareMap, Pose2d(
-        Vector2d(INITIAL_X, INITIAL_Y),
-        Math.toRadians(INITIAL_HEADING)
-    ))
+    override fun createRobot(hardwareMap: HardwareMap): Steve {
+        return Steve(hardwareMap, Pose2d(
+            Vector2d(INITIAL_X, INITIAL_Y),
+            Math.toRadians(INITIAL_HEADING)
+        ))
+    }
 
     private var currentSampleIndex = 0
 

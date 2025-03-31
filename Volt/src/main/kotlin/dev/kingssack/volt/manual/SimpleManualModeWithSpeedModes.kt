@@ -2,6 +2,7 @@ package dev.kingssack.volt.manual
 
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
+import dev.kingssack.volt.robot.Robot
 
 /**
  * SimpleManualModeWithSpeedModes is an abstract class
@@ -9,10 +10,10 @@ import com.acmerobotics.roadrunner.Vector2d
  *
  * @property params the configuration object for manual control
  */
-abstract class SimpleManualModeWithSpeedModes(
+abstract class SimpleManualModeWithSpeedModes<R : Robot>(
     private val params: SimpleManualModeWithSpeedModesParams = SimpleManualModeWithSpeedModesParams(),
-    manualParams: ManualParams = ManualParams()
-) : ManualMode(manualParams) {
+    manualParams: ManualMode.ManualParams = ManualMode.ManualParams()
+) : ManualMode<R>(manualParams) {
     /**
      * Configuration object for manual control.
      *
