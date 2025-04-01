@@ -10,23 +10,30 @@ import dev.kingssack.volt.robot.Robot
 
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
+ *
+ * @property robot the robot instance
  */
 abstract class AutonomousMode<R : Robot> : LinearOpMode() {
     protected lateinit var robot : R
         private set
 
+    /**
+     * Create the robot instance.
+     *
+     * @param hardwareMap the hardware map for the robot
+     */
     abstract fun createRobot(hardwareMap: HardwareMap): R
-
-    private val dash: FtcDashboard? = FtcDashboard.getInstance()
-    private val canvas = Canvas()
-
-    protected val actionSequence = mutableListOf<() -> Action>()
 
     override fun runOpMode() {
         robot = createRobot(hardwareMap)
         waitForStart()
         execute()
     }
+
+    private val dash: FtcDashboard? = FtcDashboard.getInstance()
+    private val canvas = Canvas()
+
+    protected val actionSequence = mutableListOf<() -> Action>()
 
     /**
      * Execute the autonomous sequence.
