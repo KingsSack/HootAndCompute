@@ -7,6 +7,8 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.manual.SimpleManualModeWithSpeedModes
+import dev.kingssack.volt.util.GamepadAnalogInput
+import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.attachment.Lift
 import org.firstinspires.ftc.teamcode.attachment.Wrist
 import org.firstinspires.ftc.teamcode.robot.Steve
@@ -45,51 +47,47 @@ class Dolphin : SimpleManualModeWithSpeedModes<Steve>() {
         ))
     }
 
-    private val quickTurnTowardBaskets = Interaction({ isButtonTapped("dpad_left1") },
+    private val quickTurnTowardBaskets = Interaction({ isButtonTapped(GamepadButton.DPAD_LEFT1) },
         { robot.turnTo(Math.toRadians(45.0)) })
-    private val quickTurnTowardSubmersible = Interaction({ isButtonTapped("dpad_up1") },
+    private val quickTurnTowardSubmersible = Interaction({ isButtonTapped(GamepadButton.DPAD_UP1) },
         { robot.turnTo(Math.toRadians(-90.0)) })
-    private val quickDepositSpecimen = Interaction({ isButtonTapped("dpad_right1") },
+    private val quickDepositSpecimen = Interaction({ isButtonTapped(GamepadButton.DPAD_RIGHT1) },
         { robot.depositSpecimen(Lift.upperSubmersibleBarHeight) })
 
     private val controlLift = Interaction({ true },
-        { InstantAction { robot.lift.currentGoal += -getAnalogValue("left_stick_y2").toInt() * LIFT_MULTIPLIER } })
-    /* private val resetLift = Interaction({ isButtonTapped("left_stick_button") },
-        { InstantAction { robot.lift.reset() } }) */
+        { InstantAction { robot.lift.currentGoal += -getAnalogValue(GamepadAnalogInput.LEFT_STICK_Y2).toInt() * LIFT_MULTIPLIER } })
 
-    private val openClaw = Interaction({ isButtonTapped("a2") }, { robot.claw.open() })
-    private val closeClaw = Interaction({ isButtonTapped("b2") }, { robot.claw.close() })
+    private val openClaw = Interaction({ isButtonTapped(GamepadButton.A2) }, { robot.claw.open() })
+    private val closeClaw = Interaction({ isButtonTapped(GamepadButton.B2) }, { robot.claw.close() })
 
-    private val centerWrist = Interaction({ isButtonTapped("dpad_down2") }, { robot.wrist.goTo(Wrist.centerPosition) })
-    private val rotateWristLeft = Interaction({ isButtonPressed("dpad_left2") },
+    private val centerWrist = Interaction({ isButtonTapped(GamepadButton.DPAD_DOWN2) }, { robot.wrist.goTo(Wrist.centerPosition) })
+    private val rotateWristLeft = Interaction({ isButtonPressed(GamepadButton.DPAD_LEFT2) },
         { robot.wrist.goTo(robot.wrist.getPosition() + 0.005) })
-    private val rotateWristRight = Interaction({ isButtonPressed("dpad_right2") },
+    private val rotateWristRight = Interaction({ isButtonPressed(GamepadButton.DPAD_RIGHT2) },
         { robot.wrist.goTo(robot.wrist.getPosition() - 0.005) })
 
-    private val toggleShoulder = ToggleInteraction({ isButtonTapped("y2") },
+    private val toggleShoulder = ToggleInteraction({ isButtonTapped(GamepadButton.Y2) },
         { robot.shoulder.extend() }, { robot.shoulder.retract() })
 
     private val controlElbow = Interaction({ true },
-        { InstantAction { robot.elbow.setPower(-getAnalogValue("right_stick_y2")) } })
-    private val extendElbow = Interaction({ isButtonTapped("right_stick_button2") }, { robot.elbow.extend() })
+        { InstantAction { robot.elbow.setPower(-getAnalogValue(GamepadAnalogInput.RIGHT_STICK_Y2)) } })
+    private val extendElbow = Interaction({ isButtonTapped(GamepadButton.RIGHT_STICK_BUTTON2) }, { robot.elbow.extend() })
 
-    private val extendArm = Interaction({ isButtonTapped("dpad_up2") }, { robot.extendArm() })
+    private val extendArm = Interaction({ isButtonTapped(GamepadButton.DPAD_UP2) }, { robot.extendArm() })
 
-    private val extendTail = ToggleInteraction({ isButtonTapped("left_bumper2") }, { robot.tail.extend() }, { robot.tail.center() })
-    private val retractTail = ToggleInteraction({ isButtonTapped("right_bumper2") }, { robot.tail.retract() }, { robot.tail.center() })
+    private val extendTail = ToggleInteraction({ isButtonTapped(GamepadButton.LEFT_BUMPER2) }, { robot.tail.extend() }, { robot.tail.center() })
+    private val retractTail = ToggleInteraction({ isButtonTapped(GamepadButton.RIGHT_BUMPER2) }, { robot.tail.retract() }, { robot.tail.center() })
 
-    private val toggleIntake = ToggleInteraction({ isButtonTapped("x2") },
+    private val toggleIntake = ToggleInteraction({ isButtonTapped(GamepadButton.X2) },
         { robot.intake.enableIntake() }, { robot.intake.reverseIntake() })
-    private val disableIntake = Interaction({ isButtonHeld("x2", 200.0) }, { robot.intake.disableIntake() })
+    private val disableIntake = Interaction({ isButtonHeld(GamepadButton.X2, 200.0) }, { robot.intake.disableIntake() })
 
     init {
         interactions.addAll(listOf(
             quickTurnTowardBaskets,
             quickTurnTowardSubmersible,
             quickDepositSpecimen,
-            // quickRetrieveSpecimen,
             controlLift,
-            // resetLift,
             openClaw,
             closeClaw,
             centerWrist,

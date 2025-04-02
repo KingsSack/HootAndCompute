@@ -10,10 +10,9 @@ import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.attachment.*
-import org.firstinspires.ftc.teamcode.util.FieldParams
 
 /**
- * Steve is a robot for the 2024-2025 INTO THE DEEP FTC Season.
+ * Steve is a robot for the 2024-2025 INTOTHEDEEP FTC Season.
  *
  * Steve can collect samples, deposit samples, detect objects, and detect distances.
  * Steve has a lift, claw, shoulder, wrist, intake, two distance sensors, and HuskyLens.
