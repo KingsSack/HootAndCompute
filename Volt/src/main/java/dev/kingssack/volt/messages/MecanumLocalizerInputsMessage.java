@@ -1,4 +1,4 @@
-package dev.kingssack.volt.messages
+package dev.kingssack.volt.messages;
 
 import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;

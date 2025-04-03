@@ -1,4 +1,4 @@
-package dev.kingssack.volt.messages
+package dev.kingssack.volt.messages;
 
 public final class MecanumCommandMessage {
     public long timestamp;
