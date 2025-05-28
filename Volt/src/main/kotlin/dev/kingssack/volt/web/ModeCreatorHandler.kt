@@ -23,7 +23,7 @@ class ModeCreatorHandler : WebHandler {
      */
     data class AutonomousModeConfig(
         val name: String,
-        val robotType: String,
+        val robot: String,
         val sequence: List<ActionConfig>
     )
 
@@ -32,7 +32,7 @@ class ModeCreatorHandler : WebHandler {
      */
     data class ManualModeConfig(
         val name: String,
-        val robotType: String,
+        val robot: String,
         val mappings: List<MappingConfig>
     )
 
@@ -71,7 +71,7 @@ class ModeCreatorHandler : WebHandler {
         Log.d(TAG, "Handling request: $method $uri")
 
         return when {
-            method == NanoHTTPD.Method.GET && uri == "/api/robot-types" -> handleGetRobotTypes()
+            method == NanoHTTPD.Method.GET && uri == "/api/robots" -> handleGetRobots()
             method == NanoHTTPD.Method.GET && uri == "/api/actions" -> handleGetActions(session)
             method == NanoHTTPD.Method.GET && uri == "/api/autonomous-modes" -> handleGetAutonomousModes()
             method == NanoHTTPD.Method.POST && uri == "/api/autonomous-modes" -> handleCreateAutonomousMode(session)
@@ -86,52 +86,27 @@ class ModeCreatorHandler : WebHandler {
     }
 
     /**
-     * Handle GET /api/robot-types
+     * Handle GET /api/robot
      */
-    private fun handleGetRobotTypes(): NanoHTTPD.Response {
-        val robotTypes = listOf("RobotWithMecanumDrive")
-        return createJsonResponse(gson.toJson(robotTypes))
+    private fun handleGetRobots(): NanoHTTPD.Response {
+        val robots = listOf<String>()
+        // TODO: Get all available robots
+        return createJsonResponse(gson.toJson(robots))
     }
 
     /**
      * Handle GET /api/actions
      */
     private fun handleGetActions(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
-        val robotType = session.parameters["robotType"]?.get(0) ?: "RobotWithMecanumDrive"
+        val robot = session.parameters["robot"]?.get(0)
 
         // Get available actions for the specified robot type
-        val actions = when (robotType) {
-            "RobotWithMecanumDrive" -> getRobotWithMecanumDriveActions()
-            else -> emptyList()
+        val actions = when (robot) {
+            // TODO: Get actions based on the robot type
+            else -> emptyList<String>()
         }
 
         return createJsonResponse(gson.toJson(actions))
-    }
-
-    /**
-     * Get actions available for RobotWithMecanumDrive.
-     */
-    private fun getRobotWithMecanumDriveActions(): List<ActionConfig> {
-        return listOf(
-            ActionConfig(
-                id = "pathTo",
-                name = "Path To",
-                description = "Move the robot to a specific position",
-                parameters = listOf(
-                    ParameterConfig("x", "number", 0),
-                    ParameterConfig("y", "number", 0),
-                    ParameterConfig("heading", "number", 0)
-                )
-            ),
-            ActionConfig(
-                id = "wait",
-                name = "Wait",
-                description = "Wait for a specified time",
-                parameters = listOf(
-                    ParameterConfig("seconds", "number", 1)
-                )
-            )
-        )
     }
 
     /**

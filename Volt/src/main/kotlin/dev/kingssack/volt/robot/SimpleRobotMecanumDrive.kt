@@ -9,18 +9,12 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.messages.DriveCommandMessage
-import dev.kingssack.volt.messages.MecanumCommandMessage
-import dev.kingssack.volt.messages.MecanumLocalizerInputsMessage
-import dev.kingssack.volt.messages.PoseMessage
-import dev.kingssack.volt.util.Drawing
-import dev.kingssack.volt.util.Localizer
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import dev.kingssack.volt.util.*
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
-
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 
 /**
  * Represents a robot with attachments and a mecanum drivetrain.
@@ -59,45 +53,42 @@ open class SimpleRobotWithMecanumDrive(
     class DriveParams(
         val logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP,
         val usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD,
-
         val inPerTick: Double = 1.0,
         val lateralInPerTick: Double = inPerTick,
         val trackWidthTicks: Double = 0.0,
-
         val kS: Double = 0.0,
         val kV: Double = 0.0,
         val kA: Double = 0.0,
-
         val maxWheelVel: Double = 50.0,
         val minProfileAccel: Double = -30.0,
         val maxProfileAccel: Double = 50.0,
-
         val maxAngVel: Double = Math.PI,
         val maxAngAccel: Double = Math.PI,
-
         val axialGain: Double = 0.0,
         val lateralGain: Double = 0.0,
         val headingGain: Double = 0.0,
-
         val axialVelGain: Double = 0.0,
         val lateralVelGain: Double = 0.0,
         val headingVelGain: Double = 0.0
     )
 
-    private val kinematics: MecanumKinematics = MecanumKinematics(
-        params.inPerTick * params.trackWidthTicks, params.inPerTick / params.lateralInPerTick
-    )
-
-    private val defaultTurnConstraints: TurnConstraints = TurnConstraints(
-        params.maxAngVel, -params.maxAngAccel, params.maxAngAccel
-    )
-    private val defaultVelConstraint: VelConstraint = MinVelConstraint(
-        listOf(
-            kinematics.WheelVelConstraint(params.maxWheelVel),
-            AngularVelConstraint(params.maxAngVel)
+    private val kinematics: MecanumKinematics =
+        MecanumKinematics(
+            params.inPerTick * params.trackWidthTicks,
+            params.inPerTick / params.lateralInPerTick
         )
-    )
-    private val defaultAccelConstraint: AccelConstraint = ProfileAccelConstraint(params.minProfileAccel, params.maxProfileAccel)
+
+    private val defaultTurnConstraints: TurnConstraints =
+        TurnConstraints(params.maxAngVel, -params.maxAngAccel, params.maxAngAccel)
+    private val defaultVelConstraint: VelConstraint =
+        MinVelConstraint(
+            listOf(
+                kinematics.WheelVelConstraint(params.maxWheelVel),
+                AngularVelConstraint(params.maxAngVel)
+            )
+        )
+    private val defaultAccelConstraint: AccelConstraint =
+        ProfileAccelConstraint(params.minProfileAccel, params.maxProfileAccel)
 
     val leftFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lf")
     val leftBack: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lr")
@@ -107,11 +98,12 @@ open class SimpleRobotWithMecanumDrive(
 
     val voltageSensor: VoltageSensor = hardwareMap.voltageSensor.iterator().next()
 
-    val lazyImu = LazyHardwareMapImu(
-        hardwareMap,
-        "imu",
-        RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection)
-    )
+    val lazyImu =
+        LazyHardwareMapImu(
+            hardwareMap,
+            "imu",
+            RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection)
+        )
 
     val localizer = DriveLocalizer(pose)
 
@@ -136,14 +128,6 @@ open class SimpleRobotWithMecanumDrive(
         private var lastHeading: Rotation2d? = null
         private var initialized = false
 
-        init {
-            // Set motor directions
-            leftFrontEncoder.direction = DcMotorSimple.Direction.FORWARD
-            leftBackEncoder.direction = DcMotorSimple.Direction.FORWARD
-            rightBackEncoder.direction = DcMotorSimple.Direction.REVERSE
-            rightFrontEncoder.direction = DcMotorSimple.Direction.REVERSE
-        }
-
         override fun update(): PoseVelocity2d {
             val leftFrontPosVel = leftFrontEncoder.getPositionAndVelocity()
             val leftBackPosVel = leftBackEncoder.getPositionAndVelocity()
@@ -155,7 +139,11 @@ open class SimpleRobotWithMecanumDrive(
             FlightRecorder.write(
                 "MECANUM_LOCALIZER_INPUTS",
                 MecanumLocalizerInputsMessage(
-                    leftFrontPosVel, leftBackPosVel, rightBackPosVel, rightFrontPosVel, angles
+                    leftFrontPosVel,
+                    leftBackPosVel,
+                    rightBackPosVel,
+                    rightFrontPosVel,
+                    angles
                 )
             )
 
@@ -175,34 +163,44 @@ open class SimpleRobotWithMecanumDrive(
             }
 
             val headingDelta = heading.minus(lastHeading!!)
-            val twist: Twist2dDual<Time> = kinematics.forward(
-                MecanumKinematics.WheelIncrements(
-                    DualNum<Time>(
-                        doubleArrayOf(
-                            (leftFrontPosVel.position - lastLeftFrontPos).toDouble(),
-                            leftFrontPosVel.velocity!!.toDouble(),
+            val twist: Twist2dDual<Time> =
+                kinematics.forward(
+                    MecanumKinematics.WheelIncrements(
+                        DualNum<Time>(
+                            doubleArrayOf(
+                                (leftFrontPosVel.position - lastLeftFrontPos)
+                                    .toDouble(),
+                                leftFrontPosVel.velocity!!.toDouble(),
+                            )
                         )
-                    ).times(params.inPerTick),
-                    DualNum<Time>(
-                        doubleArrayOf(
-                            (leftBackPosVel.position - lastLeftBackPos).toDouble(),
-                            leftBackPosVel.velocity!!.toDouble(),
+                            .times(params.inPerTick),
+                        DualNum<Time>(
+                            doubleArrayOf(
+                                (leftBackPosVel.position - lastLeftBackPos)
+                                    .toDouble(),
+                                leftBackPosVel.velocity!!.toDouble(),
+                            )
                         )
-                    ).times(params.inPerTick),
-                    DualNum<Time>(
-                        doubleArrayOf(
-                            (rightBackPosVel.position - lastRightBackPos).toDouble(),
-                            rightBackPosVel.velocity!!.toDouble(),
+                            .times(params.inPerTick),
+                        DualNum<Time>(
+                            doubleArrayOf(
+                                (rightBackPosVel.position - lastRightBackPos)
+                                    .toDouble(),
+                                rightBackPosVel.velocity!!.toDouble(),
+                            )
                         )
-                    ).times(params.inPerTick),
-                    DualNum<Time>(
-                        doubleArrayOf(
-                            (rightFrontPosVel.position - lastRightFrontPos).toDouble(),
-                            rightFrontPosVel.velocity!!.toDouble(),
+                            .times(params.inPerTick),
+                        DualNum<Time>(
+                            doubleArrayOf(
+                                (rightFrontPosVel.position -
+                                        lastRightFrontPos)
+                                    .toDouble(),
+                                rightFrontPosVel.velocity!!.toDouble(),
+                            )
                         )
-                    ).times(params.inPerTick)
+                            .times(params.inPerTick)
+                    )
                 )
-            )
 
             lastLeftFrontPos = leftFrontPosVel.position
             lastLeftBackPos = leftBackPosVel.position
@@ -211,12 +209,7 @@ open class SimpleRobotWithMecanumDrive(
 
             lastHeading = heading
 
-            pose = pose.plus(
-                Twist2d(
-                    twist.line.value(),
-                    headingDelta
-                )
-            )
+            pose = pose.plus(Twist2d(twist.line.value(), headingDelta))
 
             return twist.velocity().value()
         }
@@ -229,15 +222,7 @@ open class SimpleRobotWithMecanumDrive(
             module.bulkCachingMode = LynxModule.BulkCachingMode.AUTO
         }
 
-        driveMotors.forEach {
-            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        }
-
-        // Set motor directions
-        leftFront.direction = DcMotorSimple.Direction.FORWARD
-        leftBack.direction = DcMotorSimple.Direction.FORWARD
-        rightBack.direction = DcMotorSimple.Direction.REVERSE
-        rightFront.direction = DcMotorSimple.Direction.REVERSE
+        driveMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
     }
 
     /**
@@ -248,9 +233,7 @@ open class SimpleRobotWithMecanumDrive(
      * @see PoseVelocity2d
      */
     fun setDrivePowers(powers: PoseVelocity2d) {
-        val wheelVels = MecanumKinematics(1.0).inverse(
-            PoseVelocity2dDual.constant<Time>(powers, 1)
-        )
+        val wheelVels = MecanumKinematics(1.0).inverse(PoseVelocity2dDual.constant<Time>(powers, 1))
 
         var maxPowerMag = 1.0
         for (power in wheelVels.all()) {
@@ -270,10 +253,12 @@ open class SimpleRobotWithMecanumDrive(
         private val yPoints: DoubleArray
 
         init {
-            val disps = range(
-                0.0, timeTrajectory.path.length(),
-                max(2.0, ceil(timeTrajectory.path.length() / 2).toInt().toDouble()).toInt()
-            )
+            val disps =
+                range(
+                    0.0,
+                    timeTrajectory.path.length(),
+                    max(2.0, ceil(timeTrajectory.path.length() / 2).toInt().toDouble()).toInt()
+                )
             xPoints = DoubleArray(disps.size)
             yPoints = DoubleArray(disps.size)
             for (i in disps.indices) {
@@ -306,32 +291,38 @@ open class SimpleRobotWithMecanumDrive(
 
             val robotVelRobot = updatePoseEstimate()
 
-            val command = HolonomicController(
-                params.axialGain, params.lateralGain, params.headingGain,
-                params.axialVelGain, params.lateralVelGain, params.headingVelGain
-            )
-                .compute(txWorldTarget, localizer.pose, robotVelRobot)
-            driveCommandWriter.write(
-                DriveCommandMessage(
-                    command
+            val command =
+                HolonomicController(
+                    params.axialGain,
+                    params.lateralGain,
+                    params.headingGain,
+                    params.axialVelGain,
+                    params.lateralVelGain,
+                    params.headingVelGain
                 )
-            )
+                    .compute(txWorldTarget, localizer.pose, robotVelRobot)
+            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
 
-            val feedforward = MotorFeedforward(
-                params.kS,
-                params.kV / params.inPerTick,
-                params.kA / params.inPerTick
-            )
+            val feedforward =
+                MotorFeedforward(
+                    params.kS,
+                    params.kV / params.inPerTick,
+                    params.kA / params.inPerTick
+                )
             val leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
             val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
             val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
             mecanumCommandWriter.write(
                 MecanumCommandMessage(
-                    voltage, leftFrontPower, leftBackPower, rightBackPower, rightFrontPower
+                    voltage,
+                    leftFrontPower,
+                    leftBackPower,
+                    rightBackPower,
+                    rightFrontPower
                 )
             )
 
@@ -340,16 +331,15 @@ open class SimpleRobotWithMecanumDrive(
             rightBack.power = rightBackPower
             rightFront.power = rightFrontPower
 
-            p.put("x", localizer.pose.position.x);
-            p.put("y", localizer.pose.position.y);
-            p.put("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()));
+            p.put("x", localizer.pose.position.x)
+            p.put("y", localizer.pose.position.y)
+            p.put("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()))
 
             val error = txWorldTarget.value().minusExp(localizer.pose)
             p.put("xError", error.position.x)
             p.put("yError", error.position.y)
             p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()))
 
-            // only draw when active; only one drive action should be active at a time
             val c = p.fieldOverlay()
             drawPoseHistory(c)
 
@@ -399,26 +389,37 @@ open class SimpleRobotWithMecanumDrive(
 
             val robotVelRobot = updatePoseEstimate()
 
-            val command = HolonomicController(
-                params.axialGain, params.lateralGain, params.headingGain,
-                params.axialVelGain, params.lateralVelGain, params.headingVelGain
-            ).compute(txWorldTarget, localizer.pose, robotVelRobot)
+            val command =
+                HolonomicController(
+                    params.axialGain,
+                    params.lateralGain,
+                    params.headingGain,
+                    params.axialVelGain,
+                    params.lateralVelGain,
+                    params.headingVelGain
+                )
+                    .compute(txWorldTarget, localizer.pose, robotVelRobot)
             driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
-            val feedforward = MotorFeedforward(
-                params.kS,
-                params.kV / params.inPerTick,
-                params.kA / params.inPerTick
-            )
+            val feedforward =
+                MotorFeedforward(
+                    params.kS,
+                    params.kV / params.inPerTick,
+                    params.kA / params.inPerTick
+                )
             val leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
             val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
             val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
             mecanumCommandWriter.write(
                 MecanumCommandMessage(
-                    voltage, leftFrontPower, leftBackPower, rightBackPower, rightFrontPower
+                    voltage,
+                    leftFrontPower,
+                    leftBackPower,
+                    rightBackPower,
+                    rightFrontPower
                 )
             )
 
@@ -488,15 +489,12 @@ open class SimpleRobotWithMecanumDrive(
         return TrajectoryActionBuilder(
             ::TurnAction,
             ::FollowTrajectoryAction,
-            TrajectoryBuilderParams(
-                1e-6,
-                ProfileParams(
-                    0.25, 0.1, 1e-2
-                )
-            ),
-            beginPose, 0.0,
+            TrajectoryBuilderParams(1e-6, ProfileParams(0.25, 0.1, 1e-2)),
+            beginPose,
+            0.0,
             defaultTurnConstraints,
-            defaultVelConstraint, defaultAccelConstraint
+            defaultVelConstraint,
+            defaultAccelConstraint
         )
     }
 

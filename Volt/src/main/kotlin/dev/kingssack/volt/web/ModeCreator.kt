@@ -30,7 +30,7 @@ class ModeCreator {
             val opMode = object : AutonomousOpMode() {
                 override fun runOpMode() {
                     // Create the robot based on the robot type
-                    val robot = createRobot(config.robotType, hardwareMap)
+                    val robot = createRobot(config.robot, hardwareMap)
 
                     // Create the autonomous mode
                     auto = createAutonomousMode(config, robot, telemetry)
@@ -54,7 +54,7 @@ class ModeCreator {
             val opMode = object : ManualOpMode() {
                 override fun init() {
                     // Create the robot based on the robot type
-                    val robot = createRobot(config.robotType, hardwareMap)
+                    val robot = createRobot(config.robot, hardwareMap)
 
                     // Create the manual mode
                     manual = createManualMode(config, robot, gamepad1, gamepad2, telemetry)

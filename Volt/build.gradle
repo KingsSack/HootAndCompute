@@ -24,7 +24,7 @@ android {
         buildConfig = true
     }
 
-    compileSdk 34
+    compileSdk 35
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
