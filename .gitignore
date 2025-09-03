@@ -81,4 +81,4 @@ lint/tmp/
 # lint/reports/
 
 # Kotlin Lnaguage Server
-/kls_database.db
+kls_database.db
