@@ -1,9 +1,11 @@
 buildscript {
-    ext.min_sdk_version = "10.2.0"
+    ext.min_sdk_version = "10.3.0"
     ext.min_rr_ftc_version = "0.1.21"
     ext.min_rr_version = "1.0.1"
     ext.min_dash_version = "0.4.16"
-    ext.min_pp_version = "1.0.7"
+    ext.min_pp_version = "2.0.0"
+    ext.min_pp_telemetry_version = "0.0.6"
+    ext.min_fullpanels_version = "1.0.2"
 }
 
 apply plugin: 'com.android.library'
@@ -24,7 +26,7 @@ android {
         buildConfig = true
     }
 
-    compileSdk 35
+    compileSdk 36
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
@@ -43,12 +45,8 @@ android {
 }
 
 repositories {
-    maven {
-        url = 'https://maven.brott.dev/'
-    }
-    maven {
-        url = 'https://maven.pedropathing.com/'
-    }
+    maven { url = 'https://maven.pedropathing.com' }
+    maven { url = "https://mymaven.bylazar.com/releases" }
 }
 
 dependencies {
@@ -62,11 +60,14 @@ dependencies {
 
     api "com.acmerobotics.dashboard:dashboard:$min_dash_version"
 
-    api "com.pedropathing:pedro:$min_pp_version"
+    api "com.pedropathing:ftc:$min_pp_version"
+    api "com.pedropathing:telemetry:$min_pp_telemetry_version"
+
+    api "com.bylazar:fullpanels:$min_fullpanels_version"
 
     implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
         exclude module: "nanohttpd"
     }
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
 }
