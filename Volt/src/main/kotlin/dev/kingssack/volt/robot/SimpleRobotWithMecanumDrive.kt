@@ -27,7 +27,11 @@ import kotlin.math.max
  * @param hardwareMap the hardware map
  * @param pose the initial pose of the robot
  */
-open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2d, private val params: DriveParams = DriveParams()) : Robot() {
+open class SimpleRobotWithMecanumDrive(
+    hardwareMap: HardwareMap,
+    var pose: Pose2d,
+    private val params: DriveParams = DriveParams()
+) : Robot() {
     /**
      * Parameters for the robot's mecanum drive.
      * 
@@ -230,8 +234,8 @@ open class SimpleRobotWithMecanumDrive(hardwareMap: HardwareMap, var pose: Pose2
         // Set motor directions
         leftFront.direction = DcMotorSimple.Direction.FORWARD
         leftBack.direction = DcMotorSimple.Direction.FORWARD
-        rightBack.direction = DcMotorSimple.Direction.REVERSE
-        rightFront.direction = DcMotorSimple.Direction.REVERSE
+        rightBack.direction = DcMotorSimple.Direction.FORWARD
+        rightFront.direction = DcMotorSimple.Direction.FORWARD
     }
 
     /**
