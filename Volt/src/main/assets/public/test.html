@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleOp Project Name</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AlpineJS CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+    <!-- Material Symbols -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a1a; /* Slightly darker than gray-900 for closer match */
+            color: #e5e7eb; /* gray-200 */
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom scrollbar for better dark theme integration (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2d3748; /* gray-800 */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568; /* gray-600 */
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096; /* gray-500 */
+        }
+
+        /* Style selects and inputs for dark mode */
+        select, input[type="number"] {
+            background-color: #4a5568; /* gray-600 */
+            border: 1px solid #718096; /* gray-500 */
+            color: #e5e7eb; /* gray-200 */
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.5rem 0.75rem;
+        }
+
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #63b3ed; /* blue-400 */
+            box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.5);
+        }
+
+        /* Helper for connection dots */
+        .connector-dot {
+            width: 0.3rem; /* 4.8px */
+            height: 0.3rem; /* 4.8px */
+            background-color: #ffffff;
+            border-radius: 9999px; /* rounded-full */
+            position: absolute;
+            /* Offset slightly to center the dot on the line/edge */
+            transform: translate(-50%, -50%);
+        }
+
+        /* Helper for dashed lines */
+        .line-dashed {
+            position: absolute;
+            border-style: dashed;
+            border-color: #ffffff;
+            border-width: 0; /* Reset all borders */
+        }
+
+        .line-horizontal {
+            border-top-width: 1.5px; /* Slightly thicker */
+            height: 1px;
+        }
+
+        .line-vertical {
+            border-left-width: 1.5px; /* Slightly thicker */
+            width: 1px;
+        }
+
+        .action-box {
+            background-color: #4a5568; /* gray-600 */
+            color: #e5e7eb; /* gray-200 */
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            white-space: nowrap;
+            position: absolute; /* Needed for positioning */
+            z-index: 10; /* Ensure boxes are above lines */
+        }
+
+        .action-box:hover {
+            background-color: #718096; /* gray-500 */
+        }
+
+        .action-box.selected {
+            background-color: #ffffff; /* white */
+            color: #1f2937; /* gray-800 */
+            font-weight: 600;
+        }
+
+        .material-symbols-rounded {
+            font-variation-settings: 'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-[#1a1a1a] text-gray-200 min-h-screen">
+
+<div x-data="voltApp()" class="flex flex-col h-screen">
+    <!-- Header -->
+    <header class="flex items-center justify-between p-4 border-b border-gray-700">
+        <div class="flex items-center space-x-3">
+            <span class="material-symbols-rounded text-3xl">bolt</span> <!-- Added text-blue-400 -->
+            <h1 class="text-lg text-gray-400">Volt</h1>
+            <h1 class="text-xs text-gray-400">/</h1>
+            <h1 class="text-lg text-gray-100">TeleOp Project Name</h1>
+        </div>
+        <button class="bg-green-600 hover:bg-green-700 font-semibold py-1 px-3 rounded-2xl flex items-center space-x-1 transition duration-150 ease-in-out">
+            <span class="material-symbols-rounded text-3xl">play_arrow</span>
+            <span>Run</span>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Gamepads Area -->
+        <div class="flex-1 flex flex-col items-center justify-center p-8 space-y-12 overflow-y-auto relative">
+
+            <!-- Gamepad 1 -->
+            <!-- Container size: w-[600px] h-[450px] -->
+            <!-- Image: ./f310-gallery-1.png -->
+            <div class="relative w-[755px] h-[556px]">
+                <img src="./f310-gallery-1.png" alt="Gamepad Controller 1"
+                     class="absolute inset-0 w-full h-full object-contain pointer-events-none">
+
+                <!-- Action Labels & Lines for Gamepad 1 -->
+                <!-- NOTE: Coordinates are adjusted for f310-gallery-1.png in a 600x450 container -->
+
+                <!-- D-Pad Up -->
+                <div @click="selectAction('gp1_lu')" :class="{'selected': selectedActionId === 'gp1_lu'}"
+                     class="action-box" style="left: 10px; top: 112px;" x-text="actions.gp1_lu.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 127px; width: 65px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 127px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="left: 170px; top: 127px;"></div> <!-- Dot on D-Pad Up -->
+
+                <!-- D-Pad Down -->
+                <div @click="selectAction('gp1_ld')" :class="{'selected': selectedActionId === 'gp1_ld'}"
+                     class="action-box" style="left: 10px; top: 176px;" x-text="actions.gp1_ld.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 190px; width: 60px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 190px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="left: 170px; top: 190px;"></div> <!-- Dot on D-Pad Down -->
+
+                <!-- D-Pad Left -->
+                <div @click="selectAction('gp1_ll')" :class="{'selected': selectedActionId === 'gp1_ll'}"
+                     class="action-box" style="left: 10px; top: 144px;" x-text="actions.gp1_ll.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 160px; width: 35px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 160px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="left: 140px; top: 160px;"></div> <!-- Dot on D-Pad Left -->
+
+                <!-- D-Pad Right -->
+                <div @click="selectAction('gp1_lr')" :class="{'selected': selectedActionId === 'gp1_lr'}"
+                     class="action-box" style="left: 10px; top: 80px;" x-text="actions.gp1_lr.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 95px; width: 95px;"></div>
+                <div class="line-dashed line-vertical" style="left: 200px; top: 95px; height: 65px;"></div> <!-- Vert segment -->
+                <div class="connector-dot" style="left: 105px; top: 95px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="left: 200px; top: 160px;"></div> <!-- Dot on D-Pad Right -->
+
+                <!-- Left Trigger -->
+                <div @click="selectAction('gp1_lt')" :class="{'selected': selectedActionId === 'gp1_lt'}"
+                     class="action-box" style="left: 200px; top: 15px;" x-text="actions.gp1_lt.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 170px; top: 28px; width: 30px;"></div> <!-- Horiz segment -->
+                <div class="line-dashed line-vertical" style="left: 170px; top: 28px; height: 27px;"></div> <!-- Vert segment -->
+                <div class="connector-dot" style="left: 200px; top: 28px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="left: 170px; top: 55px;"></div> <!-- Dot on Trigger -->
+
+                <!-- Left Bumper -->
+                <div @click="selectAction('gp1_lb')" :class="{'selected': selectedActionId === 'gp1_lb'}"
+                     class="action-box" style="left: 32px; top: 15px;" x-text="actions.gp1_lb.type"></div>
+                <div class="line-dashed line-vertical" style="left: 160px; top: 28px; height: 31px;"></div> <!-- Vert segment -->
+                <div class="line-dashed line-horizontal" style="left: 127px; top: 28px; width: 33px;"></div> <!-- Horiz segment -->
+                <div class="connector-dot" style="left: 127px; top: 28px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="left: 160px; top: 58px;"></div> <!-- Dot on Bumper -->
+
+                <!-- Right Stick Up -->
+                <!-- <div @click="selectAction('gp1_ru')" :class="{'selected': selectedActionId === 'gp1_ru'}"
+                     class="action-box" style="right: 10px; top: 100px;" x-text="actions.gp1_ru.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 112px; width: 45px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 110px;"></div>
+                <div class="connector-dot" style="right: 150px; top: 110px;"></div> -->
+
+                <!-- Right Stick Down -->
+                <!-- <div @click="selectAction('gp1_rd')" :class="{'selected': selectedActionId === 'gp1_rd'}"
+                     class="action-box" style="right: 10px; top: 180px;" x-text="actions.gp1_rd.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 192px; width: 45px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 190px;"></div>
+                <div class="connector-dot" style="right: 150px; top: 190px;"></div> -->
+
+                <!-- Right Stick Left -->
+                <!-- <div @click="selectAction('gp1_rl')" :class="{'selected': selectedActionId === 'gp1_rl'}"
+                     class="action-box" style="right: 10px; top: 140px;" x-text="actions.gp1_rl.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 152px; width: 25px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 150px;"></div>
+                <div class="connector-dot" style="right: 130px; top: 150px;"></div> -->
+
+                <!-- Right Stick Right -->
+                <!-- <div @click="selectAction('gp1_rr')" :class="{'selected': selectedActionId === 'gp1_rr'}"
+                     class="action-box" style="right: 10px; top: 220px;" x-text="actions.gp1_rr.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 232px; width: 45px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 230px;"></div>
+                <div class="connector-dot" style="right: 150px; top: 230px;"></div> -->
+
+                <!-- Right Trigger -->
+                <div @click="selectAction('gp1_rt')" :class="{'selected': selectedActionId === 'gp1_rt'}"
+                     class="action-box" style="right: 200px; top: 15px;" x-text="actions.gp1_rt.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 170px; top: 28px; width: 30px;"></div> <!-- Horiz segment -->
+                <div class="line-dashed line-vertical" style="right: 170px; top: 28px; height: 27px;"></div> <!-- Vert segment -->
+                <div class="connector-dot" style="right: 200px; top: 28px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="right: 170px; top: 55px;"></div> <!-- Dot on Trigger -->
+
+                <!-- Right Bumper -->
+                <div @click="selectAction('gp1_rb')" :class="{'selected': selectedActionId === 'gp1_rb'}"
+                     class="action-box" style="right: 32px; top: 15px;" x-text="actions.gp1_rb.type"></div>
+                <div class="line-dashed line-vertical" style="right: 160px; top: 28px; height: 31px;"></div> <!-- Vert segment -->
+                <div class="line-dashed line-horizontal" style="right: 127px; top: 28px; width: 33px;"></div> <!-- Horiz segment -->
+                <div class="connector-dot" style="right: 127px; top: 28px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="right: 160px; top: 58px;"></div> <!-- Dot on Bumper -->
+
+                <!-- Face Button Y -->
+                <div @click="selectAction('gp1_y')" :class="{'selected': selectedActionId === 'gp1_y'}"
+                     class="action-box" style="right: 10px; top: 112px;" x-text="actions.gp1_y.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 127px; width: 65px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 127px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="right: 170px; top: 127px;"></div> <!-- Dot on Y button -->
+
+                <!-- Face Button B -->
+                <div @click="selectAction('gp1_b')" :class="{'selected': selectedActionId === 'gp1_b'}"
+                     class="action-box" style="right: 10px; top: 144px;" x-text="actions.gp1_b.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 157px; width: 35px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 160px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="right: 140px; top: 160px;"></div> <!-- Dot on B button -->
+
+                <!-- Face Button A -->
+                <div @click="selectAction('gp1_a')" :class="{'selected': selectedActionId === 'gp1_a'}"
+                    class="action-box" style="right: 10px; top: 176px;" x-text="actions.gp1_a.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 190px; width: 60px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 190px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="right: 170px; top: 190px;"></div> <!-- Dot on A button -->
+
+                <!-- Face Button X -->
+                <div @click="selectAction('gp1_x')" :class="{'selected': selectedActionId === 'gp1_x'}"
+                     class="action-box" style="right: 10px; top: 80px;" x-text="actions.gp1_x.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 95px; width: 95px;"></div>
+                <div class="line-dashed line-vertical" style="right: 200px; top: 95px; height: 65px;"></div> <!-- Vert segment -->
+                <div class="connector-dot" style="right: 105px; top: 95px;"></div> <!-- Dot on box edge -->
+                <div class="connector-dot" style="right: 200px; top: 160px;"></div> <!-- Dot on X button -->
+
+            </div>
+
+            <!-- Gamepad 2 -->
+            <!-- Container size: w-[600px] h-[450px] -->
+            <!-- Image: ./f310-gallery-1.png -->
+            <div class="relative w-[600px] h-[450px]">
+                <img src="./f310-gallery-1.png" alt="Gamepad Controller 2"
+                     class="absolute inset-0 w-full h-full object-contain pointer-events-none">
+
+                <!-- Action Labels & Lines for Gamepad 2 (Copy/Paste and adjust IDs) -->
+
+                <!-- D-Pad Up -->
+                <div @click="selectAction('gp2_lu')" :class="{'selected': selectedActionId === 'gp2_lu'}"
+                     class="action-box" style="left: 10px; top: 135px;" x-text="actions.gp2_lu.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 147px; width: 60px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 147px;"></div>
+                <div class="connector-dot" style="left: 165px; top: 147px;"></div>
+
+                <!-- D-Pad Down -->
+                <div @click="selectAction('gp2_ld')" :class="{'selected': selectedActionId === 'gp2_ld'}"
+                     class="action-box" style="left: 10px; top: 215px;" x-text="actions.gp2_ld.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 227px; width: 60px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 227px;"></div>
+                <div class="connector-dot" style="left: 165px; top: 227px;"></div>
+
+                <!-- D-Pad Left -->
+                <div @click="selectAction('gp2_ll')" :class="{'selected': selectedActionId === 'gp2_ll'}"
+                     class="action-box" style="left: 10px; top: 175px;" x-text="actions.gp2_ll.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 187px; width: 35px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 187px;"></div>
+                <div class="connector-dot" style="left: 140px; top: 187px;"></div>
+
+                <!-- D-Pad Right -->
+                <div @click="selectAction('gp2_lr')" :class="{'selected': selectedActionId === 'gp2_lr'}"
+                     class="action-box" style="left: 10px; top: 255px;" x-text="actions.gp2_lr.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 267px; width: 85px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 267px;"></div>
+                <div class="connector-dot" style="left: 190px; top: 267px;"></div>
+
+
+                <!-- Left Trigger -->
+                <div @click="selectAction('gp2_lt')" :class="{'selected': selectedActionId === 'gp2_lt'}"
+                     class="action-box" style="left: 10px; top: 315px;" x-text="actions.gp2_lt.type"></div>
+                <div class="line-dashed line-horizontal" style="left: 105px; top: 327px; width: 35px;"></div>
+                <div class="line-dashed line-vertical" style="left: 140px; top: 85px; height: 242px;"></div>
+                <div class="connector-dot" style="left: 105px; top: 327px;"></div>
+                <div class="connector-dot" style="left: 140px; top: 85px;"></div>
+
+                <!-- Left Bumper -->
+                <div @click="selectAction('gp2_lb')" :class="{'selected': selectedActionId === 'gp2_lb'}"
+                     class="action-box" style="left: 100px; top: 15px;" x-text="actions.gp2_lb.type"></div>
+                <div class="line-dashed line-vertical" style="left: 140px; top: 49px; height: 31px;"></div>
+                <div class="line-dashed line-horizontal" style="left: 140px; top: 80px; width: 40px;"></div>
+                <div class="connector-dot" style="left: 140px; top: 49px;"></div>
+                <div class="connector-dot" style="left: 180px; top: 80px;"></div>
+
+                <!-- Right Stick Up -->
+                <!-- <div @click="selectAction('gp2_ru')" :class="{'selected': selectedActionId === 'gp2_ru'}"
+                     class="action-box" style="right: 10px; top: 100px;" x-text="actions.gp2_ru.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 112px; width: 45px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 110px;"></div>
+                <div class="connector-dot" style="right: 150px; top: 110px;"></div> -->
+
+                <!-- Right Stick Down -->
+                <!-- <div @click="selectAction('gp2_rd')" :class="{'selected': selectedActionId === 'gp2_rd'}"
+                     class="action-box" style="right: 10px; top: 180px;" x-text="actions.gp2_rd.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 192px; width: 45px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 190px;"></div>
+                <div class="connector-dot" style="right: 150px; top: 190px;"></div> -->
+
+                <!-- Right Stick Left -->
+                <!-- <div @click="selectAction('gp2_rl')" :class="{'selected': selectedActionId === 'gp2_rl'}"
+                     class="action-box" style="right: 10px; top: 140px;" x-text="actions.gp2_rl.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 152px; width: 25px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 150px;"></div>
+                <div class="connector-dot" style="right: 130px; top: 150px;"></div> -->
+
+                <!-- Right Stick Right -->
+                <!-- <div @click="selectAction('gp2_rr')" :class="{'selected': selectedActionId === 'gp2_rr'}"
+                     class="action-box" style="right: 10px; top: 220px;" x-text="actions.gp2_rr.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 232px; width: 45px;"></div>
+                <div class="connector-dot" style="right: 102px; top: 230px;"></div>
+                <div class="connector-dot" style="right: 150px; top: 230px;"></div> -->
+
+                <!-- Right Trigger -->
+                <div @click="selectAction('gp2_rt')" :class="{'selected': selectedActionId === 'gp2_rt'}"
+                     class="action-box" style="right: 10px; top: 315px;" x-text="actions.gp2_rt.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 327px; width: 35px;"></div>
+                <div class="line-dashed line-vertical" style="right: 140px; top: 85px; height: 242px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 327px;"></div>
+                <div class="connector-dot" style="right: 140px; top: 85px;"></div>
+
+                <!-- Right Bumper -->
+                <div @click="selectAction('gp2_rb')" :class="{'selected': selectedActionId === 'gp2_rb'}"
+                     class="action-box" style="right: 100px; top: 15px;" x-text="actions.gp2_rb.type"></div>
+                <div class="line-dashed line-vertical" style="right: 140px; top: 49px; height: 31px;"></div>
+                <div class="line-dashed line-horizontal" style="right: 140px; top: 80px; width: 40px;"></div>
+                <div class="connector-dot" style="right: 140px; top: 49px;"></div>
+                <div class="connector-dot" style="right: 180px; top: 80px;"></div>
+
+                <!-- Face Button Y -->
+                <div @click="selectAction('gp2_y')" :class="{'selected': selectedActionId === 'gp2_y'}"
+                     class="action-box" style="right: 10px; top: 105px;" x-text="actions.gp2_y.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 117px; width: 55px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 117px;"></div>
+                <div class="connector-dot" style="right: 160px; top: 117px;"></div>
+
+                <!-- Face Button B -->
+                <div @click="selectAction('gp2_b')" :class="{'selected': selectedActionId === 'gp2_b'}"
+                     class="action-box" style="right: 10px; top: 145px;" x-text="actions.gp2_b.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 157px; width: 80px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 157px;"></div>
+                <div class="connector-dot" style="right: 185px; top: 157px;"></div>
+
+                <!-- Face Button A -->
+                <div @click="selectAction('gp2_a')" :class="{'selected': selectedActionId === 'gp2_a'}"
+                     class="action-box" style="right: 10px; top: 185px;" x-text="actions.gp2_a.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 197px; width: 55px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 197px;"></div>
+                <div class="connector-dot" style="right: 160px; top: 197px;"></div>
+
+                <!-- Face Button X -->
+                <div @click="selectAction('gp2_x')" :class="{'selected': selectedActionId === 'gp2_x'}"
+                     class="action-box" style="right: 10px; top: 225px;" x-text="actions.gp2_x.type"></div>
+                <div class="line-dashed line-horizontal" style="right: 105px; top: 237px; width: 30px;"></div>
+                <div class="connector-dot" style="right: 105px; top: 237px;"></div>
+                <div class="connector-dot" style="right: 135px; top: 237px;"></div>
+
+            </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="w-72 bg-gray-800 p-6 flex flex-col space-y-8 border-l border-gray-700 overflow-y-auto">
+            <!-- Robot Section -->
+            <div class="space-y-3">
+                <h2 class="text-lg font-semibold font-mono text-gray-100">Robot</h2>
+                <select id="robot-select" class="w-full font-mono"
+                        @change="changeRobot($event.target.value)">
+                    <option value="">Select</option>
+                    <option value="centerstage">Centerstage Bot</option>
+                    <option value="roverruckus">Rover Ruckus Bot</option>
+                    <option value="freightfrenzy">Freight Frenzy Bot</option>
+                    <!-- Add more robots as needed -->
+                </select>
+            </div>
+
+            <!-- Action Section -->
+            <div class="space-y-3 border-t border-gray-700 pt-6">
+                <h2 class="text-lg font-semibold font-mono text-gray-100">Action</h2>
+                <div class="space-y-2">
+                    <label for="action-type-select" class="block text-sm font-medium font-mono text-gray-400">Action Type</label>
+                    <select id="action-type-select" class="w-full font-mono"
+                            :value="selectedAction ? selectedAction.type : 'No Action'"
+                            @change="updateSelectedActionType($event)"
+                            :disabled="!selectedRobot || !selectedActionId"> <!-- Also disable if no action selected -->
+                        <template x-for="actionType in availableActionTypes" :key="actionType">
+                            <option :value="actionType" x-text="actionType"></option>
+                        </template>
+                    </select>
+                </div>
+                <div class="space-y-2" x-show="selectedAction && selectedAction.type !== 'No Action'">
+                    <!-- Show power only if an action is selected and it's not 'No Action' -->
+                    <label for="action-power" class="block text-sm font-medium font-mono text-gray-400">Power</label>
+                    <input type="number" id="action-power" name="action-power" step="0.1" placeholder="0.0"
+                           class="w-full font-mono"
+                           :value="selectedAction ? selectedAction.power : 0.0"
+                           @input="updateSelectedActionPower($event)"
+                           :disabled="!selectedRobot || !selectedActionId"> <!-- Also disable if no action selected -->
+                </div>
+                <div class="text-xs text-gray-500 pt-2" x-show="selectedActionId">
+                    Selected: <span class="font-medium text-gray-400" x-text="selectedActionId"></span>
+                </div>
+                <div class="text-xs text-red-500 pt-2" x-show="!selectedRobot">
+                    Please select a robot first.
+                </div>
+                <div class="text-xs text-gray-500 pt-2" x-show="selectedRobot && !selectedActionId">
+                    Click a button on the gamepad to assign an action.
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+    function voltApp() {
+        return {
+            selectedActionId: null, // Start with no action selected
+            selectedRobot: null,
+
+            // Define robot-specific action types
+            robotActionTypes: {
+                'centerstage': ['No Action', 'Intake', 'Outtake', 'Arm Up', 'Arm Down', 'Drive Forward', 'Drive Backward', 'Strafe Left', 'Strafe Right', 'Rotate Left', 'Rotate Right', 'Launch Drone', 'Hang'],
+                'roverruckus': ['No Action', 'Collect Minerals', 'Deposit Minerals', 'Extend Arm', 'Retract Arm', 'Drive Forward', 'Drive Backward', 'Turn Left', 'Turn Right', 'Latch', 'Unlatch'],
+                'freightfrenzy': ['No Action', 'Intake Freight', 'Deposit Freight', 'Lift Up', 'Lift Down', 'Drive Forward', 'Drive Backward', 'Strafe Left', 'Strafe Right', 'Spin Duck', 'Park']
+            },
+
+            // Default action types when no robot is selected
+            availableActionTypes: ['No Action'],
+
+            // Initialize all actions with 'No Action'
+            actions: {
+                // Gamepad 1 Actions
+                'gp1_lu': {type: 'No Action', power: 0.0},
+                'gp1_ld': {type: 'No Action', power: 0.0},
+                'gp1_ll': {type: 'No Action', power: 0.0},
+                'gp1_lr': {type: 'No Action', power: 0.0},
+                'gp1_lt': {type: 'No Action', power: 0.0},
+                'gp1_lb': {type: 'No Action', power: 0.0},
+                'gp1_ru': {type: 'No Action', power: 0.0}, // Right stick actions currently not visually mapped
+                'gp1_rd': {type: 'No Action', power: 0.0},
+                'gp1_rl': {type: 'No Action', power: 0.0},
+                'gp1_rr': {type: 'No Action', power: 0.0},
+                'gp1_rt': {type: 'No Action', power: 0.0},
+                'gp1_rb': {type: 'No Action', power: 0.0},
+                'gp1_y': {type: 'No Action', power: 0.0},
+                'gp1_b': {type: 'No Action', power: 0.0},
+                'gp1_a': {type: 'No Action', power: 0.0},
+                'gp1_x': {type: 'No Action', power: 0.0},
+                // Gamepad 2 Actions
+                'gp2_lu': {type: 'No Action', power: 0.0},
+                'gp2_ld': {type: 'No Action', power: 0.0},
+                'gp2_ll': {type: 'No Action', power: 0.0},
+                'gp2_lr': {type: 'No Action', power: 0.0},
+                'gp2_lt': {type: 'No Action', power: 0.0},
+                'gp2_lb': {type: 'No Action', power: 0.0},
+                'gp2_ru': {type: 'No Action', power: 0.0}, // Right stick actions currently not visually mapped
+                'gp2_rd': {type: 'No Action', power: 0.0},
+                'gp2_rl': {type: 'No Action', power: 0.0},
+                'gp2_rr': {type: 'No Action', power: 0.0},
+                'gp2_rt': {type: 'No Action', power: 0.0},
+                'gp2_rb': {type: 'No Action', power: 0.0},
+                'gp2_y': {type: 'No Action', power: 0.0},
+                'gp2_b': {type: 'No Action', power: 0.0},
+                'gp2_a': {type: 'No Action', power: 0.0},
+                'gp2_x': {type: 'No Action', power: 0.0},
+            },
+
+            // Predefined robot configurations for quick setup
+            robotConfigurations: {
+                'centerstage': {
+                    'gp1_lu': {type: 'Drive Forward', power: 1.0},
+                    'gp1_ld': {type: 'Drive Backward', power: 1.0},
+                    'gp1_ll': {type: 'Strafe Left', power: 0.8},
+                    'gp1_lr': {type: 'Strafe Right', power: 0.8},
+                    'gp1_rt': {type: 'Intake', power: 1.0},
+                    'gp1_lt': {type: 'Outtake', power: 0.9},
+                    'gp2_a': {type: 'Arm Up', power: 0.7},
+                    'gp2_b': {type: 'Arm Down', power: 0.7},
+                    'gp2_y': {type: 'Launch Drone', power: 1.0},
+                    'gp2_lt': {type: 'Hang', power: 1.0},
+                },
+                'roverruckus': {
+                    'gp1_lu': {type: 'Drive Forward', power: 1.0},
+                    'gp1_ld': {type: 'Drive Backward', power: 1.0},
+                    // 'gp1_rl': {type: 'Turn Left', power: 0.8}, // Right stick not mapped visually
+                    // 'gp1_rr': {type: 'Turn Right', power: 0.8},
+                    'gp1_a': {type: 'Collect Minerals', power: 1.0},
+                    'gp1_b': {type: 'Deposit Minerals', power: 0.9},
+                    'gp2_y': {type: 'Extend Arm', power: 0.6},
+                    'gp2_a': {type: 'Retract Arm', power: 0.6},
+                    'gp2_lt': {type: 'Latch', power: 1.0},
+                    'gp2_rt': {type: 'Unlatch', power: 1.0},
+                },
+                'freightfrenzy': {
+                    'gp1_lu': {type: 'Drive Forward', power: 1.0},
+                    'gp1_ld': {type: 'Drive Backward', power: 1.0},
+                    'gp1_ll': {type: 'Strafe Left', power: 0.8},
+                    'gp1_lr': {type: 'Strafe Right', power: 0.8},
+                    'gp1_a': {type: 'Intake Freight', power: 1.0},
+                    'gp1_b': {type: 'Deposit Freight', power: 0.8},
+                    'gp2_y': {type: 'Lift Up', power: 0.7},
+                    'gp2_a': {type: 'Lift Down', power: 0.7},
+                    'gp2_rt': {type: 'Spin Duck', power: 0.5},
+                    'gp2_rb': {type: 'Park', power: 1.0},
+                }
+            },
+
+            get selectedAction() {
+                return this.selectedActionId && this.actions[this.selectedActionId] ?
+                    this.actions[this.selectedActionId] : null;
+            },
+
+            changeRobot(robotId) {
+                this.selectedRobot = robotId;
+                // Reset all actions to 'No Action' before applying config
+                Object.keys(this.actions).forEach(id => {
+                    this.actions[id] = {type: 'No Action', power: 0.0};
+                });
+
+                if (robotId && this.robotActionTypes[robotId]) {
+                    this.availableActionTypes = [...this.robotActionTypes[robotId]]; // Create copy
+
+                    // Apply predefined configuration if available
+                    if (this.robotConfigurations[robotId]) {
+                        const config = this.robotConfigurations[robotId];
+                        for (const actionId in config) {
+                            // Ensure the actionId exists in the base actions object
+                            if (this.actions.hasOwnProperty(actionId)) {
+                                // Check if the action type from config is valid for this robot
+                                if (this.availableActionTypes.includes(config[actionId].type)) {
+                                    this.actions[actionId] = {...config[actionId]};
+                                } else {
+                                    console.warn(`Config action type "${config[actionId].type}" for ${actionId} not found in available types for robot "${robotId}". Setting to "No Action".`);
+                                    this.actions[actionId] = {type: 'No Action', power: 0.0};
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    this.availableActionTypes = ['No Action'];
+                }
+                this.selectedActionId = null; // Deselect action when robot changes
+            },
+
+            selectAction(id) {
+                if (this.selectedRobot) {
+                    this.selectedActionId = id;
+                } else {
+                    // Optionally provide feedback if robot not selected
+                    console.log("Please select a robot first.");
+                }
+            },
+
+            updateSelectedActionType(event) {
+                if (this.selectedActionId && this.actions[this.selectedActionId]) {
+                    this.actions[this.selectedActionId].type = event.target.value;
+                    if (event.target.value === 'No Action') {
+                        this.actions[this.selectedActionId].power = 0.0;
+                    }
+                }
+            },
+
+            updateSelectedActionPower(event) {
+                if (this.selectedActionId && this.actions[this.selectedActionId]) {
+                    const powerVal = parseFloat(event.target.value);
+                    this.actions[this.selectedActionId].power = isNaN(powerVal) ? 0.0 : powerVal;
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

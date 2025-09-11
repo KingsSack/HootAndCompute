@@ -1,8 +1,11 @@
 package dev.kingssack.volt.util
 
-import com.acmerobotics.roadrunner.Time
-import com.acmerobotics.roadrunner.Twist2dDual
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.PoseVelocity2d
+
 
 interface Localizer {
-    fun update(): Twist2dDual<Time>
+    var pose: Pose2d
+
+    fun update(): PoseVelocity2d
 }

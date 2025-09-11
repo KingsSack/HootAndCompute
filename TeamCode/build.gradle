@@ -18,7 +18,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdk 35
+    compileSdk 36
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
@@ -40,11 +40,13 @@ repositories {
     maven {
         url = 'https://maven.brott.dev/'
     }
+    maven {
+        url = 'https://maven.pedropathing.com/'
+    }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
-
     implementation project(':Volt')
 
     implementation "com.acmerobotics.roadrunner:ftc:0.1.21"
