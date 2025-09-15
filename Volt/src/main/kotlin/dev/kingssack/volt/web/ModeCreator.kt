@@ -1,7 +1,10 @@
 package dev.kingssack.volt.web
 
 import android.util.Log
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.opmode.AutonomousOpMode
 import dev.kingssack.volt.opmode.CustomOpModes
@@ -9,10 +12,9 @@ import dev.kingssack.volt.opmode.ManualOpMode
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import dev.kingssack.volt.opmode.manual.ManualMode
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.robot.RobotWithMecanumDrive
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.pedropathing.localization.Pose
+import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
 
 /**
  * Utility class for creating and registering autonomous and manual modes.
@@ -71,11 +73,11 @@ class ModeCreator {
          */
         private fun createRobot(robotType: String, hardwareMap: HardwareMap): Robot {
             return when (robotType) {
-                "RobotWithMecanumDrive" -> {
-                    // Create a RobotWithMecanumDrive with default parameters
-                    RobotWithMecanumDrive(
+                "SimpleRobotWithMecanumDrive" -> {
+                    // Create a SimpleRobotWithMecanumDrive with default parameters
+                    SimpleRobotWithMecanumDrive(
                         hardwareMap,
-                        Pose(0.0, 0.0, 0.0)
+                        Pose2d(Vector2d(0.0, 0.0), 0.0)
                     )
                 }
 
@@ -163,14 +165,14 @@ class ModeCreator {
          */
         private fun createAction(config: ModeCreatorHandler.ActionConfig, robot: Robot): Action {
             return when {
-                robot is RobotWithMecanumDrive && config.id == "pathTo" -> {
+                robot is SimpleRobotWithMecanumDrive && config.id == "pathTo" -> {
                     // Get parameters
                     val x = (config.parameters.find { it.name == "x" }?.value as? Number)?.toDouble() ?: 0.0
                     val y = (config.parameters.find { it.name == "y" }?.value as? Number)?.toDouble() ?: 0.0
                     val heading = (config.parameters.find { it.name == "heading" }?.value as? Number)?.toDouble() ?: 0.0
 
                     // Create the action
-                    robot.pathTo(Pose(x, y, heading))
+                    robot.strafeTo(Vector2d(x, y))
                 }
 
                 config.id == "wait" -> {
@@ -181,7 +183,7 @@ class ModeCreator {
                     object : Action {
                         private var startTime = 0L
 
-                        override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket): Boolean {
+                        override fun run(p: TelemetryPacket): Boolean {
                             if (startTime == 0L) {
                                 startTime = System.currentTimeMillis()
                             }
