@@ -24,7 +24,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
  */
 open class SimpleRobotWithMecanumDrive(
     hardwareMap: HardwareMap,
-    pose: Pose2d,
+    var pose: Pose2d,
     private val params: DriveParams = DriveParams()
 ) : Robot() {
     /**
@@ -136,16 +136,16 @@ open class SimpleRobotWithMecanumDrive(
 
             val angles = imu.robotYawPitchRollAngles
 
-            FlightRecorder.write(
-                "MECANUM_LOCALIZER_INPUTS",
-                MecanumLocalizerInputsMessage(
-                    leftFrontPosVel,
-                    leftBackPosVel,
-                    rightBackPosVel,
-                    rightFrontPosVel,
-                    angles
-                )
-            )
+//            FlightRecorder.write(
+//                "MECANUM_LOCALIZER_INPUTS",
+//                MecanumLocalizerInputsMessage(
+//                    leftFrontPosVel,
+//                    leftBackPosVel,
+//                    rightBackPosVel,
+//                    rightFrontPosVel,
+//                    angles
+//                )
+//            )
 
             val heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS))
 
@@ -213,6 +213,11 @@ open class SimpleRobotWithMecanumDrive(
 
             return twist.velocity().value()
         }
+
+        init {
+            rightFront.direction = DcMotorSimple.Direction.REVERSE
+            rightBack.direction = DcMotorSimple.Direction.REVERSE
+        }
     }
 
     init {
@@ -223,6 +228,9 @@ open class SimpleRobotWithMecanumDrive(
         }
 
         driveMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
+
+        rightFront.direction = DcMotorSimple.Direction.REVERSE
+        rightBack.direction = DcMotorSimple.Direction.REVERSE
     }
 
     /**
@@ -457,7 +465,7 @@ open class SimpleRobotWithMecanumDrive(
             poseHistory.removeFirst()
         }
 
-        estimatedPoseWriter.write(PoseMessage(localizer.pose))
+//        estimatedPoseWriter.write(PoseMessage(localizer.pose))
 
         return vel
     }
