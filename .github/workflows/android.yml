@@ -20,5 +20,9 @@ jobs:
         distribution: 'corretto'
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Install Android SDK components
+      uses: android-actions/setup-android@v3
+      with:
+        api-levels: 33
     - name: Build TeamCode APK
       run: ./gradlew assembleRelease -Pmodule=TeamCode
