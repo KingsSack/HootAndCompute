@@ -47,10 +47,7 @@ open class SimpleAttachmentWithDcMotor(
         }
 
     /**
-     * An action that extends or retracts the motor to a target position.
-     *
-     * @param power for the power of the motor
-     * @param targetPosition for the target position of the motor
+     * An action that moves the motor to a [targetPosition] at a specified [power].
      */
     inner class SimpleAttachmentWithDcMotorControl(
         private val power: Double,
@@ -97,10 +94,7 @@ open class SimpleAttachmentWithDcMotor(
     }
 
     /**
-     * Move the motor.
-     *
-     * @param power the power to set the motor to
-     * @param position the target position of the motor
+     * Move to a [position] at a specified [power].
      *
      * @return an action to move the motor to a position
      */

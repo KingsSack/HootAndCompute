@@ -59,14 +59,14 @@ abstract class Attachment {
     /**
      * Updates the attachment.
      *
-     * @param telemetry For logging
+     * @param telemetry for logging
      */
     abstract fun update(telemetry: Telemetry)
 
     /**
      * Stops the attachment.
      */
-    open fun stop() {
+    fun stop() {
         motors.forEach { it.power = 0.0 }
         crServos.forEach { it.power = 0.0 }
     }

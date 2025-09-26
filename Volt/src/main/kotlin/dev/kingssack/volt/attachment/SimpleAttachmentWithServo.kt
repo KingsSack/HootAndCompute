@@ -21,9 +21,7 @@ open class SimpleAttachmentWithServo(hardwareMap: HardwareMap, private val name:
     }
 
     /**
-     * An action that moves a servo to a target position.
-     *
-     * @param targetPosition the position to set the servo to
+     * An action that moves a servo to a [targetPosition].
      */
     inner class SimpleAttachmentWithServoControl(
         private val targetPosition: Double
@@ -42,7 +40,7 @@ open class SimpleAttachmentWithServo(hardwareMap: HardwareMap, private val name:
     }
 
     /**
-     * Go to a position.
+     * Go to a specified [position].
      *
      * @return an action to move the servo to a position
      */

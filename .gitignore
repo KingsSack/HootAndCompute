@@ -80,5 +80,5 @@ lint/outputs/
 lint/tmp/
 # lint/reports/
 
-# Python
-.venv/
+# Kotlin Lnaguage Server
+kls_database.db

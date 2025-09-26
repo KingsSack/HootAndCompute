@@ -1,0 +1,45 @@
+package org.firstinspires.ftc.teamcode.opmode.manual
+
+import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.Vector2d
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.manual.SimpleManualModeWithSpeedModes
+import org.firstinspires.ftc.teamcode.robot.Steve
+
+@Config
+@TeleOp(name = "Manatee", group = "Default")
+class Manatee : SimpleManualModeWithSpeedModes<Steve>() {
+    /**
+     * ManateeParams is a configuration object for manual control.
+     *
+     * @property INITIAL_X the initial x position
+     * @property INITIAL_Y the initial y position
+     * @property INITIAL_HEADING the initial heading
+     */
+    companion object DolphinParams {
+        @JvmField
+        var INITIAL_X: Double = -48.0
+        @JvmField
+        var INITIAL_Y: Double = 64.0
+        @JvmField
+        var INITIAL_HEADING: Double = -90.0
+    }
+
+    override fun createRobot(hardwareMap: HardwareMap): Steve {
+        return Steve(hardwareMap, Pose2d(
+            Vector2d(INITIAL_X, INITIAL_Y),
+            Math.toRadians(INITIAL_HEADING)
+        ))
+    }
+
+    init {
+        interactions.addAll(listOf())
+    }
+
+    override fun tick() {
+        robot.setDrivePowers(calculatePoseWithGamepad())
+        super.tick()
+    }
+}

@@ -3,6 +3,8 @@ package dev.kingssack.volt.manual
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.GamepadAnalogInput
+import dev.kingssack.volt.util.GamepadButton
 
 /**
  * SimpleManualModeWithSpeedModes is an abstract class
@@ -44,16 +46,16 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
 
     private fun updateSpeedMode() {
         when {
-            isButtonTapped("y1") -> {
+            isButtonTapped(GamepadButton.Y1) -> {
                 currentSpeedMode = "TURBO"
             }
-            isButtonTapped("b1") -> {
+            isButtonTapped(GamepadButton.B1) -> {
                 currentSpeedMode = "NORMAL"
             }
-            isButtonTapped("a1") -> {
+            isButtonTapped(GamepadButton.A1) -> {
                 currentSpeedMode = "PRECISE"
             }
-            isButtonTapped("x1") -> {
+            isButtonTapped(GamepadButton.X1) -> {
                 currentSpeedMode = "SLOW"
             }
         }
@@ -69,9 +71,9 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
         updateSpeedMode()
 
         // Get gamepad input with deadzone and exponential scaling
-        val x = -getAnalogValue("left_stick_x1")
-        val y = -getAnalogValue("left_stick_y1")
-        val rx = -getAnalogValue("right_stick_x1") * params.turnScale
+        val x = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_X1)
+        val y = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_Y1)
+        val rx = -getAnalogValue(GamepadAnalogInput.RIGHT_STICK_X1) * params.turnScale
 
         // Apply current speed mode scaling
         val scale = speedModes[currentSpeedMode]!!
