@@ -101,27 +101,43 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     init {
         attachments = listOf()
 
+        // Check if huskylens is communicating
+        // if (!huskyLens.knock())
+
         // Set huskylens mode
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION)
     }
 
     /**
-     * Get detected objects from HuskyLens.
+     * Get detected AprilTags from HuskyLens.
      *
      * @param telemetry for logging
-     * @return array of detected objects
+     * @return array of detected AprilTags
      *
      * @see HuskyLens
      * @see HuskyLens.Block
      */
-    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
-        // Get objects
+    fun getDetectedAprilTags(telemetry: Telemetry, id: Int? = null): Array<out HuskyLens.Block> {
+        // Get AprilTags
         val blocks = huskyLens.blocks()
         telemetry.addData("Block count", blocks.size)
-        for (block in blocks) {
+
+        // If an id is provided, filter to matching blocks; otherwise return all blocks.
+        val result: Array<out HuskyLens.Block> = if (id == null) {
+            blocks
+        } else {
+            blocks.filter { it.id == id }.toTypedArray()
+        }
+
+        // Log each block in the result
+        for (block in result) {
             telemetry.addData("Block", block.toString())
         }
-        return blocks
+
+        // Also log the filtered count (useful when id was provided)
+        telemetry.addData("Filtered count", result.size)
+
+        return result
     }
 
     /**
