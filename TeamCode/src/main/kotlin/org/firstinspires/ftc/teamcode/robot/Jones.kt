@@ -11,13 +11,13 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 
 /**
- * Steve is a robot for the 2024-2025 INTOTHEDEEP FTC Season.
+ * Steve is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
  * @param initialPose for setting the initial pose
  */
 @Config
-class Steve(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMecanumDrive(
+class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMecanumDrive(
     hardwareMap, initialPose, DriveParams(
         logoFacingDirection = logoFacingDirection,
         usbFacingDirection = usbFacingDirection,
