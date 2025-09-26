@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 
 /**
- * Steve is a robot for the 2025-2026 DECODE FTC Season.
+ * Jones is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
  * @param initialPose for setting the initial pose
@@ -38,7 +38,7 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) : SimpleRobotWithMeca
     )
 ) {
     /**
-     * Params is a companion object that holds the configuration for the robot Steve.
+     * Params is a companion object that holds the configuration for the robot.
      *
      * @property lidarLeftName the name of the left distance sensor
      * @property lidarRightName the name of the right distance sensor
