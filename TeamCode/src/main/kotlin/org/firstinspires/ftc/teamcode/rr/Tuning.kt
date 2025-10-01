@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import dev.kingssack.volt.util.Drawing.drawRobot
-import org.firstinspires.ftc.teamcode.robot.Steve
+import org.firstinspires.ftc.teamcode.robot.Test
 import java.util.*
 
 
@@ -31,7 +31,7 @@ class RoadRunnerTest : LinearOpMode() {
         var initialHeading: Double = -90.0
     }
 
-    private lateinit var robot: Steve
+    private lateinit var robot: Test
 
     override fun runOpMode() {
         registerDrive(hardwareMap, Pose2d(Vector2d(initialX, initialY), initialHeading))
@@ -64,7 +64,7 @@ class RoadRunnerTest : LinearOpMode() {
     }
 
     private fun registerDrive(hardwareMap: HardwareMap, initialPose: Pose2d) {
-        robot = Steve(hardwareMap, initialPose)
+        robot = Test(hardwareMap, initialPose)
     }
 }
 
@@ -82,10 +82,10 @@ class RoadRunnerTuning : LinearOpMode() {
         var distance: Double = 32.0
     }
 
-    private lateinit var robot: Steve
+    private lateinit var robot: Test
 
     override fun runOpMode() {
-        robot = Steve(hardwareMap, Pose2d(initialX, initialY, initialHeading))
+        robot = Test(hardwareMap, Pose2d(initialX, initialY, initialHeading))
 
         waitForStart()
 
@@ -111,11 +111,11 @@ class RoadRunnerSplineTest : LinearOpMode() {
         var initialHeading: Double = 0.0
     }
 
-    private lateinit var robot: Steve
+    private lateinit var robot: Test
 
     override fun runOpMode() {
         val beginPose = Pose2d(initialX, initialY, initialHeading)
-        robot = Steve(hardwareMap, beginPose)
+        robot = Test(hardwareMap, beginPose)
 
         waitForStart()
 
@@ -145,7 +145,7 @@ class TuningOpModes {
         fun register(manager: OpModeManager) {
             val dvf: DriveViewFactory = object : DriveViewFactory {
                 override fun make(h: HardwareMap): DriveView {
-                    val md = Steve(h, Pose2d(0.0, 0.0, 0.0))
+                    val md = Test(h, Pose2d(0.0, 0.0, 0.0))
 
                     val leftEncs = ArrayList<Encoder>()
                     val rightEncs = ArrayList<Encoder>()
@@ -159,10 +159,10 @@ class TuningOpModes {
 
                     return DriveView(
                         DriveType.MECANUM,
-                        Steve.inPerTick,
-                        Steve.maxWheelVel,
-                        Steve.minProfileAccel,
-                        Steve.maxProfileAccel,
+                        Test.inPerTick,
+                        Test.maxWheelVel,
+                        Test.minProfileAccel,
+                        Test.maxProfileAccel,
                         h.getAll(LynxModule::class.java),
                         listOf(md.leftFront, md.leftBack),
                         listOf(md.rightFront, md.rightBack),
@@ -170,9 +170,9 @@ class TuningOpModes {
                         md.lazyImu, md.voltageSensor
                     ) {
                         MotorFeedforward(
-                            Steve.kS,
-                            Steve.kV / Steve.inPerTick,
-                            Steve.kA / Steve.inPerTick
+                            Test.kS,
+                            Test.kV / Test.inPerTick,
+                            Test.kA / Test.inPerTick
                         )
                     }
                 }
