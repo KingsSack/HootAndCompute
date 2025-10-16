@@ -295,7 +295,7 @@ open class SimpleRobotWithMecanumDrive(
             }
 
             val txWorldTarget = timeTrajectory[t]
-            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
+            // targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
 
             val robotVelRobot = updatePoseEstimate()
 
@@ -309,7 +309,7 @@ open class SimpleRobotWithMecanumDrive(
                     params.headingVelGain
                 )
                     .compute(txWorldTarget, localizer.pose, robotVelRobot)
-            driveCommandWriter.write(DriveCommandMessage(command))
+            // driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
@@ -324,15 +324,15 @@ open class SimpleRobotWithMecanumDrive(
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
             val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
             val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
-            mecanumCommandWriter.write(
-                MecanumCommandMessage(
-                    voltage,
-                    leftFrontPower,
-                    leftBackPower,
-                    rightBackPower,
-                    rightFrontPower
-                )
-            )
+//            mecanumCommandWriter.write(
+//                MecanumCommandMessage(
+//                    voltage,
+//                    leftFrontPower,
+//                    leftBackPower,
+//                    rightBackPower,
+//                    rightFrontPower
+//                )
+//            )
 
             leftFront.power = leftFrontPower
             leftBack.power = leftBackPower
