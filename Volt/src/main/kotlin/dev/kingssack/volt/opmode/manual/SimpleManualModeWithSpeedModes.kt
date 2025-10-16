@@ -2,16 +2,21 @@ package dev.kingssack.volt.opmode.manual
 
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.qualcomm.robotcore.hardware.Gamepad
-import org.firstinspires.ftc.robotcore.external.Telemetry
+import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.GamepadAnalogInput
+import dev.kingssack.volt.util.GamepadButton
 
-abstract class SimpleManualModeWithSpeedModes(
-    gamepad1: Gamepad,
-    gamepad2: Gamepad,
-    telemetry: Telemetry,
-    private val params: SimpleManualModeWithSpeedModesParams = SimpleManualModeWithSpeedModesParams(),
-    manualParams: ManualParams = ManualParams()
-) : ManualMode(gamepad1, gamepad2,telemetry, manualParams) {
+/**
+ * SimpleManualModeWithSpeedModes is an abstract class that defines the methods for running a manual
+ * mode with speed modes.
+ *
+ * @property params the configuration object for manual control
+ */
+abstract class SimpleManualModeWithSpeedModes<R : Robot>(
+    private val params: SimpleManualModeWithSpeedModesParams =
+        SimpleManualModeWithSpeedModesParams(),
+    manualParams: ManualMode.ManualParams = ManualMode.ManualParams(),
+) : ManualMode<R>(manualParams) {
     /**
      * Configuration object for manual control.
      *
@@ -21,33 +26,38 @@ abstract class SimpleManualModeWithSpeedModes(
      * @property normal the speed of the normal speed mode
      * @property precise the speed of the precise speed mode
      */
-    class SimpleManualModeWithSpeedModesParams (
+    class SimpleManualModeWithSpeedModesParams(
         val minPower: Double = 0.05,
-        val turnScale: Double = 0.8,
-
+        val turnScale: Double = 0.9,
         val turbo: Double = 1.0,
         val normal: Double = 0.5,
         val precise: Double = 0.2,
+        val slow: Double = 0.1,
     )
 
     // Speed modes
-    private val speedModes = mapOf(
-        "TURBO" to params.turbo,
-        "NORMAL" to params.normal,
-        "PRECISE" to params.precise
-    )
+    private val speedModes =
+        mapOf(
+            "TURBO" to params.turbo,
+            "NORMAL" to params.normal,
+            "PRECISE" to params.precise,
+            "SLOW" to params.slow,
+        )
     private var currentSpeedMode = "NORMAL"
 
     private fun updateSpeedMode() {
         when {
-            isButtonTapped("y1") -> {
+            isButtonTapped(GamepadButton.Y1) -> {
                 currentSpeedMode = "TURBO"
             }
-            isButtonTapped("b1") -> {
+            isButtonTapped(GamepadButton.B1) -> {
                 currentSpeedMode = "NORMAL"
             }
-            isButtonTapped("a1") -> {
+            isButtonTapped(GamepadButton.A1) -> {
                 currentSpeedMode = "PRECISE"
+            }
+            isButtonTapped(GamepadButton.X1) -> {
+                currentSpeedMode = "SLOW"
             }
         }
     }
@@ -62,25 +72,19 @@ abstract class SimpleManualModeWithSpeedModes(
         updateSpeedMode()
 
         // Get gamepad input with deadzone and exponential scaling
-        val x = -getAnalogValue("left_stick_x1")
-        val y = -getAnalogValue("left_stick_y1")
-        val rx = -getAnalogValue("right_stick_x1") * params.turnScale
+        val x = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_X1)
+        val y = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_Y1)
+        val rx = -getAnalogValue(GamepadAnalogInput.RIGHT_STICK_X1) * params.turnScale
 
         // Apply current speed mode scaling
         val scale = speedModes[currentSpeedMode]!!
 
         // Create linear and angular velocities with scaling
-        val linearVelocity = Vector2d(
-            applyMinPower(y * scale),
-            applyMinPower(x * scale)
-        )
+        val linearVelocity = Vector2d(applyMinPower(y * scale), applyMinPower(x * scale))
         val angularVelocity = applyMinPower(rx * scale)
 
         // Return the calculated pose velocity
-        return PoseVelocity2d(
-            linearVelocity,
-            angularVelocity
-        )
+        return PoseVelocity2d(linearVelocity, angularVelocity)
     }
 
     private fun applyMinPower(power: Double): Double {

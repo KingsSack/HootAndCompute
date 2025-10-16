@@ -5,7 +5,7 @@ import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.manual.SimpleManualModeWithSpeedModes
+import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import org.firstinspires.ftc.teamcode.robot.Jones
 
 @Config
@@ -18,20 +18,17 @@ class Manatee : SimpleManualModeWithSpeedModes<Jones>() {
      * @property INITIAL_Y the initial y position
      * @property INITIAL_HEADING the initial heading
      */
-    companion object DolphinParams {
-        @JvmField
-        var INITIAL_X: Double = -48.0
-        @JvmField
-        var INITIAL_Y: Double = 64.0
-        @JvmField
-        var INITIAL_HEADING: Double = -90.0
+    companion object ManateeParams {
+        @JvmField var INITIAL_X: Double = 0.0
+        @JvmField var INITIAL_Y: Double = 0.0
+        @JvmField var INITIAL_HEADING: Double = 0.0
     }
 
     override fun createRobot(hardwareMap: HardwareMap): Jones {
-        return Jones(hardwareMap, Pose2d(
-            Vector2d(INITIAL_X, INITIAL_Y),
-            Math.toRadians(INITIAL_HEADING)
-        ))
+        return Jones(
+            hardwareMap,
+            Pose2d(Vector2d(INITIAL_X, INITIAL_Y), Math.toRadians(INITIAL_HEADING)),
+        )
     }
 
     init {

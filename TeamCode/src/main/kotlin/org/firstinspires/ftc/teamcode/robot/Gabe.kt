@@ -15,28 +15,28 @@ import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
  */
 @Config
 class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d) :
-        SimpleRobotWithMecanumDrive(
-                hardwareMap,
-                initialPose,
-                DriveParams(
-                        logoFacingDirection = logoFacingDirection,
-                        usbFacingDirection = usbFacingDirection,
-                        inPerTick = inPerTick,
-                        lateralInPerTick = lateralInPerTick,
-                        trackWidthTicks = trackWidthTicks,
-                        kS = kS,
-                        kV = kV,
-                        kA = kA,
-                        maxWheelVel = maxWheelVel,
-                        minProfileAccel = minProfileAccel,
-                        maxProfileAccel = maxProfileAccel,
-                        maxAngVel = maxAngVel,
-                        maxAngAccel = maxAngAccel,
-                        axialGain = axialGain,
-                        lateralGain = lateralGain,
-                        headingGain = headingGain
-                )
-        ) {
+    SimpleRobotWithMecanumDrive(
+        hardwareMap,
+        initialPose,
+        DriveParams(
+            logoFacingDirection = logoFacingDirection,
+            usbFacingDirection = usbFacingDirection,
+            inPerTick = inPerTick,
+            lateralInPerTick = lateralInPerTick,
+            trackWidthTicks = trackWidthTicks,
+            kS = kS,
+            kV = kV,
+            kA = kA,
+            maxWheelVel = maxWheelVel,
+            minProfileAccel = minProfileAccel,
+            maxProfileAccel = maxProfileAccel,
+            maxAngVel = maxAngVel,
+            maxAngAccel = maxAngAccel,
+            axialGain = axialGain,
+            lateralGain = lateralGain,
+            headingGain = headingGain,
+        ),
+    ) {
     /** Params is a companion object that holds the configuration for the robot. */
     companion object Params {
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT

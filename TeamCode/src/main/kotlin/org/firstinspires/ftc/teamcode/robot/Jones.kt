@@ -18,28 +18,28 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
  */
 @Config
 class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
-        SimpleRobotWithMecanumDrive(
-                hardwareMap,
-                initialPose,
-                DriveParams(
-                        logoFacingDirection = logoFacingDirection,
-                        usbFacingDirection = usbFacingDirection,
-                        inPerTick = inPerTick,
-                        lateralInPerTick = lateralInPerTick,
-                        trackWidthTicks = trackWidthTicks,
-                        kS = kS,
-                        kV = kV,
-                        kA = kA,
-                        maxWheelVel = maxWheelVel,
-                        minProfileAccel = minProfileAccel,
-                        maxProfileAccel = maxProfileAccel,
-                        maxAngVel = maxAngVel,
-                        maxAngAccel = maxAngAccel,
-                        axialGain = axialGain,
-                        lateralGain = lateralGain,
-                        headingGain = headingGain
-                )
-        ) {
+    SimpleRobotWithMecanumDrive(
+        hardwareMap,
+        initialPose,
+        DriveParams(
+            logoFacingDirection = logoFacingDirection,
+            usbFacingDirection = usbFacingDirection,
+            inPerTick = inPerTick,
+            lateralInPerTick = lateralInPerTick,
+            trackWidthTicks = trackWidthTicks,
+            kS = kS,
+            kV = kV,
+            kA = kA,
+            maxWheelVel = maxWheelVel,
+            minProfileAccel = minProfileAccel,
+            maxProfileAccel = maxProfileAccel,
+            maxAngVel = maxAngVel,
+            maxAngAccel = maxAngAccel,
+            axialGain = axialGain,
+            lateralGain = lateralGain,
+            headingGain = headingGain,
+        ),
+    ) {
     /**
      * Params is a companion object that holds the configuration for the robot.
      *
@@ -77,9 +77,9 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
 
     // Sensors
     private val lidarLeft: DistanceSensor =
-            hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
+        hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
     private val lidarRight: DistanceSensor =
-            hardwareMap.get(DistanceSensor::class.java, lidarRightName)
+        hardwareMap.get(DistanceSensor::class.java, lidarRightName)
     private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, huskyLensName)
 
     // Attachments
@@ -99,7 +99,6 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
      *
      * @param telemetry for logging
      * @return array of detected AprilTags
-     *
      * @see HuskyLens
      * @see HuskyLens.Block
      */
@@ -110,11 +109,11 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
 
         // If an id is provided, filter to matching blocks; otherwise return all blocks.
         val result: Array<out HuskyLens.Block> =
-                if (id == null) {
-                    blocks
-                } else {
-                    blocks.filter { it.id == id }.toTypedArray()
-                }
+            if (id == null) {
+                blocks
+            } else {
+                blocks.filter { it.id == id }.toTypedArray()
+            }
 
         // Log each block in the result
         for (block in result) {
@@ -132,7 +131,6 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
      *
      * @param telemetry for logging
      * @return distance to an obstacle
-     *
      * @see DistanceSensor
      */
     fun getDistanceToObstacle(telemetry: Telemetry): Double {
