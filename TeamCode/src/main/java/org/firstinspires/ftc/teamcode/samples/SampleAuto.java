@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.samples;
 
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+import dev.kingssack.volt.robot.Robot;
 import org.jetbrains.annotations.NotNull;
 
 public class SampleAuto extends AutonomousMode<SampleRobot> {
