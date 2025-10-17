@@ -1,6 +1,5 @@
 package dev.kingssack.volt.attachment
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.CRServo
@@ -29,44 +28,6 @@ open class CRServoWithPotentiometer(
     }
 
     /**
-     * An action to control the cr servo.
-     *
-     * @param power the power to set the cr servo to
-     * @param target the target voltage to run the cr servo to
-     */
-    inner class CRServoWithPotentiometer(
-        private val power: Double,
-        private val target: Double
-    ) : ControlAction() {
-        private var reversing = false
-
-        override fun init() {
-            // Check if the target voltage and power are valid
-            require(target in 0.0..potentiometer.maxVoltage) { "Position must be between 0 and ${potentiometer.maxVoltage}" }
-            require(power in 0.0..1.0) { "Power must be between 0.0 and 1.0" }
-
-            // Determine reversing
-            reversing = target < potentiometer.voltage
-
-            // Set power
-            crServo.power = if (reversing) -power else power
-        }
-
-        override fun update(packet: TelemetryPacket): Boolean {
-            // Get the current target
-            packet.put("CRServo $name voltage", potentiometer.voltage)
-            packet.put("CRServo $name target voltage", target)
-            packet.put("CRServo $name power", crServo.power)
-            return ((potentiometer.voltage > target) xor reversing xor reversed)
-        }
-
-        override fun handleStop() {
-            // Stop servo
-            crServo.power = 0.0
-        }
-    }
-
-    /**
      * Move the cr servo for a certain amount of time.
      *
      * @param power the power to set the cr servo to
@@ -75,7 +36,30 @@ open class CRServoWithPotentiometer(
      * @return an action to move the cr servo to a certain position with a potentiometer
      */
     fun goTo(power: Double, angle: Double): Action {
-        return CRServoWithPotentiometer(power, angle)
+        require(angle in 0.0..potentiometer.maxVoltage) { "Angle must be between 0 and ${potentiometer.maxVoltage}" }
+        require(power in 0.0..1.0) { "Power must be between 0.0 and 1.0" }
+
+        var reversing = false
+
+        return controlAction(
+            init = {
+                // Determine reversing
+                reversing = angle < potentiometer.voltage
+
+                // Set power
+                crServo.power = if (reversing) -power else power
+            },
+            update = { pkt ->
+                pkt.put("CRServo $name voltage", potentiometer.voltage)
+                pkt.put("CRServo $name target voltage", angle)
+                pkt.put("CRServo $name power", crServo.power)
+                return@controlAction ((potentiometer.voltage > angle) xor reversing xor reversed)
+            },
+            onStop = {
+                // Stop servo
+                crServo.power = 0.0
+            }
+        )
     }
 
     /**
