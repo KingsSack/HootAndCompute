@@ -16,6 +16,14 @@ public class SampleAuto extends AutonomousMode<SampleRobot> {
     public SampleAuto() {
         super();
 
-        super.getActionSequence().add(() -> super.getRobot().motor.goTo(0.5, 50));
+        super.getActionSequence().add(this::sampleAction);
+    }
+
+    Action sampleAction() {
+        Robot.SequenceBuilder sequenceBuilder = new Robot.SequenceBuilder();
+        sequenceBuilder.then(super.getRobot().motor.goTo(0.5, 50));
+        sequenceBuilder.then(super.getRobot().motor.goTo(0.5, 0));
+        sequenceBuilder.then(super.getRobot().motor.goTo(0.5, 100));
+        return sequenceBuilder.build();
     }
 }
