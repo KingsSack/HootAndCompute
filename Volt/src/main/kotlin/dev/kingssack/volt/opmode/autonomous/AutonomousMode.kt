@@ -14,7 +14,7 @@ import dev.kingssack.volt.robot.Robot
  * @property robot the robot instance
  */
 abstract class AutonomousMode<R : Robot> : LinearOpMode() {
-    protected lateinit var robot: R
+    protected lateinit var robot : R
         private set
 
     /**

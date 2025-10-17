@@ -168,7 +168,8 @@ open class SimpleRobotWithMecanumDrive(
                     MecanumKinematics.WheelIncrements(
                         DualNum<Time>(
                             doubleArrayOf(
-                                (leftFrontPosVel.position - lastLeftFrontPos)
+                                (leftFrontPosVel.position -
+                                        lastLeftFrontPos)
                                     .toDouble(),
                                 leftFrontPosVel.velocity!!.toDouble(),
                             )
@@ -176,7 +177,8 @@ open class SimpleRobotWithMecanumDrive(
                             .times(params.inPerTick),
                         DualNum<Time>(
                             doubleArrayOf(
-                                (leftBackPosVel.position - lastLeftBackPos)
+                                (leftBackPosVel.position -
+                                        lastLeftBackPos)
                                     .toDouble(),
                                 leftBackPosVel.velocity!!.toDouble(),
                             )
@@ -184,7 +186,8 @@ open class SimpleRobotWithMecanumDrive(
                             .times(params.inPerTick),
                         DualNum<Time>(
                             doubleArrayOf(
-                                (rightBackPosVel.position - lastRightBackPos)
+                                (rightBackPosVel.position -
+                                        lastRightBackPos)
                                     .toDouble(),
                                 rightBackPosVel.velocity!!.toDouble(),
                             )
@@ -265,7 +268,8 @@ open class SimpleRobotWithMecanumDrive(
                 range(
                     0.0,
                     timeTrajectory.path.length(),
-                    max(2.0, ceil(timeTrajectory.path.length() / 2).toInt().toDouble()).toInt()
+                    max(2.0, ceil(timeTrajectory.path.length() / 2).toInt().toDouble())
+                        .toInt()
                 )
             xPoints = DoubleArray(disps.size)
             yPoints = DoubleArray(disps.size)

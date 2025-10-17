@@ -19,15 +19,17 @@ import kotlin.collections.ArrayList
  * @property params the configuration object for manual control
  * @property robot the robot instance
  */
-abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualParams()) :
-    LinearOpMode() {
+abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualParams()) : LinearOpMode() {
     /**
      * Configuration object for manual control.
      *
      * @property deadzone the minimum joystick input to register
      * @property inputExp the input exponential for fine control
      */
-    class ManualParams(val deadzone: Double = 0.1, val inputExp: Double = 2.0)
+    class ManualParams(
+        val deadzone: Double = 0.1,
+        val inputExp: Double = 2.0
+    )
 
     protected lateinit var robot: R
         private set
@@ -43,66 +45,67 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
     private lateinit var analogStateGetters: EnumMap<GamepadAnalogInput, () -> Float>
 
     private val buttonHandlers = EnumMap<GamepadButton, ButtonHandler>(GamepadButton::class.java)
-    private val analogHandlers =
-        EnumMap<GamepadAnalogInput, AnalogHandler>(GamepadAnalogInput::class.java)
+    private val analogHandlers = EnumMap<GamepadAnalogInput, AnalogHandler>(GamepadAnalogInput::class.java)
 
     private fun initializeInputMappings() {
-        buttonStateGetters =
-            EnumMap(
-                mapOf(
-                    GamepadButton.A1 to gamepad1::a,
-                    GamepadButton.B1 to gamepad1::b,
-                    GamepadButton.X1 to gamepad1::x,
-                    GamepadButton.Y1 to gamepad1::y,
-                    GamepadButton.LEFT_BUMPER1 to gamepad1::left_bumper,
-                    GamepadButton.RIGHT_BUMPER1 to gamepad1::right_bumper,
-                    GamepadButton.LEFT_STICK_BUTTON1 to gamepad1::left_stick_button,
-                    GamepadButton.RIGHT_STICK_BUTTON1 to gamepad1::right_stick_button,
-                    GamepadButton.DPAD_UP1 to gamepad1::dpad_up,
-                    GamepadButton.DPAD_DOWN1 to gamepad1::dpad_down,
-                    GamepadButton.DPAD_LEFT1 to gamepad1::dpad_left,
-                    GamepadButton.DPAD_RIGHT1 to gamepad1::dpad_right,
-                    GamepadButton.BACK1 to gamepad1::back,
-                    GamepadButton.START1 to gamepad1::start,
-                    GamepadButton.GUIDE1 to gamepad1::guide,
-                    GamepadButton.A2 to gamepad2::a,
-                    GamepadButton.B2 to gamepad2::b,
-                    GamepadButton.X2 to gamepad2::x,
-                    GamepadButton.Y2 to gamepad2::y,
-                    GamepadButton.LEFT_BUMPER2 to gamepad2::left_bumper,
-                    GamepadButton.RIGHT_BUMPER2 to gamepad2::right_bumper,
-                    GamepadButton.LEFT_STICK_BUTTON2 to gamepad2::left_stick_button,
-                    GamepadButton.RIGHT_STICK_BUTTON2 to gamepad2::right_stick_button,
-                    GamepadButton.DPAD_UP2 to gamepad2::dpad_up,
-                    GamepadButton.DPAD_DOWN2 to gamepad2::dpad_down,
-                    GamepadButton.DPAD_LEFT2 to gamepad2::dpad_left,
-                    GamepadButton.DPAD_RIGHT2 to gamepad2::dpad_right,
-                    GamepadButton.BACK2 to gamepad2::back,
-                    GamepadButton.START2 to gamepad2::start,
-                    GamepadButton.GUIDE2 to gamepad2::guide,
-                )
-            )
+        buttonStateGetters = EnumMap(
+            mapOf(
+                GamepadButton.A1 to gamepad1::a,
+                GamepadButton.B1 to gamepad1::b,
+                GamepadButton.X1 to gamepad1::x,
+                GamepadButton.Y1 to gamepad1::y,
+                GamepadButton.LEFT_BUMPER1 to gamepad1::left_bumper,
+                GamepadButton.RIGHT_BUMPER1 to gamepad1::right_bumper,
+                GamepadButton.LEFT_STICK_BUTTON1 to gamepad1::left_stick_button,
+                GamepadButton.RIGHT_STICK_BUTTON1 to gamepad1::right_stick_button,
+                GamepadButton.DPAD_UP1 to gamepad1::dpad_up,
+                GamepadButton.DPAD_DOWN1 to gamepad1::dpad_down,
+                GamepadButton.DPAD_LEFT1 to gamepad1::dpad_left,
+                GamepadButton.DPAD_RIGHT1 to gamepad1::dpad_right,
+                GamepadButton.BACK1 to gamepad1::back,
+                GamepadButton.START1 to gamepad1::start,
+                GamepadButton.GUIDE1 to gamepad1::guide,
 
-        analogStateGetters =
-            EnumMap(
-                mapOf(
-                    GamepadAnalogInput.LEFT_STICK_X1 to gamepad1::left_stick_x,
-                    GamepadAnalogInput.LEFT_STICK_Y1 to gamepad1::left_stick_y,
-                    GamepadAnalogInput.RIGHT_STICK_X1 to gamepad1::right_stick_x,
-                    GamepadAnalogInput.RIGHT_STICK_Y1 to gamepad1::right_stick_y,
-                    GamepadAnalogInput.LEFT_TRIGGER1 to gamepad1::left_trigger,
-                    GamepadAnalogInput.RIGHT_TRIGGER1 to gamepad1::right_trigger,
-                    GamepadAnalogInput.LEFT_STICK_X2 to gamepad2::left_stick_x,
-                    GamepadAnalogInput.LEFT_STICK_Y2 to gamepad2::left_stick_y,
-                    GamepadAnalogInput.RIGHT_STICK_X2 to gamepad2::right_stick_x,
-                    GamepadAnalogInput.RIGHT_STICK_Y2 to gamepad2::right_stick_y,
-                    GamepadAnalogInput.LEFT_TRIGGER2 to gamepad2::left_trigger,
-                    GamepadAnalogInput.RIGHT_TRIGGER2 to gamepad2::right_trigger,
-                )
+                GamepadButton.A2 to gamepad2::a,
+                GamepadButton.B2 to gamepad2::b,
+                GamepadButton.X2 to gamepad2::x,
+                GamepadButton.Y2 to gamepad2::y,
+                GamepadButton.LEFT_BUMPER2 to gamepad2::left_bumper,
+                GamepadButton.RIGHT_BUMPER2 to gamepad2::right_bumper,
+                GamepadButton.LEFT_STICK_BUTTON2 to gamepad2::left_stick_button,
+                GamepadButton.RIGHT_STICK_BUTTON2 to gamepad2::right_stick_button,
+                GamepadButton.DPAD_UP2 to gamepad2::dpad_up,
+                GamepadButton.DPAD_DOWN2 to gamepad2::dpad_down,
+                GamepadButton.DPAD_LEFT2 to gamepad2::dpad_left,
+                GamepadButton.DPAD_RIGHT2 to gamepad2::dpad_right,
+                GamepadButton.BACK2 to gamepad2::back,
+                GamepadButton.START2 to gamepad2::start,
+                GamepadButton.GUIDE2 to gamepad2::guide
             )
+        )
+
+        analogStateGetters = EnumMap(
+            mapOf(
+                GamepadAnalogInput.LEFT_STICK_X1 to gamepad1::left_stick_x,
+                GamepadAnalogInput.LEFT_STICK_Y1 to gamepad1::left_stick_y,
+                GamepadAnalogInput.RIGHT_STICK_X1 to gamepad1::right_stick_x,
+                GamepadAnalogInput.RIGHT_STICK_Y1 to gamepad1::right_stick_y,
+                GamepadAnalogInput.LEFT_TRIGGER1 to gamepad1::left_trigger,
+                GamepadAnalogInput.RIGHT_TRIGGER1 to gamepad1::right_trigger,
+
+                GamepadAnalogInput.LEFT_STICK_X2 to gamepad2::left_stick_x,
+                GamepadAnalogInput.LEFT_STICK_Y2 to gamepad2::left_stick_y,
+                GamepadAnalogInput.RIGHT_STICK_X2 to gamepad2::right_stick_x,
+                GamepadAnalogInput.RIGHT_STICK_Y2 to gamepad2::right_stick_y,
+                GamepadAnalogInput.LEFT_TRIGGER2 to gamepad2::left_trigger,
+                GamepadAnalogInput.RIGHT_TRIGGER2 to gamepad2::right_trigger
+            )
+        )
 
         // Initialize the handler maps
-        GamepadButton.entries.forEach { button -> buttonHandlers[button] = ButtonHandler() }
+        GamepadButton.entries.forEach { button ->
+            buttonHandlers[button] = ButtonHandler()
+        }
         GamepadAnalogInput.entries.forEach { analog ->
             analogHandlers[analog] = AnalogHandler(params.deadzone, params.inputExp)
         }
@@ -138,10 +141,7 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
                 analogHandlers[analogInput]?.update(getter().toDouble())
             } else {
                 // Log or handle the case where a getter wasn't defined for an analog enum
-                telemetry.addData(
-                    "Warning",
-                    "No state getter defined for analog input: $analogInput",
-                )
+                telemetry.addData("Warning", "No state getter defined for analog input: $analogInput")
             }
         }
     }
@@ -159,10 +159,7 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
      * @param trigger the trigger condition
      * @param action the action to run
      */
-    open inner class Interaction(
-        private val trigger: () -> Boolean,
-        private val action: () -> Action,
-    ) {
+    open inner class Interaction(private val trigger: () -> Boolean, private val action: () -> Action) {
         open fun update() {
             if (trigger()) runningActions.add(action())
         }
@@ -178,13 +175,14 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
     inner class ToggleInteraction(
         private val trigger: () -> Boolean,
         private val actionOne: () -> Action,
-        private val actionTwo: () -> Action,
+        private val actionTwo: () -> Action
     ) : Interaction(trigger, { actionOne() }) {
         private var lastState = false
 
         override fun update() {
             if (trigger()) {
-                if (lastState) runningActions.add(actionOne()) else runningActions.add(actionTwo())
+                if (lastState) runningActions.add(actionOne())
+                else runningActions.add(actionTwo())
                 lastState = !lastState
             }
         }
@@ -264,8 +262,8 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
     }
 
     /**
-     * Resets the tap count for a specific button. Useful if you want to ignore previous tap counts
-     * under certain conditions.
+     * Resets the tap count for a specific button.
+     * Useful if you want to ignore previous tap counts under certain conditions.
      *
      * @param button the button
      */
