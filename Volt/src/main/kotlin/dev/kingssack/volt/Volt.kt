@@ -3,7 +3,7 @@ package dev.kingssack.volt
 import android.content.Context
 import android.util.Log
 import com.qualcomm.robotcore.util.WebHandlerManager
-import dev.kingssack.volt.web.ModeCreatorHandler
+//import dev.kingssack.volt.web.ModeCreatorHandler
 import dev.kingssack.volt.web.StaticAssetHandler
 import org.firstinspires.ftc.ftccommon.external.WebHandlerRegistrar
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
@@ -44,8 +44,8 @@ class Volt {
                 manager.register("/volt", StaticAssetHandler(assetManager, "public/index.html"))
 
                 // Register the mode creator handler
-                Log.d(TAG, "Registering handler for /volt/api/*")
-                manager.register("/volt/api", ModeCreatorHandler())
+//                Log.d(TAG, "Registering handler for /volt/api/*")
+//                manager.register("/volt/api", ModeCreatorHandler())
 
                 Log.d(TAG, "Web server handlers attached successfully")
             } catch (e: IOException) {

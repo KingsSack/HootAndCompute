@@ -6,16 +6,48 @@ import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.robot.Robot
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.typeOf
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /** Represents an attachment to the robot. */
 abstract class Attachment {
-    protected var motors: List<DcMotor> = listOf()
-    protected var servos: List<Servo> = listOf()
-    protected var crServos: List<CRServo> = listOf()
+    private var motors: List<DcMotor> =
+        this::class
+            .memberProperties
+            .filter { it.returnType.isSubtypeOf(typeOf<DcMotor>()) }
+            .mapNotNull { property ->
+                try {
+                    property.getter.call(this) as? DcMotor
+                } catch (_: Throwable) {
+                    null
+                }
+            }
+    private var servos: List<Servo> =
+        this::class
+            .memberProperties
+            .filter { it.returnType.isSubtypeOf(typeOf<Servo>()) }
+            .mapNotNull { property ->
+                try {
+                    property.getter.call(this) as? Servo
+                } catch (_: Throwable) {
+                    null
+                }
+            }
+    private var crServos =
+        this::class
+            .memberProperties
+            .filter { it.returnType.isSubtypeOf(typeOf<CRServo>()) }
+            .mapNotNull { property ->
+                try {
+                    property.getter.call(this) as? CRServo
+                } catch (_: Throwable) {
+                    null
+                }
+            }
 
     protected var running = false
-
     protected var robot: Robot? = null
 
     open fun onRegister(robot: Robot) {
@@ -26,7 +58,7 @@ abstract class Attachment {
     protected fun controlAction(
         init: (() -> Unit)? = null,
         update: (TelemetryPacket) -> Boolean,
-        onStop: (() -> Unit)? = null
+        onStop: (() -> Unit)? = null,
     ): Action =
         object : Action {
             private var initialized = false

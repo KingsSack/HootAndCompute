@@ -1,35 +1,54 @@
 package dev.kingssack.volt.robot
 
-import com.acmerobotics.roadrunner.Action
-import com.acmerobotics.roadrunner.SequentialAction
 import dev.kingssack.volt.attachment.Attachment
+import kotlin.reflect.KProperty1
+import kotlin.reflect.KType
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.typeOf
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import kotlin.reflect.full.withNullability
 
 /** Represents a robot with attachments. */
 abstract class Robot {
     // Attachments
-    protected var attachments = mutableListOf<Attachment>()
+    private var attachments = mutableListOf<Attachment>()
 
-    /** Registers [attachments] to the robot. */
-    fun registerAttachments(vararg attachments: Attachment) {
-        attachments.forEach {
-            this.attachments.add(it)
-            it.onRegister(this)
-        }
+    /** Registers [attachment] to the robot. */
+    protected fun registerAttachment(attachment: Attachment) {
+        this.attachments.add(attachment)
+        attachment.onRegister(this)
     }
 
-    /** Builds a sequence of actions to be run sequentially. */
-    fun sequence(block: SequenceBuilder.() -> Unit): SequentialAction =
-        SequenceBuilder().apply(block).build()
+    init {
+        // Auto-register all Attachment fields
+//        @Suppress("UNCHECKED_CAST")
+//        this::class
+//            .memberProperties
+//            .filter { prop -> prop.returnType.isSubtypeOf(typeOf<Attachment>()) }
+//            .forEach { prop ->
+//                val property = prop as KProperty1<Robot, Attachment>
+//                val value = property.get(this)
+//                registerAttachment(value)
+//            }
 
-    class SequenceBuilder {
-        private val actions = mutableListOf<Action>()
-
-        fun then(action: Action) {
-            actions.add(action)
+        // Helper to check Attachment and Attachment? as desired
+        fun KType.isAttachmentOrNullableAttachment(): Boolean {
+            val attachment = typeOf<Attachment>()
+            val nullableAttachment = attachment.withNullability(true)
+            return this.isSubtypeOf(attachment) || this.isSubtypeOf(nullableAttachment)
         }
 
-        fun build(): SequentialAction = SequentialAction(actions)
+        this::class
+            .memberProperties
+            .filterIsInstance<KProperty1<Robot, *>>()
+            .filter { prop -> prop.returnType.isAttachmentOrNullableAttachment() }
+            .forEach { prop ->
+                val value = runCatching { prop.get(this) }.getOrNull()
+                if (value is Attachment) {
+                    registerAttachment(value)
+                }
+            }
     }
 
     /**

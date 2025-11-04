@@ -23,10 +23,6 @@ open class CRServoWithPotentiometer(
     // Initialize cr servo and potentiometer
     protected val crServo: CRServo = hardwareMap.crservo[name]
 
-    init {
-        crServos = listOf(crServo)
-    }
-
     /**
      * Move the cr servo for a certain amount of time.
      *

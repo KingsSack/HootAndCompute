@@ -20,7 +20,7 @@ open class SimpleAttachmentWithDcMotor(
     private val name: String,
     private val idlePower: Double,
     private val maxPosition: Int,
-    private val minPosition: Int = 0
+    private val minPosition: Int = 0,
 ) : Attachment() {
     // Initialize motor
     protected val motor: DcMotor = hardwareMap.dcMotor[name]
@@ -35,8 +35,6 @@ open class SimpleAttachmentWithDcMotor(
         // Set motor mode
         motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
-
-        motors = listOf(motor)
     }
 
     var currentGoal: Int = 0
@@ -45,9 +43,7 @@ open class SimpleAttachmentWithDcMotor(
             field = temp.coerceAtMost(maxPosition)
         }
 
-    /**
-     * Resets the motor's encoder.
-     */
+    /** Resets the motor's encoder. */
     fun reset() {
         motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
@@ -82,7 +78,7 @@ open class SimpleAttachmentWithDcMotor(
             onStop = {
                 // Stop the motor
                 motor.power = idlePower
-            }
+            },
         )
     }
 

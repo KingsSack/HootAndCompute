@@ -1,10 +1,13 @@
 package dev.kingssack.volt.opmode.manual
 
+import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
+import java.util.EnumMap
 
 /**
  * SimpleManualModeWithSpeedModes is an abstract class that defines the methods for running a manual
@@ -13,10 +16,11 @@ import dev.kingssack.volt.util.GamepadButton
  * @property params the configuration object for manual control
  */
 abstract class SimpleManualModeWithSpeedModes<R : Robot>(
+    robotFactory: (hardwareMap: HardwareMap) -> R,
     private val params: SimpleManualModeWithSpeedModesParams =
         SimpleManualModeWithSpeedModesParams(),
-    manualParams: ManualMode.ManualParams = ManualMode.ManualParams(),
-) : ManualMode<R>(manualParams) {
+    manualParams: ManualParams = ManualParams(),
+) : ManualMode<R>(robotFactory, manualParams) {
     /**
      * Configuration object for manual control.
      *
@@ -26,7 +30,7 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
      * @property normal the speed of the normal speed mode
      * @property precise the speed of the precise speed mode
      */
-    class SimpleManualModeWithSpeedModesParams(
+    data class SimpleManualModeWithSpeedModesParams(
         val minPower: Double = 0.05,
         val turnScale: Double = 0.9,
         val turbo: Double = 1.0,
@@ -35,30 +39,37 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
         val slow: Double = 0.1,
     )
 
-    // Speed modes
-    private val speedModes =
-        mapOf(
-            "TURBO" to params.turbo,
-            "NORMAL" to params.normal,
-            "PRECISE" to params.precise,
-            "SLOW" to params.slow,
-        )
-    private var currentSpeedMode = "NORMAL"
+    enum class SpeedMode {
+        TURBO,
+        NORMAL,
+        PRECISE,
+        SLOW,
+    }
 
-    private fun updateSpeedMode() {
-        when {
-            isButtonTapped(GamepadButton.Y1) -> {
-                currentSpeedMode = "TURBO"
-            }
-            isButtonTapped(GamepadButton.B1) -> {
-                currentSpeedMode = "NORMAL"
-            }
-            isButtonTapped(GamepadButton.A1) -> {
-                currentSpeedMode = "PRECISE"
-            }
-            isButtonTapped(GamepadButton.X1) -> {
-                currentSpeedMode = "SLOW"
-            }
+    private val speedModes =
+        EnumMap(
+            mapOf(
+                SpeedMode.TURBO to params.turbo,
+                SpeedMode.NORMAL to params.normal,
+                SpeedMode.PRECISE to params.precise,
+                SpeedMode.SLOW to params.slow,
+            )
+        )
+
+    private var currentSpeedMode = SpeedMode.NORMAL
+
+    init {
+        onButtonTapped(GamepadButton.Y1) {
+            +{ InstantAction { currentSpeedMode = SpeedMode.TURBO } }
+        }
+        onButtonTapped(GamepadButton.B1) {
+            +{ InstantAction { currentSpeedMode = SpeedMode.NORMAL } }
+        }
+        onButtonTapped(GamepadButton.A1) {
+            +{ InstantAction { currentSpeedMode = SpeedMode.PRECISE } }
+        }
+        onButtonTapped(GamepadButton.X1) {
+            +{ InstantAction { currentSpeedMode = SpeedMode.SLOW } }
         }
     }
 
@@ -68,9 +79,6 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
      * @return the pose velocity
      */
     fun calculatePoseWithGamepad(): PoseVelocity2d {
-        // Handle speed mode changes
-        updateSpeedMode()
-
         // Get gamepad input with deadzone and exponential scaling
         val x = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_X1)
         val y = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_Y1)
@@ -93,5 +101,10 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
             power < -params.minPower -> power
             else -> 0.0
         }
+    }
+
+    override fun tick() {
+        telemetry.addData("Speed Mode", currentSpeedMode)
+        super.tick()
     }
 }

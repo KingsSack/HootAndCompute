@@ -1,10 +1,10 @@
 buildscript {
-    ext.min_sdk_version = "10.3.0"
+    ext.min_sdk_version = "11.0.0"
     ext.min_rr_ftc_version = "0.1.23"
     ext.min_rr_version = "1.0.1"
     ext.min_dash_version = "0.4.17"
-    ext.min_pp_version = "2.0.0"
-    ext.min_pp_telemetry_version = "0.0.6"
+    ext.min_pp_version = "2.0.3"
+    ext.min_pp_telemetry_version = "1.0.0"
     ext.min_fullpanels_version = "1.0.2"
 }
 
@@ -70,5 +70,7 @@ dependencies {
         exclude module: "nanohttpd"
     }
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+    implementation "org.jetbrains.kotlin:kotlin-reflect:2.2.20"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
 }

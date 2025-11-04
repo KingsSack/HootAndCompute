@@ -12,13 +12,10 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param hardwareMap for initializing cr servo
  * @param name the name of the cr servo
  */
-open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val name: String) : Attachment() {
+open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val name: String) :
+    Attachment() {
     // Initialize cr servo
     protected val crServo: CRServo = hardwareMap.crservo[name]
-
-    init {
-        crServos = listOf(crServo)
-    }
 
     /**
      * Move for a specified amount of [seconds] and a specified [power].
@@ -33,12 +30,8 @@ open class SimpleAttachmentWithCRServo(hardwareMap: HardwareMap, private val nam
                 runtime.reset()
                 crServo.power = power
             },
-            update = { pkt ->
-                return@controlAction (runtime.seconds() >= seconds)
-            },
-            onStop = {
-                crServo.power = 0.0
-            }
+            update = { runtime.seconds() >= seconds },
+            onStop = { crServo.power = 0.0 },
         )
     }
 

@@ -11,29 +11,18 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param hardwareMap for registering the servo
  * @param name the name of the servo
  */
-open class SimpleAttachmentWithServo(hardwareMap: HardwareMap, private val name: String) : Attachment() {
+open class SimpleAttachmentWithServo(hardwareMap: HardwareMap, private val name: String) :
+    Attachment() {
     // Initialize servo
     protected val servo: Servo = hardwareMap.servo[name]
-
-    init {
-        servos = listOf(servo)
-    }
 
     /**
      * Go to a specified [position].
      *
      * @return an action to move the servo to a position
      */
-    fun goTo(position: Double): Action {
-        return controlAction(
-            init = {
-                servo.position = position
-            },
-            update = { pkt ->
-                return@controlAction true
-            }
-        )
-    }
+    fun goTo(position: Double): Action =
+        controlAction(init = { servo.position = position }, update = { true })
 
     /**
      * Get the position of the servo.
