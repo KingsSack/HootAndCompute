@@ -9,6 +9,5 @@ public class SampleRobot extends Robot {
 
     public SampleRobot(HardwareMap hardwareMap) {
         motor = new SimpleAttachmentWithDcMotor(hardwareMap, "motor", 1.0, 100, 0);
-        registerAttachments(motor);
     }
 }
