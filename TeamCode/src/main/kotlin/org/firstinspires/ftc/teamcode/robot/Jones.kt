@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
  * @param initialPose for setting the initial pose
  */
 @Config
-class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
+class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
     SimpleRobotWithMecanumDrive(
         hardwareMap,
         initialPose,
@@ -40,14 +40,7 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
             headingGain = headingGain,
         ),
     ) {
-    /**
-     * Params is a companion object that holds the configuration for the robot.
-     *
-     * @property lidarLeftName the name of the left distance sensor
-     * @property lidarRightName the name of the right distance sensor
-     * @property huskyLensName the name of the HuskyLens
-     */
-    companion object Params {
+    companion object {
         @JvmField var lidarLeftName: String = "lidarl"
         @JvmField var lidarRightName: String = "lidarr"
         @JvmField var huskyLensName: String = "lens"
@@ -85,11 +78,6 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
     // Attachments
 
     init {
-        attachments = listOf()
-
-        // Check if huskylens is communicating
-        // if (!huskyLens.knock())
-
         // Set huskylens mode
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION)
     }

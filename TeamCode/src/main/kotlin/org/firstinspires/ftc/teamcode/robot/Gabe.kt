@@ -14,7 +14,7 @@ import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
  * @param initialPose for setting the initial pose
  */
 @Config
-class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d) :
+class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
     SimpleRobotWithMecanumDrive(
         hardwareMap,
         initialPose,
@@ -37,8 +37,7 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d) :
             headingGain = headingGain,
         ),
     ) {
-    /** Params is a companion object that holds the configuration for the robot. */
-    companion object Params {
+    companion object {
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
 
@@ -66,7 +65,4 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d) :
 
     // Attachments
 
-    init {
-        attachments = listOf()
-    }
 }
