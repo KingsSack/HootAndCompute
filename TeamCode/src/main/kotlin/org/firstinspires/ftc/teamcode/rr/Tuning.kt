@@ -15,40 +15,15 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithRR
+import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Drawing.drawRobot
 import java.util.*
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 @Config
-class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) :
-    SimpleRobotWithMecanumDrive(
-        hardwareMap,
-        initialPose,
-        DriveParams(
-            logoFacingDirection = logoFacingDirection,
-            usbFacingDirection = usbFacingDirection,
-            inPerTick = inPerTick,
-            lateralInPerTick = lateralInPerTick,
-            trackWidthTicks = trackWidthTicks,
-            kS = kS,
-            kV = kV,
-            kA = kA,
-            maxWheelVel = maxWheelVel,
-            minProfileAccel = minProfileAccel,
-            maxProfileAccel = maxProfileAccel,
-            maxAngVel = maxAngVel,
-            maxAngAccel = maxAngAccel,
-            axialGain = axialGain,
-            lateralGain = lateralGain,
-            headingGain = headingGain,
-        ),
-    ) {
+class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot() {
     companion object {
-        @JvmField var lidarLeftName: String = "lidarl"
-        @JvmField var lidarRightName: String = "lidarr"
-        @JvmField var huskyLensName: String = "lens"
-
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
 
@@ -71,6 +46,30 @@ class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) :
         @JvmField var lateralGain: Double = 4.0
         @JvmField var headingGain: Double = 3.0
     }
+
+    val drive =
+        SimpleMecanumDriveWithRR(
+            hardwareMap,
+            initialPose,
+            SimpleMecanumDriveWithRR.DriveParams(
+                logoFacingDirection,
+                usbFacingDirection,
+                inPerTick,
+                lateralInPerTick,
+                trackWidthTicks,
+                kS,
+                kV,
+                kA,
+                maxWheelVel,
+                minProfileAccel,
+                maxProfileAccel,
+                maxAngVel,
+                maxAngAccel,
+                axialGain,
+                lateralGain,
+                headingGain,
+            ),
+        )
 }
 
 @Config
@@ -90,7 +89,7 @@ class RoadRunnerTest : LinearOpMode() {
         waitForStart()
 
         while (opModeIsActive()) {
-            robot.setDrivePowers(
+            robot.drive.setDrivePowers(
                 PoseVelocity2d(
                     Vector2d(-gamepad1.left_stick_y.toDouble(), -gamepad1.left_stick_x.toDouble()),
                     -gamepad1.right_stick_x.toDouble(),
@@ -99,14 +98,14 @@ class RoadRunnerTest : LinearOpMode() {
 
             robot.update(telemetry)
 
-            telemetry.addData("x", robot.pose.position.x)
-            telemetry.addData("y", robot.pose.position.y)
-            telemetry.addData("heading (deg)", Math.toDegrees(robot.pose.heading.toDouble()))
+            telemetry.addData("x", robot.drive.pose.position.x)
+            telemetry.addData("y", robot.drive.pose.position.y)
+            telemetry.addData("heading (deg)", Math.toDegrees(robot.drive.pose.heading.toDouble()))
             telemetry.update()
 
             val packet = TelemetryPacket()
             packet.fieldOverlay().setStroke("#3F51B5")
-            drawRobot(packet.fieldOverlay(), robot.pose)
+            drawRobot(packet.fieldOverlay(), robot.drive.pose)
             FtcDashboard.getInstance().sendTelemetryPacket(packet)
         }
     }
@@ -135,7 +134,7 @@ class RoadRunnerTuning : LinearOpMode() {
 
         while (opModeIsActive()) {
             runBlocking(
-                robot
+                robot.drive
                     .driveActionBuilder(Pose2d(initialX, initialY, initialHeading))
                     .lineToX(initialX + distance)
                     .lineToX(initialX)
@@ -163,7 +162,7 @@ class RoadRunnerSplineTest : LinearOpMode() {
         waitForStart()
 
         runBlocking(
-            robot
+            robot.drive
                 .driveActionBuilder(beginPose)
                 .splineTo(Vector2d(30.0, 30.0), Math.PI / 2)
                 .splineTo(Vector2d(0.0, 60.0), Math.PI)
@@ -191,7 +190,7 @@ class TuningOpModes {
             val dvf: DriveViewFactory =
                 object : DriveViewFactory {
                     override fun make(h: HardwareMap): DriveView {
-                        val md = TestRobot(h, Pose2d(0.0, 0.0, 0.0))
+                        val md = TestRobot(h, Pose2d(0.0, 0.0, 0.0)).drive
 
                         val leftEncs = ArrayList<Encoder>()
                         val rightEncs = ArrayList<Encoder>()

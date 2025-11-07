@@ -22,5 +22,5 @@ class Magpie :
         @JvmField var INITIAL_HEADING: Double = 0.0
     }
 
-    override fun sequence() = execute { +{ robot.strafeTo(Vector2d(24.0, 0.0)) } }
+    override fun sequence() = execute {}
 }

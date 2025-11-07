@@ -24,8 +24,12 @@ class Manatee :
         @JvmField var INITIAL_HEADING: Double = 0.0
     }
 
+    override fun initialize() {
+        robot.drivetrain.startTeleOpDrive()
+    }
+
     override fun tick() {
-        robot.setDrivePowers(calculatePoseWithGamepad())
+        robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
         super.tick()
     }
 }

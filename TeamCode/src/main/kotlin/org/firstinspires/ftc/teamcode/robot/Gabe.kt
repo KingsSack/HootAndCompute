@@ -5,7 +5,10 @@ import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.drivetrain.Drivetrain
+import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithRR
+import dev.kingssack.volt.robot.Robot
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
@@ -15,28 +18,7 @@ import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
  */
 @Config
 class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
-    SimpleRobotWithMecanumDrive(
-        hardwareMap,
-        initialPose,
-        DriveParams(
-            logoFacingDirection = logoFacingDirection,
-            usbFacingDirection = usbFacingDirection,
-            inPerTick = inPerTick,
-            lateralInPerTick = lateralInPerTick,
-            trackWidthTicks = trackWidthTicks,
-            kS = kS,
-            kV = kV,
-            kA = kA,
-            maxWheelVel = maxWheelVel,
-            minProfileAccel = minProfileAccel,
-            maxProfileAccel = maxProfileAccel,
-            maxAngVel = maxAngVel,
-            maxAngAccel = maxAngAccel,
-            axialGain = axialGain,
-            lateralGain = lateralGain,
-            headingGain = headingGain,
-        ),
-    ) {
+    Robot() {
     companion object {
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
@@ -61,8 +43,35 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 
         @JvmField var headingGain: Double = 3.0
     }
 
+    // Drivetrain
+    val drivetrain: Drivetrain =
+        SimpleMecanumDriveWithRR(
+            hardwareMap,
+            initialPose,
+            SimpleMecanumDriveWithRR.DriveParams(
+                inPerTick = inPerTick,
+                lateralInPerTick = lateralInPerTick,
+                trackWidthTicks = trackWidthTicks,
+                kS = kS,
+                kV = kV,
+                kA = kA,
+                maxWheelVel = maxWheelVel,
+                minProfileAccel = minProfileAccel,
+                maxProfileAccel = maxProfileAccel,
+                maxAngVel = maxAngVel,
+                maxAngAccel = maxAngAccel,
+                axialGain = axialGain,
+                lateralGain = lateralGain,
+                headingGain = headingGain,
+            ),
+        )
+
     // Sensors
 
     // Attachments
 
+    override fun update(telemetry: Telemetry) {
+        drivetrain.update(telemetry)
+        super.update(telemetry)
+    }
 }
