@@ -22,8 +22,14 @@ abstract class AutonomousMode<R : Robot>(private val robotFactory: (HardwareMap)
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
 
+    /** Optional initialization code for the autonomous mode. */
+    open fun initialize() {
+        // Default implementation does nothing
+    }
+
     override fun runOpMode() {
         robot = robotFactory(hardwareMap)
+        initialize()
         waitForStart()
         sequence()
     }

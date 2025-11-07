@@ -1,32 +1,65 @@
-package dev.kingssack.volt.robot
+package dev.kingssack.volt.drivetrain
 
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
-import com.acmerobotics.roadrunner.*
-import com.acmerobotics.roadrunner.ftc.*
+import com.acmerobotics.roadrunner.AccelConstraint
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.AngularVelConstraint
+import com.acmerobotics.roadrunner.DualNum
+import com.acmerobotics.roadrunner.HolonomicController
+import com.acmerobotics.roadrunner.MecanumKinematics
+import com.acmerobotics.roadrunner.MinVelConstraint
+import com.acmerobotics.roadrunner.MotorFeedforward
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.PoseVelocity2d
+import com.acmerobotics.roadrunner.PoseVelocity2dDual
+import com.acmerobotics.roadrunner.ProfileAccelConstraint
+import com.acmerobotics.roadrunner.ProfileParams
+import com.acmerobotics.roadrunner.Rotation2d
+import com.acmerobotics.roadrunner.Time
+import com.acmerobotics.roadrunner.TimeTrajectory
+import com.acmerobotics.roadrunner.TimeTurn
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder
+import com.acmerobotics.roadrunner.TrajectoryBuilderParams
+import com.acmerobotics.roadrunner.TurnConstraints
+import com.acmerobotics.roadrunner.Twist2d
+import com.acmerobotics.roadrunner.Twist2dDual
+import com.acmerobotics.roadrunner.Vector2d
+import com.acmerobotics.roadrunner.VelConstraint
+import com.acmerobotics.roadrunner.ftc.DownsampledWriter
+import com.acmerobotics.roadrunner.ftc.Encoder
+import com.acmerobotics.roadrunner.ftc.LazyHardwareMapImu
+import com.acmerobotics.roadrunner.ftc.OverflowEncoder
+import com.acmerobotics.roadrunner.ftc.RawEncoder
+import com.acmerobotics.roadrunner.ftc.throwIfModulesAreOutdated
+import com.acmerobotics.roadrunner.now
+import com.acmerobotics.roadrunner.range
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
-import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.util.*
-import java.util.*
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.IMU
+import com.qualcomm.robotcore.hardware.VoltageSensor
+import dev.kingssack.volt.util.Drawing
+import dev.kingssack.volt.util.DriveCommandMessage
+import dev.kingssack.volt.util.Localizer
+import dev.kingssack.volt.util.MecanumCommandMessage
+import dev.kingssack.volt.util.PoseMessage
+import java.util.LinkedList
 import kotlin.math.ceil
 import kotlin.math.max
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 
-/**
- * Represents a robot with attachments and a mecanum drivetrain.
- *
- * @param hardwareMap the hardware map
- * @param pose the initial pose of the robot
- */
-open class SimpleRobotWithMecanumDrive(
+class SimpleMecanumDriveWithRR(
     hardwareMap: HardwareMap,
-    var pose: Pose2d,
-    private val params: DriveParams = DriveParams()
-) : Robot() {
+    var pose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0),
+    private val params: DriveParams = DriveParams(),
+) : Drivetrain() {
     /**
      * Parameters for the robot's mecanum drive.
      *
@@ -69,13 +102,13 @@ open class SimpleRobotWithMecanumDrive(
         val headingGain: Double = 0.0,
         val axialVelGain: Double = 0.0,
         val lateralVelGain: Double = 0.0,
-        val headingVelGain: Double = 0.0
+        val headingVelGain: Double = 0.0,
     )
 
     private val kinematics: MecanumKinematics =
         MecanumKinematics(
             params.inPerTick * params.trackWidthTicks,
-            params.inPerTick / params.lateralInPerTick
+            params.inPerTick / params.lateralInPerTick,
         )
 
     private val defaultTurnConstraints: TurnConstraints =
@@ -84,7 +117,7 @@ open class SimpleRobotWithMecanumDrive(
         MinVelConstraint(
             listOf(
                 kinematics.WheelVelConstraint(params.maxWheelVel),
-                AngularVelConstraint(params.maxAngVel)
+                AngularVelConstraint(params.maxAngVel),
             )
         )
     private val defaultAccelConstraint: AccelConstraint =
@@ -102,7 +135,7 @@ open class SimpleRobotWithMecanumDrive(
         LazyHardwareMapImu(
             hardwareMap,
             "imu",
-            RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection)
+            RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection),
         )
 
     val localizer = DriveLocalizer(pose)
@@ -136,16 +169,16 @@ open class SimpleRobotWithMecanumDrive(
 
             val angles = imu.robotYawPitchRollAngles
 
-//            FlightRecorder.write(
-//                "MECANUM_LOCALIZER_INPUTS",
-//                MecanumLocalizerInputsMessage(
-//                    leftFrontPosVel,
-//                    leftBackPosVel,
-//                    rightBackPosVel,
-//                    rightFrontPosVel,
-//                    angles
-//                )
-//            )
+            //            FlightRecorder.write(
+            //                "MECANUM_LOCALIZER_INPUTS",
+            //                MecanumLocalizerInputsMessage(
+            //                    leftFrontPosVel,
+            //                    leftBackPosVel,
+            //                    rightBackPosVel,
+            //                    rightFrontPosVel,
+            //                    angles
+            //                )
+            //            )
 
             val heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS))
 
@@ -167,41 +200,33 @@ open class SimpleRobotWithMecanumDrive(
                 kinematics.forward(
                     MecanumKinematics.WheelIncrements(
                         DualNum<Time>(
-                            doubleArrayOf(
-                                (leftFrontPosVel.position -
-                                        lastLeftFrontPos)
-                                    .toDouble(),
-                                leftFrontPosVel.velocity!!.toDouble(),
+                                doubleArrayOf(
+                                    (leftFrontPosVel.position - lastLeftFrontPos).toDouble(),
+                                    leftFrontPosVel.velocity!!.toDouble(),
+                                )
                             )
-                        )
                             .times(params.inPerTick),
                         DualNum<Time>(
-                            doubleArrayOf(
-                                (leftBackPosVel.position -
-                                        lastLeftBackPos)
-                                    .toDouble(),
-                                leftBackPosVel.velocity!!.toDouble(),
+                                doubleArrayOf(
+                                    (leftBackPosVel.position - lastLeftBackPos).toDouble(),
+                                    leftBackPosVel.velocity!!.toDouble(),
+                                )
                             )
-                        )
                             .times(params.inPerTick),
                         DualNum<Time>(
-                            doubleArrayOf(
-                                (rightBackPosVel.position -
-                                        lastRightBackPos)
-                                    .toDouble(),
-                                rightBackPosVel.velocity!!.toDouble(),
+                                doubleArrayOf(
+                                    (rightBackPosVel.position - lastRightBackPos).toDouble(),
+                                    rightBackPosVel.velocity!!.toDouble(),
+                                )
                             )
-                        )
                             .times(params.inPerTick),
                         DualNum<Time>(
-                            doubleArrayOf(
-                                (rightFrontPosVel.position -
-                                        lastRightFrontPos)
-                                    .toDouble(),
-                                rightFrontPosVel.velocity!!.toDouble(),
+                                doubleArrayOf(
+                                    (rightFrontPosVel.position - lastRightFrontPos).toDouble(),
+                                    rightFrontPosVel.velocity!!.toDouble(),
+                                )
                             )
-                        )
-                            .times(params.inPerTick)
+                            .times(params.inPerTick),
                     )
                 )
 
@@ -240,7 +265,6 @@ open class SimpleRobotWithMecanumDrive(
      * Set the drive powers.
      *
      * @param powers the drive powers
-     *
      * @see PoseVelocity2d
      */
     fun setDrivePowers(powers: PoseVelocity2d) {
@@ -268,8 +292,7 @@ open class SimpleRobotWithMecanumDrive(
                 range(
                     0.0,
                     timeTrajectory.path.length(),
-                    max(2.0, ceil(timeTrajectory.path.length() / 2).toInt().toDouble())
-                        .toInt()
+                    max(2.0, ceil(timeTrajectory.path.length() / 2).toInt().toDouble()).toInt(),
                 )
             xPoints = DoubleArray(disps.size)
             yPoints = DoubleArray(disps.size)
@@ -305,13 +328,13 @@ open class SimpleRobotWithMecanumDrive(
 
             val command =
                 HolonomicController(
-                    params.axialGain,
-                    params.lateralGain,
-                    params.headingGain,
-                    params.axialVelGain,
-                    params.lateralVelGain,
-                    params.headingVelGain
-                )
+                        params.axialGain,
+                        params.lateralGain,
+                        params.headingGain,
+                        params.axialVelGain,
+                        params.lateralVelGain,
+                        params.headingVelGain,
+                    )
                     .compute(txWorldTarget, localizer.pose, robotVelRobot)
             driveCommandWriter.write(DriveCommandMessage(command))
 
@@ -322,7 +345,7 @@ open class SimpleRobotWithMecanumDrive(
                 MotorFeedforward(
                     params.kS,
                     params.kV / params.inPerTick,
-                    params.kA / params.inPerTick
+                    params.kA / params.inPerTick,
                 )
             val leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
@@ -334,7 +357,7 @@ open class SimpleRobotWithMecanumDrive(
                     leftFrontPower,
                     leftBackPower,
                     rightBackPower,
-                    rightFrontPower
+                    rightFrontPower,
                 )
             )
 
@@ -403,13 +426,13 @@ open class SimpleRobotWithMecanumDrive(
 
             val command =
                 HolonomicController(
-                    params.axialGain,
-                    params.lateralGain,
-                    params.headingGain,
-                    params.axialVelGain,
-                    params.lateralVelGain,
-                    params.headingVelGain
-                )
+                        params.axialGain,
+                        params.lateralGain,
+                        params.headingGain,
+                        params.axialVelGain,
+                        params.lateralVelGain,
+                        params.headingVelGain,
+                    )
                     .compute(txWorldTarget, localizer.pose, robotVelRobot)
             driveCommandWriter.write(DriveCommandMessage(command))
 
@@ -419,7 +442,7 @@ open class SimpleRobotWithMecanumDrive(
                 MotorFeedforward(
                     params.kS,
                     params.kV / params.inPerTick,
-                    params.kA / params.inPerTick
+                    params.kA / params.inPerTick,
                 )
             val leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
@@ -431,7 +454,7 @@ open class SimpleRobotWithMecanumDrive(
                     leftFrontPower,
                     leftBackPower,
                     rightBackPower,
-                    rightFrontPower
+                    rightFrontPower,
                 )
             )
 
@@ -469,7 +492,7 @@ open class SimpleRobotWithMecanumDrive(
             poseHistory.removeFirst()
         }
 
-//        estimatedPoseWriter.write(PoseMessage(localizer.pose))
+        //        estimatedPoseWriter.write(PoseMessage(localizer.pose))
 
         return vel
     }
@@ -506,52 +529,67 @@ open class SimpleRobotWithMecanumDrive(
             0.0,
             defaultTurnConstraints,
             defaultVelConstraint,
-            defaultAccelConstraint
+            defaultAccelConstraint,
         )
     }
 
     /**
      * Strafe to a [target] vector.
+     *
      * @return the action
      */
-    fun strafeTo(target: Vector2d): Action {
-        return driveActionBuilder(localizer.pose).strafeTo(target).build()
-    }
+    fun strafeTo(target: Vector2d): Action =
+        driveActionBuilder(localizer.pose).strafeTo(target).build()
 
     /**
      * Strafe to a [target] vector with a linear [heading].
+     *
      * @return the action
      */
-    fun strafeToLinearHeading(target: Vector2d, heading: Double): Action {
-        return driveActionBuilder(localizer.pose).strafeToLinearHeading(target, heading).build()
-    }
+    fun strafeToLinearHeading(target: Vector2d, heading: Double): Action =
+        driveActionBuilder(localizer.pose).strafeToLinearHeading(target, heading).build()
 
     /**
      * Turn to a [target] angle in radians.
+     *
      * @return the action
      */
-    fun turnTo(target: Double): Action {
-        return driveActionBuilder(localizer.pose).turnTo(target).build()
-    }
+    fun turnTo(target: Double): Action = driveActionBuilder(localizer.pose).turnTo(target).build()
 
     /**
      * Turn a certain number of [radians].
+     *
      * @return the action
      */
-    fun turn(radians: Double): Action {
-        return driveActionBuilder(localizer.pose).turn(radians).build()
-    }
+    fun turn(radians: Double): Action = driveActionBuilder(localizer.pose).turn(radians).build()
 
     /**
      * Wait for a certain number of [seconds].
+     *
      * @return the action
      */
-    fun wait(seconds: Double): Action {
-        return driveActionBuilder(localizer.pose).waitSeconds(seconds).build()
+    fun wait(seconds: Double): Action =
+        driveActionBuilder(localizer.pose).waitSeconds(seconds).build()
+
+    /**
+     * Build a trajectory action.
+     *
+     * @return the built action
+     */
+    fun trajectory(
+        beginPose: Pose2d = localizer.pose,
+        block: TrajectoryActionBuilder.() -> TrajectoryActionBuilder,
+    ): Action {
+        return driveActionBuilder(beginPose).block().build()
     }
 
     override fun update(telemetry: Telemetry) {
         updatePoseEstimate()
-        super.update(telemetry)
+
+        telemetry.addLine("DRIVETRAIN-->")
+        telemetry.addData("x", localizer.pose.position.x)
+        telemetry.addData("y", localizer.pose.position.y)
+        telemetry.addData("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()))
+        telemetry.addLine()
     }
 }

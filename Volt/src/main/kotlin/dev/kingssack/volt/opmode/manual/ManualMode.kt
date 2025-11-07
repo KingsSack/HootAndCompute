@@ -122,9 +122,15 @@ abstract class ManualMode<R : Robot>(
         }
     }
 
+    /** Optional initialization code can be added here. */
+    open fun initialize() {
+        // Default implementation does nothing
+    }
+
     override fun runOpMode() {
         initializeInputMappings()
         robot = robotFactory(hardwareMap)
+        initialize()
         waitForStart()
         while (opModeIsActive()) {
             tick()
