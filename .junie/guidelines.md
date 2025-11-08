@@ -1,7 +1,7 @@
 # HootAndCompute Project Overview
 
 ## Introduction
-HootAndCompute is FTC Team 24123's repository for the INTO THE DEEP (2024-2025) competition season. This repository contains a modified version of the FTC SDK that supports Kotlin development, making it easier and more efficient to develop robot code.
+HootAndCompute is FTC Team 24123's repository for the DECODE (2025-2026) competition season. This repository contains a modified version of the FTC SDK that supports Kotlin development, making it easier and more efficient to develop robot code.
 
 ## Project Philosophy
 **THINK CRITICALLY | DEBUG CREATIVELY | ACT COMPASSIONATELY**
