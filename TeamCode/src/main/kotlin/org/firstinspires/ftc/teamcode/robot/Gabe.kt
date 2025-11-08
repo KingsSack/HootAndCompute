@@ -5,7 +5,6 @@ import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.drivetrain.Drivetrain
 import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithRR
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -44,7 +43,7 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 
     }
 
     // Drivetrain
-    val drivetrain: Drivetrain =
+    val drivetrain =
         SimpleMecanumDriveWithRR(
             hardwareMap,
             initialPose,

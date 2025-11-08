@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.drivetrain.Drivetrain
 import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithPP
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -27,7 +26,7 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0,
     }
 
     // Drivetrain
-    val drivetrain: Drivetrain =
+    val drivetrain =
         SimpleMecanumDriveWithPP(
             hardwareMap,
             Constants.followerConstants,
