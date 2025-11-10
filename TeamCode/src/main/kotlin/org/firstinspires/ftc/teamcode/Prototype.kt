@@ -15,8 +15,8 @@ class Prototype :
         robotFactory = { hardwareMap -> TestRobot(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0)) }
     ) {
     init {
-        onButtonTapped(GamepadButton.A1) {
-            InstantAction { telemetry.addData("Action", "Triggered") }
+        onButtonReleased(GamepadButton.A1) {
+            +{ InstantAction { telemetry.addData("Action", "Triggered") } }
         }
     }
 }
