@@ -3,31 +3,28 @@ package dev.kingssack.volt.attachment
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * SimpleAttachmentWithDcMotor is an attachment that controls a motor.
+ * [DcMotorAttachment] is an Attachment that controls a [motor].
  *
- * @param hardwareMap for registering the motor
- * @param name the name of the motor
+ * @param name the name of the attachment
+ * @param motor the motor to control
  * @param idlePower the idle power of the motor
  * @param maxPosition the maximum position of the motor
  * @param minPosition the minimum position of the motor
  */
-open class SimpleAttachmentWithDcMotor(
-    hardwareMap: HardwareMap,
-    private val name: String,
+open class DcMotorAttachment(
+    name: String,
+    protected val motor: DcMotor,
     private val idlePower: Double,
     private val maxPosition: Int,
     private val minPosition: Int = 0,
-) : Attachment() {
-    // Initialize motor
-    protected val motor: DcMotor = hardwareMap.dcMotor[name]
-
+    private val direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+) : Attachment(name) {
     init {
         // Set motor direction
-        motor.direction = DcMotorSimple.Direction.FORWARD
+        motor.direction = direction
 
         // Set zero power behavior
         motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
@@ -44,9 +41,12 @@ open class SimpleAttachmentWithDcMotor(
         }
 
     /** Resets the motor's encoder. */
-    fun reset() {
-        motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
+    fun reset() = action {
+        init {
+            motor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        }
+        loop { true }
     }
 
     /**
@@ -57,8 +57,8 @@ open class SimpleAttachmentWithDcMotor(
     fun goTo(power: Double, position: Int): Action {
         require(position in minPosition..maxPosition)
 
-        return controlAction(
-            init = {
+        return action {
+            init {
                 // Update current goal
                 currentGoal = position
 
@@ -69,28 +69,38 @@ open class SimpleAttachmentWithDcMotor(
 
                 // Set power
                 motor.power = power
-            },
-            update = { pkt ->
-                pkt.put("DcMotor $name position", motor.currentPosition)
-                pkt.put("DcMotor $name target", motor.targetPosition)
-                return@controlAction !motor.isBusy
-            },
-            onStop = {
+            }
+
+            loop {
+                put("DcMotor $name position", motor.currentPosition)
+                put("DcMotor $name target", motor.targetPosition)
+
+                !motor.isBusy
+            }
+
+            cleanup {
                 // Stop the motor
                 motor.power = idlePower
-            },
-        )
+            }
+        }
     }
 
-    override fun update(telemetry: Telemetry) {
-        if (!running) {
+    context(telemetry: Telemetry)
+    override fun update() {
+        if (state.value == AttachmentState.Idle) {
             motor.targetPosition = currentGoal
             motor.mode = DcMotor.RunMode.RUN_TO_POSITION
             motor.power = idlePower
         }
 
+        super.update()
         telemetry.addData("Goal", currentGoal)
         telemetry.addData("Position", motor.currentPosition)
         telemetry.addData("Busy", motor.isBusy)
+    }
+
+    override fun stop() {
+        motor.power = 0.0
+        setState(AttachmentState.Idle)
     }
 }

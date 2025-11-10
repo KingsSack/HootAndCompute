@@ -583,7 +583,8 @@ class SimpleMecanumDriveWithRR(
         return driveActionBuilder(beginPose).block().build()
     }
 
-    override fun update(telemetry: Telemetry) {
+    context(telemetry: Telemetry)
+    override fun update() {
         updatePoseEstimate()
 
         telemetry.addLine("DRIVETRAIN-->")
