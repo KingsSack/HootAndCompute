@@ -3,216 +3,309 @@ package dev.kingssack.volt.opmode.manual
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.hardware.Gamepad
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.ActionSequenceBuilder
 import dev.kingssack.volt.util.AnalogHandler
 import dev.kingssack.volt.util.ButtonHandler
-import org.firstinspires.ftc.robotcore.external.Telemetry
+import dev.kingssack.volt.util.GamepadAnalogInput
+import dev.kingssack.volt.util.GamepadButton
+import java.util.*
 
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
  *
- * @param telemetry for logging
+ * @property params the configuration object for manual control
+ * @property robot the robot instance
  */
-abstract class ManualMode(
-    gamepad1: Gamepad,
-    gamepad2: Gamepad,
-    private val telemetry: Telemetry,
-    private val params: ManualParams = ManualParams()
-) {
+abstract class ManualMode<R : Robot>(
+    private val robotFactory: (HardwareMap) -> R,
+    private val params: ManualParams = ManualParams(),
+) : LinearOpMode() {
     /**
      * Configuration object for manual control.
      *
      * @property deadzone the minimum joystick input to register
      * @property inputExp the input exponential for fine control
      */
-    class ManualParams(
-        val deadzone: Double = 0.1,
-        val inputExp: Double = 2.0
-    )
+    data class ManualParams(val deadzone: Double = 0.1, val inputExp: Double = 2.0)
 
-    // Buttons
-    private val buttonHandlers = mutableMapOf<String, ButtonHandler>()
-    private val analogHandlers = mutableMapOf<String, AnalogHandler>()
+    protected lateinit var robot: R
+        private set
 
-    private val buttons = listOf(
-        "a1" to gamepad1::a, "b1" to gamepad1::b, "x1" to gamepad1::x, "y1" to gamepad1::y,
-        "left_bumper1" to gamepad1::left_bumper, "right_bumper1" to gamepad1::right_bumper,
-        "left_stick_button1" to gamepad1::left_stick_button, "right_stick_button1" to gamepad1::right_stick_button,
-        "dpad_up1" to gamepad1::dpad_up, "dpad_down1" to gamepad1::dpad_down,
-        "dpad_left1" to gamepad1::dpad_left, "dpad_right1" to gamepad1::dpad_right,
-        "back1" to gamepad1::back, "start1" to gamepad1::start, "guide1" to gamepad1::guide,
-        "a2" to gamepad2::a, "b2" to gamepad2::b, "x2" to gamepad2::x, "y2" to gamepad2::y,
-        "left_bumper2" to gamepad2::left_bumper, "right_bumper2" to gamepad2::right_bumper,
-        "left_stick_button2" to gamepad2::left_stick_button, "right_stick_button2" to gamepad2::right_stick_button,
-        "dpad_up2" to gamepad2::dpad_up, "dpad_down2" to gamepad2::dpad_down,
-        "dpad_left2" to gamepad2::dpad_left, "dpad_right2" to gamepad2::dpad_right,
-        "back2" to gamepad2::back, "start2" to gamepad2::start, "guide2" to gamepad2::guide
-    )
+    private enum class InteractionType {
+        TAP,
+        DOUBLE_TAP,
+        HOLD,
+        PRESS,
+    }
 
-    private val analogButtons = listOf(
-        "left_stick_x1" to gamepad1::left_stick_x, "left_stick_y1" to gamepad1::left_stick_y,
-        "right_stick_x1" to gamepad1::right_stick_x, "right_stick_y1" to gamepad1::right_stick_y,
-        "left_trigger1" to gamepad1::left_trigger, "right_trigger1" to gamepad1::right_trigger,
-        "left_stick_x2" to gamepad2::left_stick_x, "left_stick_y2" to gamepad2::left_stick_y,
-        "right_stick_x2" to gamepad2::right_stick_x, "right_stick_y2" to gamepad2::right_stick_y,
-        "left_trigger2" to gamepad2::left_trigger, "right_trigger2" to gamepad2::right_trigger
-    )
+    private val interactionHandlers =
+        mapOf(
+            InteractionType.TAP to mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
+            InteractionType.DOUBLE_TAP to
+                mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
+            InteractionType.HOLD to mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
+            InteractionType.PRESS to mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
+        )
 
-    init {
-        buttons.forEach { (name, _) -> buttonHandlers[name] = ButtonHandler() }
-        analogButtons.forEach { (name, _) -> analogHandlers[name] = AnalogHandler(params.deadzone, params.inputExp) }
+    private lateinit var buttonStateGetters: EnumMap<GamepadButton, () -> Boolean>
+    private lateinit var analogStateGetters: EnumMap<GamepadAnalogInput, () -> Float>
+
+    private val buttonHandlers = EnumMap<GamepadButton, ButtonHandler>(GamepadButton::class.java)
+    private val analogHandlers =
+        EnumMap<GamepadAnalogInput, AnalogHandler>(GamepadAnalogInput::class.java)
+
+    private var runningActions = mutableListOf<Action>()
+    private val dash: FtcDashboard? = FtcDashboard.getInstance()
+
+    private fun initializeInputMappings() {
+        buttonStateGetters =
+            EnumMap(
+                mapOf(
+                    GamepadButton.A1 to gamepad1::a,
+                    GamepadButton.B1 to gamepad1::b,
+                    GamepadButton.X1 to gamepad1::x,
+                    GamepadButton.Y1 to gamepad1::y,
+                    GamepadButton.LEFT_BUMPER1 to gamepad1::left_bumper,
+                    GamepadButton.RIGHT_BUMPER1 to gamepad1::right_bumper,
+                    GamepadButton.LEFT_STICK_BUTTON1 to gamepad1::left_stick_button,
+                    GamepadButton.RIGHT_STICK_BUTTON1 to gamepad1::right_stick_button,
+                    GamepadButton.DPAD_UP1 to gamepad1::dpad_up,
+                    GamepadButton.DPAD_DOWN1 to gamepad1::dpad_down,
+                    GamepadButton.DPAD_LEFT1 to gamepad1::dpad_left,
+                    GamepadButton.DPAD_RIGHT1 to gamepad1::dpad_right,
+                    GamepadButton.BACK1 to gamepad1::back,
+                    GamepadButton.START1 to gamepad1::start,
+                    GamepadButton.GUIDE1 to gamepad1::guide,
+                    GamepadButton.A2 to gamepad2::a,
+                    GamepadButton.B2 to gamepad2::b,
+                    GamepadButton.X2 to gamepad2::x,
+                    GamepadButton.Y2 to gamepad2::y,
+                    GamepadButton.LEFT_BUMPER2 to gamepad2::left_bumper,
+                    GamepadButton.RIGHT_BUMPER2 to gamepad2::right_bumper,
+                    GamepadButton.LEFT_STICK_BUTTON2 to gamepad2::left_stick_button,
+                    GamepadButton.RIGHT_STICK_BUTTON2 to gamepad2::right_stick_button,
+                    GamepadButton.DPAD_UP2 to gamepad2::dpad_up,
+                    GamepadButton.DPAD_DOWN2 to gamepad2::dpad_down,
+                    GamepadButton.DPAD_LEFT2 to gamepad2::dpad_left,
+                    GamepadButton.DPAD_RIGHT2 to gamepad2::dpad_right,
+                    GamepadButton.BACK2 to gamepad2::back,
+                    GamepadButton.START2 to gamepad2::start,
+                    GamepadButton.GUIDE2 to gamepad2::guide,
+                )
+            )
+
+        analogStateGetters =
+            EnumMap(
+                mapOf(
+                    GamepadAnalogInput.LEFT_STICK_X1 to gamepad1::left_stick_x,
+                    GamepadAnalogInput.LEFT_STICK_Y1 to gamepad1::left_stick_y,
+                    GamepadAnalogInput.RIGHT_STICK_X1 to gamepad1::right_stick_x,
+                    GamepadAnalogInput.RIGHT_STICK_Y1 to gamepad1::right_stick_y,
+                    GamepadAnalogInput.LEFT_TRIGGER1 to gamepad1::left_trigger,
+                    GamepadAnalogInput.RIGHT_TRIGGER1 to gamepad1::right_trigger,
+                    GamepadAnalogInput.LEFT_STICK_X2 to gamepad2::left_stick_x,
+                    GamepadAnalogInput.LEFT_STICK_Y2 to gamepad2::left_stick_y,
+                    GamepadAnalogInput.RIGHT_STICK_X2 to gamepad2::right_stick_x,
+                    GamepadAnalogInput.RIGHT_STICK_Y2 to gamepad2::right_stick_y,
+                    GamepadAnalogInput.LEFT_TRIGGER2 to gamepad2::left_trigger,
+                    GamepadAnalogInput.RIGHT_TRIGGER2 to gamepad2::right_trigger,
+                )
+            )
+
+        // Initialize the handler maps
+        GamepadButton.entries.forEach { button -> buttonHandlers[button] = ButtonHandler() }
+        GamepadAnalogInput.entries.forEach { analog ->
+            analogHandlers[analog] = AnalogHandler(params.deadzone, params.inputExp)
+        }
+    }
+
+    /** Optional initialization code can be added here. */
+    open fun initialize() {
+        // Default implementation does nothing
+    }
+
+    override fun runOpMode() {
+        initializeInputMappings()
+        robot = robotFactory(hardwareMap)
+        initialize()
+        waitForStart()
+        while (opModeIsActive()) {
+            tick()
+        }
     }
 
     private fun updateButtonHandlers() {
-        buttons.forEach { (name, buttonGetter) -> buttonHandlers[name]?.update(buttonGetter.get()) }
+        // Iterate through the enum values and update corresponding handlers
+        for (button in GamepadButton.entries) {
+            buttonHandlers[button]?.update(buttonStateGetters[button]!!())
+        }
     }
 
     private fun updateAnalogHandlers() {
-        analogButtons.forEach { (name, analogGetter) -> analogHandlers[name]?.update(analogGetter.get().toDouble()) }
-    }
-
-    // Robot
-    abstract val robot: Robot
-
-    private val dash: FtcDashboard? = FtcDashboard.getInstance()
-
-    private var runningActions = mutableListOf<Action>()
-
-    // Interactions
-    protected val interactions = mutableListOf<Interaction>()
-
-    /**
-     * An interaction is a trigger-action pair updated every tick.
-     *
-     * @param trigger the trigger condition
-     * @param action the action to run
-     */
-    open inner class Interaction(private val trigger: () -> Boolean, private val action: () -> Action) {
-        open fun update() {
-            if (trigger()) runningActions.add(action())
+        // Iterate through the enum values and update corresponding handlers
+        for (analogInput in GamepadAnalogInput.entries) {
+            analogHandlers[analogInput]?.update(analogStateGetters[analogInput]!!().toDouble())
         }
     }
 
-    /**
-     * An interaction that toggles between two actions.
-     *
-     * @param trigger the trigger condition
-     * @param actionOne the first action
-     * @param actionTwo the second action
-     */
-    inner class ToggleInteraction(
-        private val trigger: () -> Boolean,
-        private val actionOne: () -> Action,
-        private val actionTwo: () -> Action
-    ) : Interaction(trigger, { actionOne() }) {
-        private var lastState = false
+    private fun processInteractions() {
+        processActionType(interactionHandlers[InteractionType.TAP]!!) { button ->
+            isButtonTapped(button)
+        }
+        processActionType(interactionHandlers[InteractionType.DOUBLE_TAP]!!) { button ->
+            isButtonDoubleTapped(button)
+        }
+        processActionType(interactionHandlers[InteractionType.HOLD]!!) { button ->
+            isButtonHeld(button, 500.0)
+        }
+        processActionType(interactionHandlers[InteractionType.PRESS]!!) { button ->
+            isButtonPressed(button)
+        }
+    }
 
-        override fun update() {
-            if (trigger()) {
-                if (lastState) runningActions.add(actionOne())
-                else runningActions.add(actionTwo())
-                lastState = !lastState
+    private fun processActionType(
+        interactions: Map<GamepadButton, ActionSequenceBuilder.() -> Unit>,
+        condition: (GamepadButton) -> Boolean,
+    ) {
+        interactions.forEach { (button, actionBlock) ->
+            if (condition(button)) {
+                val builder = ActionSequenceBuilder().apply(actionBlock)
+                runningActions.add(builder.build())
             }
         }
     }
 
-    private fun updateInteractions() {
-        interactions.forEach { it.update() }
-    }
-
-    /**
-     * Runs the actions in the list of running actions.
-     */
     private fun runActions() {
         val packet = TelemetryPacket()
-        val newActions: MutableList<Action> = ArrayList()
-        for (action in runningActions) {
+        runningActions.removeAll { action ->
             action.preview(packet.fieldOverlay())
-            if (action.run(packet)) {
-                newActions.add(action)
-            }
+            !action.run(packet)
         }
-        runningActions = newActions
         dash?.sendTelemetryPacket(packet)
-        telemetry.update()
     }
 
-    /**
-     * Tick the manual mode.
-     *
-     * @param telemetry for logging
-     */
-    open fun tick(telemetry: Telemetry) {
+    /** Tick the manual mode. */
+    open fun tick() {
         updateButtonHandlers()
         updateAnalogHandlers()
-
-        updateInteractions()
-
-        // Run actions
+        processInteractions()
         runActions()
-
-        // Update robot
         robot.update(telemetry)
     }
 
     /**
      * Checks if a button has just been tapped (released after a short press).
      *
-     * @param name the name of the button
+     * @param button the button
      * @return true if the button was just tapped, false otherwise
      */
-    protected fun isButtonTapped(name: String): Boolean {
-        return buttonHandlers[name]?.tapped() ?: false
+    protected fun isButtonTapped(button: GamepadButton): Boolean {
+        return buttonHandlers[button]?.tapped() ?: false
+    }
+
+    /**
+     * Registers an action sequence to be executed when a button is tapped.
+     *
+     * @param button the button
+     * @param block the action sequence to execute
+     */
+    protected fun onButtonTapped(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
+        interactionHandlers[InteractionType.TAP]?.set(button, block)
     }
 
     /**
      * Checks if a button has just been double-tapped (released after two quick presses).
      *
-     * @param name name of the button
+     * @param button the button
      * @return true if the button was just double-tapped, false otherwise
      */
-    protected fun isButtonDoubleTapped(name: String): Boolean {
-        return buttonHandlers[name]?.doubleTapped() ?: false
+    protected fun isButtonDoubleTapped(button: GamepadButton): Boolean {
+        return buttonHandlers[button]?.doubleTapped() ?: false
+    }
+
+    /**
+     * Registers an action sequence to be executed when a button is double-tapped.
+     *
+     * @param button the button
+     * @param block the action sequence to execute
+     */
+    protected fun onButtonDoubleTapped(
+        button: GamepadButton,
+        block: ActionSequenceBuilder.() -> Unit,
+    ) {
+        interactionHandlers[InteractionType.DOUBLE_TAP]?.set(button, block)
     }
 
     /**
      * Checks if a button is currently being held down for a specified duration.
      *
-     * @param name The name of the button
-     * @param milliseconds The duration in milliseconds to check for.
-     * @return True if the button is held for the given duration, false otherwise.
+     * @param button the button
+     * @param milliseconds the duration in milliseconds to check for
+     * @return true if the button is held for the given duration, false otherwise
      */
-    protected fun isButtonHeld(name: String, milliseconds: Double): Boolean {
-        return buttonHandlers[name]?.held(milliseconds) ?: false
+    protected fun isButtonHeld(button: GamepadButton, milliseconds: Double): Boolean {
+        return buttonHandlers[button]?.held(milliseconds) ?: false
+    }
+
+    /**
+     * Registers an action sequence to be executed when a button is held down.
+     *
+     * @param button the button
+     * @param block the action sequence to execute
+     */
+    protected fun onButtonHeld(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
+        interactionHandlers[InteractionType.HOLD]?.set(button, block)
     }
 
     /**
      * Checks if a button is currently pressed.
      *
-     * @param name name of the button
+     * @param button the button
      * @return true if the button is pressed, false otherwise
      */
-    protected fun isButtonPressed(name: String): Boolean {
-        return buttonHandlers[name]?.pressed ?: false
+    protected fun isButtonPressed(button: GamepadButton): Boolean {
+        return buttonHandlers[button]?.pressed ?: false
     }
 
     /**
-     * Resets the tap count for a specific button.
-     * Useful if you want to ignore previous tap counts under certain conditions.
+     * Registers an action sequence to be executed when a button is pressed.
      *
-     * @param name name of the button
+     * @param button the button
+     * @param block the action sequence to execute
      */
-    protected fun resetButtonTapCount(name: String) {
-        buttonHandlers[name]?.reset()
+    protected fun onButtonPressed(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
+        interactionHandlers[InteractionType.PRESS]?.set(button, block)
+    }
+
+    /**
+     * Resets the tap count for a specific button. Useful if you want to ignore previous tap counts
+     * under certain conditions.
+     *
+     * @param button the button
+     */
+    protected fun resetButtonTapCount(button: GamepadButton) {
+        buttonHandlers[button]?.reset()
     }
 
     /**
      * Gets the value of an analog button.
      *
-     * @param name the name of the analog button
+     * @param analogInput the analog button
      */
-    protected fun getAnalogValue(name: String): Double {
-        return analogHandlers[name]?.value ?: 0.0
+    protected fun getAnalogValue(analogInput: GamepadAnalogInput): Double {
+        return analogHandlers[analogInput]?.value ?: 0.0
+    }
+
+    /**
+     * Gets the raw value of an analog input, before deadzone and exponentiation.
+     *
+     * @param analogInput The GamepadAnalogInput enum value.
+     * @return The raw analog value.
+     */
+    protected fun getRawAnalogValue(analogInput: GamepadAnalogInput): Float {
+        return analogStateGetters[analogInput]?.invoke() ?: 0.0f
     }
 }

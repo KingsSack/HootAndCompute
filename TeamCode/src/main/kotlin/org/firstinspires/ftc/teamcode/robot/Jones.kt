@@ -3,12 +3,12 @@ package org.firstinspires.ftc.teamcode.robot
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.dfrobot.HuskyLens
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithPP
+import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.teamcode.pp.Constants
 
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
@@ -17,79 +17,34 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
  * @param initialPose for setting the initial pose
  */
 @Config
-class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
-        SimpleRobotWithMecanumDrive(
-                hardwareMap,
-                initialPose,
-                DriveParams(
-                        logoFacingDirection = logoFacingDirection,
-                        usbFacingDirection = usbFacingDirection,
-                        inPerTick = inPerTick,
-                        lateralInPerTick = lateralInPerTick,
-                        trackWidthTicks = trackWidthTicks,
-                        kS = kS,
-                        kV = kV,
-                        kA = kA,
-                        maxWheelVel = maxWheelVel,
-                        minProfileAccel = minProfileAccel,
-                        maxProfileAccel = maxProfileAccel,
-                        maxAngVel = maxAngVel,
-                        maxAngAccel = maxAngAccel,
-                        axialGain = axialGain,
-                        lateralGain = lateralGain,
-                        headingGain = headingGain
-                )
-        ) {
-    /**
-     * Params is a companion object that holds the configuration for the robot.
-     *
-     * @property lidarLeftName the name of the left distance sensor
-     * @property lidarRightName the name of the right distance sensor
-     * @property huskyLensName the name of the HuskyLens
-     */
-    companion object Params {
+class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
+    Robot() {
+    companion object {
         @JvmField var lidarLeftName: String = "lidarl"
         @JvmField var lidarRightName: String = "lidarr"
         @JvmField var huskyLensName: String = "lens"
-
-        @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
-        @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
-
-        @JvmField var inPerTick: Double = 0.0227
-        @JvmField var lateralInPerTick: Double = 0.02
-        @JvmField var trackWidthTicks: Double = 1297.32
-
-        @JvmField var kS: Double = 0.9134
-        @JvmField var kV: Double = 0.0043
-        @JvmField var kA: Double = 0.001
-
-        @JvmField var maxWheelVel: Double = 60.0
-        @JvmField var minProfileAccel: Double = -30.0
-        @JvmField var maxProfileAccel: Double = 60.0
-
-        @JvmField var maxAngVel: Double = Math.PI
-        @JvmField var maxAngAccel: Double = Math.PI
-
-        @JvmField var axialGain: Double = 5.0
-        @JvmField var lateralGain: Double = 4.0
-        @JvmField var headingGain: Double = 3.0
     }
+
+    // Drivetrain
+    val drivetrain =
+        SimpleMecanumDriveWithPP(
+            hardwareMap,
+            Constants.followerConstants,
+            Constants.localizerConstants,
+            Constants.pathConstraints,
+            Constants.driveConstants,
+        )
 
     // Sensors
     private val lidarLeft: DistanceSensor =
-            hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
+        hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
     private val lidarRight: DistanceSensor =
-            hardwareMap.get(DistanceSensor::class.java, lidarRightName)
+        hardwareMap.get(DistanceSensor::class.java, lidarRightName)
     private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, huskyLensName)
 
     // Attachments
 
     init {
-        attachments = listOf()
-
-        // Check if huskylens is communicating
-        // if (!huskyLens.knock())
-
         // Set huskylens mode
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION)
     }
@@ -99,7 +54,6 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
      *
      * @param telemetry for logging
      * @return array of detected AprilTags
-     *
      * @see HuskyLens
      * @see HuskyLens.Block
      */
@@ -110,11 +64,11 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
 
         // If an id is provided, filter to matching blocks; otherwise return all blocks.
         val result: Array<out HuskyLens.Block> =
-                if (id == null) {
-                    blocks
-                } else {
-                    blocks.filter { it.id == id }.toTypedArray()
-                }
+            if (id == null) {
+                blocks
+            } else {
+                blocks.filter { it.id == id }.toTypedArray()
+            }
 
         // Log each block in the result
         for (block in result) {
@@ -132,7 +86,6 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
      *
      * @param telemetry for logging
      * @return distance to an obstacle
-     *
      * @see DistanceSensor
      */
     fun getDistanceToObstacle(telemetry: Telemetry): Double {
@@ -146,5 +99,10 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d) :
         telemetry.addData("Average range", "%.01f mm".format(averageDistance))
 
         return averageDistance
+    }
+
+    override fun update(telemetry: Telemetry) {
+        drivetrain.update(telemetry)
+        super.update(telemetry)
     }
 }
