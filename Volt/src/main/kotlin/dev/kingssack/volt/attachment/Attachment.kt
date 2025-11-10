@@ -112,19 +112,21 @@ abstract class Attachment(val name: String) {
     /** Updates the telemetry with the current state of the attachment. */
     context(telemetry: Telemetry)
     open fun update() {
-        telemetry.addLine()
-        telemetry.addLine("$name-->")
-        telemetry.addData("State", state.value)
-        (state.value as? AttachmentState.Fault)?.let { fault ->
-            val hash = fault.error.message?.hashCode() ?: 0
-            if (lastFaultHash != hash) {
-                telemetry.addData("Error", fault.error.message ?: "Unknown")
-                fault.error.stackTrace.take(2).forEachIndexed { i, line ->
-                    telemetry.addData("Stack_$i", line.toString())
+        with (telemetry) {
+            addLine()
+            addLine("$name-->")
+            addData("State", state.value)
+            (state.value as? AttachmentState.Fault)?.let { fault ->
+                val hash = fault.error.message?.hashCode() ?: 0
+                if (lastFaultHash != hash) {
+                    addData("Error", fault.error.message ?: "Unknown")
+                    fault.error.stackTrace.take(2).forEachIndexed { i, line ->
+                        addData("Stack_$i", line.toString())
+                    }
+                    lastFaultHash = hash
                 }
-                lastFaultHash = hash
-            }
-        } ?: run { lastFaultHash = null }
+            } ?: run { lastFaultHash = null }
+        }
     }
 
     /** Stops the attachment and resets its state to Idle. */

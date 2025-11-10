@@ -162,8 +162,6 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
     context(telemetry: Telemetry)
     open fun update() {
         attachments.forEach { it.update() }
-
-        // Update telemetry
         telemetry.update()
     }
 }
