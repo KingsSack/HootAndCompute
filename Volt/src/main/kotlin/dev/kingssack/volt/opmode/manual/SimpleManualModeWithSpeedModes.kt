@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import java.util.EnumMap
 
 /**
@@ -59,16 +60,16 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
     private var currentSpeedMode = SpeedMode.NORMAL
 
     init {
-        onButtonTapped(GamepadButton.Y1) {
+        onButtonReleased(GamepadButton.Y1) {
             +{ InstantAction { currentSpeedMode = SpeedMode.TURBO } }
         }
-        onButtonTapped(GamepadButton.B1) {
+        onButtonReleased(GamepadButton.B1) {
             +{ InstantAction { currentSpeedMode = SpeedMode.NORMAL } }
         }
-        onButtonTapped(GamepadButton.A1) {
+        onButtonReleased(GamepadButton.A1) {
             +{ InstantAction { currentSpeedMode = SpeedMode.PRECISE } }
         }
-        onButtonTapped(GamepadButton.X1) {
+        onButtonReleased(GamepadButton.X1) {
             +{ InstantAction { currentSpeedMode = SpeedMode.SLOW } }
         }
     }
@@ -103,6 +104,7 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
         }
     }
 
+    context(telemetry: Telemetry)
     override fun tick() {
         telemetry.addData("Speed Mode", currentSpeedMode)
         telemetry.addLine()
