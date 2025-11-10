@@ -59,7 +59,6 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwa
     /**
      * Get detected AprilTags from HuskyLens.
      *
-     * @param telemetry for logging
      * @return array of detected AprilTags
      * @see HuskyLens
      * @see HuskyLens.Block
@@ -92,7 +91,6 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwa
     /**
      * Get distance to an obstacle from distance sensor.
      *
-     * @param telemetry for logging
      * @return distance to an obstacle
      * @see DistanceSensor
      */

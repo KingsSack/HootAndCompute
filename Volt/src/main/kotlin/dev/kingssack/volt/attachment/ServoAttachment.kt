@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.util.ServoPosition
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import kotlin.math.abs
 
 /**
  * [ServoAttachment] is an [Attachment] that controls a [servo].
@@ -30,13 +31,15 @@ open class ServoAttachment(
      * @return an action to move the servo to a position
      */
     fun goTo(target: ServoPosition): Action {
+        val tolerance = 0.01
+
         return action {
             init {
                 requireReady()
                 servo.position = target.value
             }
 
-            loop { true }
+            loop { abs(position.value - target.value) < tolerance }
         }
     }
 

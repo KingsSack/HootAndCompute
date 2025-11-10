@@ -30,7 +30,7 @@ open class CRServoWithPotentiometerAttachment(
      */
     fun goTo(power: Power, target: Voltage): Action {
         require(target.value in 0.0..potentiometer.maxVoltage) {
-            "Angle must be between 0 and ${potentiometer.maxVoltage}"
+            "Voltage must be between 0 and ${potentiometer.maxVoltage}"
         }
 
         var reversing = false
@@ -39,7 +39,7 @@ open class CRServoWithPotentiometerAttachment(
             init {
                 requireReady()
                 reversing = target.value < potentiometer.voltage
-                crServo.power = power.value
+                crServo.power = if (reversing) -power.value else power.value
             }
 
             loop {

@@ -6,12 +6,10 @@ import dev.kingssack.volt.attachment.Attachment
 import dev.kingssack.volt.attachment.ServoAttachment
 
 /**
- * [Classifier] is a [ServoAttachment] that controls a [gate] used for launching .
+ * [Classifier] is a [ServoAttachment] that controls a [gate] used for launching artifacts.
  */
 class Classifier(gate: Servo) : Attachment("classifier") {
     fun rotateToNextArtifact(): Action = action {
-        init {}
-
         loop { true }
     }
 }

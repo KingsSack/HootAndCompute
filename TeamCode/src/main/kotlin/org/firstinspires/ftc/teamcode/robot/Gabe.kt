@@ -77,7 +77,6 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 
     /**
      * Get detected AprilTags from HuskyLens.
      *
-     * @param telemetry for logging
      * @return array of detected AprilTags
      * @see HuskyLens
      * @see HuskyLens.Block
