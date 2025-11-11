@@ -50,7 +50,8 @@ class SimpleMecanumDriveWithPP(
         finished
     }
 
-    override fun update(telemetry: Telemetry) {
+    context(telemetry: Telemetry)
+    override fun update() {
         follower.update()
 
         telemetry.addLine("DRIVETRAIN-->")

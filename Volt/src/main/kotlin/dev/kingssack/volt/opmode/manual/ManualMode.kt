@@ -12,6 +12,7 @@ import dev.kingssack.volt.util.ButtonHandler
 import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
 import java.util.*
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
@@ -35,7 +36,7 @@ abstract class ManualMode<R : Robot>(
         private set
 
     private enum class InteractionType {
-        TAP,
+        RELEASE,
         DOUBLE_TAP,
         HOLD,
         PRESS,
@@ -43,7 +44,8 @@ abstract class ManualMode<R : Robot>(
 
     private val interactionHandlers =
         mapOf(
-            InteractionType.TAP to mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
+            InteractionType.RELEASE to
+                mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
             InteractionType.DOUBLE_TAP to
                 mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
             InteractionType.HOLD to mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
@@ -133,7 +135,7 @@ abstract class ManualMode<R : Robot>(
         initialize()
         waitForStart()
         while (opModeIsActive()) {
-            tick()
+            context(telemetry) { tick() }
         }
     }
 
@@ -152,8 +154,8 @@ abstract class ManualMode<R : Robot>(
     }
 
     private fun processInteractions() {
-        processActionType(interactionHandlers[InteractionType.TAP]!!) { button ->
-            isButtonTapped(button)
+        processActionType(interactionHandlers[InteractionType.RELEASE]!!) { button ->
+            isButtonReleased(button)
         }
         processActionType(interactionHandlers[InteractionType.DOUBLE_TAP]!!) { button ->
             isButtonDoubleTapped(button)
@@ -188,12 +190,13 @@ abstract class ManualMode<R : Robot>(
     }
 
     /** Tick the manual mode. */
+    context(telemetry: Telemetry)
     open fun tick() {
         updateButtonHandlers()
         updateAnalogHandlers()
         processInteractions()
         runActions()
-        robot.update(telemetry)
+        robot.update()
     }
 
     /**
@@ -202,8 +205,8 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @return true if the button was just tapped, false otherwise
      */
-    protected fun isButtonTapped(button: GamepadButton): Boolean {
-        return buttonHandlers[button]?.tapped() ?: false
+    protected fun isButtonReleased(button: GamepadButton): Boolean {
+        return buttonHandlers[button]?.released() ?: false
     }
 
     /**
@@ -212,8 +215,8 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
-    protected fun onButtonTapped(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
-        interactionHandlers[InteractionType.TAP]?.set(button, block)
+    protected fun onButtonReleased(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
+        interactionHandlers[InteractionType.RELEASE]?.set(button, block)
     }
 
     /**

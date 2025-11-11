@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.ActionSequenceBuilder
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
@@ -55,7 +56,7 @@ abstract class AutonomousMode<R : Robot>(private val robotFactory: (HardwareMap)
 
             running = action.run(p)
 
-            robot.update(telemetry)
+            context(telemetry) { robot.update() }
             dash?.sendTelemetryPacket(p)
         }
     }

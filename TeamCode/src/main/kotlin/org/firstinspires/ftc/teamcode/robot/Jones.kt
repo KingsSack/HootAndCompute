@@ -2,12 +2,14 @@ package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
+import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithPP
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.pp.Constants
 
 /**
@@ -17,12 +19,14 @@ import org.firstinspires.ftc.teamcode.pp.Constants
  * @param initialPose for setting the initial pose
  */
 @Config
-class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
-    Robot() {
+class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwareMap) {
     companion object {
         @JvmField var lidarLeftName: String = "lidarl"
         @JvmField var lidarRightName: String = "lidarr"
         @JvmField var huskyLensName: String = "lens"
+
+        @JvmField var leftLauncherMotorName: String = "ll"
+        @JvmField var rightLauncherMotorName: String = "rl"
     }
 
     // Drivetrain
@@ -33,16 +37,19 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0,
             Constants.localizerConstants,
             Constants.pathConstraints,
             Constants.driveConstants,
+            initialPose,
         )
 
-    // Sensors
-    private val lidarLeft: DistanceSensor =
-        hardwareMap.get(DistanceSensor::class.java, lidarLeftName)
-    private val lidarRight: DistanceSensor =
-        hardwareMap.get(DistanceSensor::class.java, lidarRightName)
-    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, huskyLensName)
+    // Hardware
+    private val lidarLeft by distanceSensor(lidarLeftName)
+    private val lidarRight by distanceSensor(lidarRightName)
+    private val huskyLens by huskyLens(huskyLensName)
+
+    private val leftLauncherMotor by motor(leftLauncherMotorName)
+    private val rightLauncherMotor by motor(rightLauncherMotorName)
 
     // Attachments
+    val launcher = Launcher(leftLauncherMotor, rightLauncherMotor)
 
     init {
         // Set huskylens mode
@@ -52,12 +59,12 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0,
     /**
      * Get detected AprilTags from HuskyLens.
      *
-     * @param telemetry for logging
      * @return array of detected AprilTags
      * @see HuskyLens
      * @see HuskyLens.Block
      */
-    fun getDetectedAprilTags(telemetry: Telemetry, id: Int? = null): Array<out HuskyLens.Block> {
+    context(telemetry: Telemetry)
+    fun getDetectedAprilTags(id: Int? = null): Array<out HuskyLens.Block> {
         // Get AprilTags
         val blocks = huskyLens.blocks()
         telemetry.addData("Block count", blocks.size)
@@ -84,11 +91,11 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0,
     /**
      * Get distance to an obstacle from distance sensor.
      *
-     * @param telemetry for logging
      * @return distance to an obstacle
      * @see DistanceSensor
      */
-    fun getDistanceToObstacle(telemetry: Telemetry): Double {
+    context(telemetry: Telemetry)
+    fun getDistanceToObstacle(): Double {
         // Get distances
         val distanceLeft = lidarLeft.getDistance(DistanceUnit.MM)
         val distanceRight = lidarRight.getDistance(DistanceUnit.MM)
@@ -101,8 +108,9 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0,
         return averageDistance
     }
 
-    override fun update(telemetry: Telemetry) {
-        drivetrain.update(telemetry)
-        super.update(telemetry)
+    context(telemetry: Telemetry)
+    override fun update() {
+        drivetrain.update()
+        super.update()
     }
 }

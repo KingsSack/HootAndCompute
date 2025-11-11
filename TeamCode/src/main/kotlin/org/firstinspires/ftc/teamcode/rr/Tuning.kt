@@ -22,7 +22,7 @@ import java.util.*
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 @Config
-class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot() {
+class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap) {
     companion object {
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
@@ -96,12 +96,14 @@ class RoadRunnerTest : LinearOpMode() {
                 )
             )
 
-            robot.update(telemetry)
+            context(telemetry) { robot.update() }
 
-            telemetry.addData("x", robot.drive.pose.position.x)
-            telemetry.addData("y", robot.drive.pose.position.y)
-            telemetry.addData("heading (deg)", Math.toDegrees(robot.drive.pose.heading.toDouble()))
-            telemetry.update()
+            with (telemetry) {
+                addData("x", robot.drive.pose.position.x)
+                addData("y", robot.drive.pose.position.y)
+                addData("heading (deg)", Math.toDegrees(robot.drive.pose.heading.toDouble()))
+                update()
+            }
 
             val packet = TelemetryPacket()
             packet.fieldOverlay().setStroke("#3F51B5")

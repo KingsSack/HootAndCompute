@@ -1,8 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.Pose2d
-import com.acmerobotics.roadrunner.Vector2d
+import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.robot.Jones
@@ -13,7 +12,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 class Magpie :
     AutonomousMode<Jones>(
         robotFactory = { hardwareMap ->
-            Jones(hardwareMap, Pose2d(Vector2d(INITIAL_X, INITIAL_Y), INITIAL_HEADING.toRadians()))
+            Jones(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()))
         }
     ) {
     companion object {
