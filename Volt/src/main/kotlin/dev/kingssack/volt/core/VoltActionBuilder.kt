@@ -4,7 +4,6 @@ import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.ParallelAction
 import com.acmerobotics.roadrunner.SequentialAction
 import dev.kingssack.volt.robot.Robot
-import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @DslMarker annotation class VoltBuilderDsl
@@ -19,10 +18,8 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 @VoltBuilderDsl
 class VoltActionBuilder<R : Robot>(val robot: R) {
     private val actions = mutableListOf<Action>()
-    private val isBuilding = AtomicBoolean(false)
 
     operator fun Action.unaryPlus() {
-        check(isBuilding.load()) { "Actions can only be added during the build process." }
         actions.add(this)
     }
 
@@ -31,9 +28,6 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
      * receiver, so all verbs are available.
      */
     fun parallel(block: VoltActionBuilder<R>.() -> Unit) {
-        check(isBuilding.load()) {
-            "Cannot start a parallel block after the builder has been finalized."
-        }
         val parallelActions = mutableListOf<Action>()
         val tempBuilder =
             VoltActionBuilder(robot).apply {
@@ -47,9 +41,6 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
 
     /** Defines a sub-sequence of actions. This is useful for organization. */
     fun sequence(block: VoltActionBuilder<R>.() -> Unit) {
-        check(isBuilding.load()) {
-            "Cannot start a sequence block after the builder has been finalized."
-        }
         val sequenceActions = mutableListOf<Action>()
         val tempBuilder =
             VoltActionBuilder(robot).apply {
@@ -62,11 +53,6 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
     }
 
     internal fun build(): SequentialAction {
-        isBuilding.store(true)
-        try {
-            return SequentialAction(actions)
-        } finally {
-            isBuilding.store(false)
-        }
+        return SequentialAction(actions)
     }
 }
