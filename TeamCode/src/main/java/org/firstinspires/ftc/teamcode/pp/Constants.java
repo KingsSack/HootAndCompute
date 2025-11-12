@@ -14,9 +14,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(5.45)
-            .forwardZeroPowerAcceleration(-64.56723)
-            .lateralZeroPowerAcceleration(-112.680016)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.1, 0));
+            .forwardZeroPowerAcceleration(-81.3341057)
+            .lateralZeroPowerAcceleration(-140.475441)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0, 0, 0, 0));
 
     public static DriveEncoderConstants localizerConstants =
             new DriveEncoderConstants()
@@ -24,14 +24,14 @@ public class Constants {
                     .rightRearMotorName("rr")
                     .leftRearMotorName("lr")
                     .leftFrontMotorName("lf")
-                    .leftFrontEncoderDirection(Encoder.FORWARD)
-                    .leftRearEncoderDirection(Encoder.FORWARD)
-                    .rightFrontEncoderDirection(Encoder.REVERSE)
-                    .rightRearEncoderDirection(Encoder.REVERSE)
+                    .leftFrontEncoderDirection(Encoder.REVERSE)
+                    .leftRearEncoderDirection(Encoder.REVERSE)
+                    .rightFrontEncoderDirection(Encoder.FORWARD)
+                    .rightRearEncoderDirection(Encoder.FORWARD)
                     .robotWidth(13)
                     .robotLength(9)
-                    .forwardTicksToInches(0.0057788)
-                    .strafeTicksToInches(0.0060428)
+                    .forwardTicksToInches(0.0057725)
+                    .strafeTicksToInches(0.0062025)
                     .turnTicksToInches(0.0092964);
 
     public static PathConstraints pathConstraints = new PathConstraints(
@@ -47,12 +47,12 @@ public class Constants {
             .rightRearMotorName("rr")
             .leftRearMotorName("lr")
             .leftFrontMotorName("lf")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(62.354143)
-            .yVelocity(61.320426);
+            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .xVelocity(63.072811)
+            .yVelocity(63.879606);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
