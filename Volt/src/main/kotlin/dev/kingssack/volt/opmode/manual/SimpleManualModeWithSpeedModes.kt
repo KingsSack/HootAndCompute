@@ -61,16 +61,16 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
 
     init {
         onButtonReleased(GamepadButton.Y1) {
-            +{ InstantAction { currentSpeedMode = SpeedMode.TURBO } }
+            +InstantAction { currentSpeedMode = SpeedMode.TURBO }
         }
         onButtonReleased(GamepadButton.B1) {
-            +{ InstantAction { currentSpeedMode = SpeedMode.NORMAL } }
+            +InstantAction { currentSpeedMode = SpeedMode.NORMAL }
         }
         onButtonReleased(GamepadButton.A1) {
-            +{ InstantAction { currentSpeedMode = SpeedMode.PRECISE } }
+            +InstantAction { currentSpeedMode = SpeedMode.PRECISE }
         }
         onButtonReleased(GamepadButton.X1) {
-            +{ InstantAction { currentSpeedMode = SpeedMode.SLOW } }
+            +InstantAction { currentSpeedMode = SpeedMode.SLOW }
         }
     }
 

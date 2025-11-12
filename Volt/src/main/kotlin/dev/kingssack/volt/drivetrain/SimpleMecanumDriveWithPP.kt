@@ -21,7 +21,7 @@ class SimpleMecanumDriveWithPP(
     driveConstants: MecanumConstants,
     var pose: Pose = Pose(),
 ) : Drivetrain() {
-    private val follower: Follower =
+    val follower: Follower =
         FollowerBuilder(followerConstants, hardwareMap)
             .driveEncoderLocalizer(localizerConstants)
             .pathConstraints(pathConstraints)
