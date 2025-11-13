@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.dashboard.config.Config
-import com.pedropathing.geometry.BezierLine
 import com.pedropathing.geometry.Pose
-import com.pedropathing.paths.PathChain
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.robot.Jones
+import org.firstinspires.ftc.teamcode.util.AllianceColor
+import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Config
@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 class Magpie :
     AutonomousMode<Jones>(
         robotFactory = { hardwareMap ->
-            Jones(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()))
+            Jones(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
         }
     ) {
     companion object {
@@ -23,26 +23,9 @@ class Magpie :
         @JvmField var INITIAL_HEADING: Double = 90.0
     }
 
-    val pathToLoadingZone: PathChain by lazy {
-        robot.drivetrain.follower
-            .pathBuilder()
-            .addPath(BezierLine(Pose(56.0, 8.0), Pose(15.0, 8.0)))
-            .setLinearHeadingInterpolation(90.0.toRadians(), 90.0.toRadians())
-            .build()
-    }
-
-    val pathToLaunchZone: PathChain by lazy {
-        robot.drivetrain.follower
-            .pathBuilder()
-            .addPath(BezierLine(Pose(15.0, 8.0), Pose(72.0, 30.0)))
-            .setLinearHeadingInterpolation(90.0.toRadians(), 80.0.toRadians())
-            .build()
-    }
+    private val paths by lazy { PathConstants(robot.drivetrain.follower, AllianceColor.BLUE) }
 
     override fun sequence() = execute {
-        +robot.drivetrain.pathTo(pathToLoadingZone)
-        +robot.drivetrain.pathTo(pathToLaunchZone)
-        +robot.launcher.enable()
-        +robot.launcher.disable()
+        +robot.drivetrain.pathTo(paths.pathToLoadingZone)
     }
 }

@@ -42,7 +42,7 @@ class SimpleMecanumDriveWithPP(
     }
 
     fun pathTo(pathChain: PathChain): Action = Action {
-        if (!follower.isBusy) follower.followPath(pathChain)
+        follower.followPath(pathChain)
 
         follower.update()
         val finished = !follower.isBusy
