@@ -1,39 +1,33 @@
 ---
 title: Creating your first Robot
-description: Learn all about Volt robots.
+description: Learn to create your first Robot with Volt.
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-Rapidly develop and test new robots with the [Volt](../../api/Volt) library.
+The `Robot` class is the heart of your robot's code. It serves as a centralized container for all your hardware devices and subsystems (attachments), providing a clean structure and powerful features to simplify your code.
 
-## What is a [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot)?
+## Guide
 
-A [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) is a class
-that contains all [Attachments](kdoc/volt/dev.kingssack.volt.attachment/-attachment),
-sensors, and shared [Actions](kdoc/volt/dev.kingssack.volt.action/-action)
-that make up a robot.
+You should create a new `Robot` class for each type of physical robot you've built.
 
-You should create a new [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) class for each physical robot you've built.
+This guide will walk you through the process of setting up your own `Robot` class.
 
-## Creating a [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot)
+### 1. Create Your `Robot` Class
 
-Create a new kotlin class in `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/robot` that inherits the [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) class.
-
-The [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) class contains:
-
-1. A list of attachments
-2. A function called `update(telemetry: Telemetry)` that is called every tick
+First, create a new class that inherits from the abstract `Robot` class.
+This class requires a `HardwareMap` (from an OpMode) to be passed to its constructor.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin /hardwareMap.*Pose2d/ "Robot"
-class Example : Robot() {
-    init {
-        // Initialize
-    }
+```kotlin
+import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.robot.Robot
+
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    // Your hardware and attachments will be defined here
 }
 ```
 
@@ -41,39 +35,56 @@ class Example : Robot() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import dev.kingssack.volt.robot.Robot;
+
+public class MyRobot extends Robot {
+    // Your hardware and attachments will be defined here
+
+    public MyRobot(hardwareMap: HardwareMap) {
+        super(hardwareMap);
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-### Add Sensors
+### 2. Defining Hardware
 
-Define the sensors that your robot will use and a way to access them. For example, add a HuskyLens sensor to your robot.
+Volt uses Kotlin's property delegation to make hardware initialization clean and concise.
+Instead of calling `hardwareMap.get()` for every device, you can use the helper functions provided by the `Robot` class.
+
+To define a device, use the `by` keyword followed by the appropriate helper function,
+passing the device name as configured in your robot's hardware configuration.
+
+Here are some of the available helper functions:
+
+- `motor(name: String)` for `DcMotor`
+- `servo(name: String)` for `Servo`
+- `crServo(name: String)` for `CRServo`
+- `imu(name: String)` for `IMU`
+- `huskyLens(name: String)` for `HuskyLens`
+- `distanceSensor(name: String)` for `Rev2mDistanceSensor`
+- `colorSensor(name: String)` for `NormalizedColorSensor`
+- `analogInput(name: String)` for `AnalogInput`
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {2-3, 6-7, 10-18}
-class Example : Robot() {
+```kotlin {5-9}
+import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.robot.Robot
+
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    // Motors
+    private val motor1 by motor("m1")
+
     // Sensors
-    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
-
-    init {
-        // Set huskylens mode
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
-    }
-
-    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
-        // Get objects
-        val blocks = huskyLens.blocks()
-        telemetry.addData("Block count", blocks.size)
-        for (block in blocks) {
-            telemetry.addData("Block", block.toString())
-        }
-        return blocks
-    }
+    private val imu by imu("imu")
 }
 ```
 
@@ -81,44 +92,56 @@ class Example : Robot() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+Java does not support these helper methods, so it has to use `hardwareMap.get()`.
+
+```java {5-9, 13-14}
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import dev.kingssack.volt.robot.Robot;
+
+public class MyRobot extends Robot {
+    // Motors
+    private DcMotor motor1;
+
+    // Sensors
+    private IMU imu;
+
+    public MyRobot(hardwareMap: HardwareMap) {
+        super(hardwareMap);
+        motor1 = hardwareMap.get(DcMotor.class, "m1");
+        imu = hardwareMap.get(IMU.class, "imu");
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-### Add Attachments
+### 3. Adding Attachments
 
-Define the [Attachments](../02-attachments) that your robot will use. For example, add a [SimpleAttachmentWithDcMotor](../../simple-attachments/simple-attachment-with-dc-motor) to your [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot).
+In Volt, subsystems like an intake mechanism, shooter,
+or arm are called `Attachment`s. The `Robot` class is designed to manage these attachments automatically.
+
+To add an `Attachment`, simply declare it as a property within your `Robot` class.
+The base `Robot` class will automatically detect all properties of type `Attachment` and add them to a list,
+used to manage them.
+
+Let's add an attachment to control our `DcMotor`:
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {5-6, 9}
-class Example : Robot() {
+```kotlin {8-9}
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    // Motor
+    private val motor1 by motor("m1")
+
     // Sensors
-    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+    private val imu by imu("imu")
 
     // Attachments
-    val exampleAttachment: SimpleAttachmentWithDcMotor = SimpleAttachmentWithDcMotor(hardwareMap, "motor", 0.5, 1000)
-
-    init {
-        attachments = listOf(exampleAttachment)
-
-        // Set huskylens mode
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
-    }
-
-    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
-        // Get objects
-        val blocks = huskyLens.blocks()
-        telemetry.addData("Block count", blocks.size)
-        for (block in blocks) {
-            telemetry.addData("Block", block.toString())
-        }
-        return blocks
-    }
+    val exampleAttachment = DcMotorAttachment("Example", motor1, 0.5, 1000)
 }
 ```
 
@@ -126,48 +149,70 @@ class Example : Robot() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+public class MyRobot extends Robot {
+    // Motors
+    private DcMotor motor1;
+
+    // Sensors
+    private IMU imu;
+
+    // Attachments
+    public DcMotorAttachment exampleAttachment;
+
+    public MyRobot(hardwareMap: HardwareMap) {
+        super(hardwareMap);
+        motor1 = hardwareMap.get(DcMotor.class, "m1");
+        imu = hardwareMap.get(IMU.class, "imu");
+        exampleAttachment = new DcMotorAttachment("Example", motor1, 0.5, 1000, 0, DcMotorSimple.Direction.FORWARD);
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-### Add [Actions](../../reference/actions)
+### 4. State
 
-Define [Actions](../../reference/actions) for your [Attachments](../02-attachments) and sensors. For example, add a function to move a motor to a specific position.
+The `Robot` class manages its state through a `StateFlow` of type `RobotState`.
+This allows you to reactively observe the robot's status from your OpModes. The possible states are:
+
+- `Initializing`: The `Robot` has not finished initializing.
+- `Initialized`: The `Robot` has finished initializing, and all attachments have been discovered.
+- `Idle`: No attachments are busy.
+- `Running`: At least one attachment reports that it is busy.
+- `Fault(val error: Throwable)`: An error has occurred.
+
+### 5. The `update()` Method
+
+The `update()` method is called every tick while an OpMode is running.
+
+### 6. Adding `Action`s
+
+The `Robot` class can also declare `Action`s. These can be complex sequences controlling your `Action`s or anything else.
+
+For example let's add a `score` sequence:
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {15-18}
-class Example : Robot() {
+```kotlin {11-15}
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    // Motor
+    private val motor1 by motor("m1")
+
     // Sensors
-    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+    private val imu by imu("imu")
 
     // Attachments
-    val exampleAttachment: SimpleAttachmentWithDcMotor = SimpleAttachmentWithDcMotor(hardwareMap, "motor", 0.5, 1000)
+    val exampleAttachment = DcMotorAttachment("Example", motor1, 0.5, 1000)
 
-    init {
-        attachments = listOf(exampleAttachment)
-
-        // Set huskylens mode
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
-    }
-
-    fun moveMotorToSpecificPosition(): Action {
-        // Move motor to 1000 at 50% power
-        return exampleAttachment.goTo(0.5, 1000)
-    }
-
-    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
-        // Get objects
-        val blocks = huskyLens.blocks()
-        telemetry.addData("Block count", blocks.size)
-        for (block in blocks) {
-            telemetry.addData("Block", block.toString())
-        }
-        return blocks
+    // Actions
+    fun score() = voltAction(this) {
+        +motor1.goTo(0.6, 200)
+        +motor1.goTo(0.5, 0)
     }
 }
 ```
@@ -176,7 +221,34 @@ class Example : Robot() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java {18-25}
+public class MyRobot extends Robot {
+    // Motors
+    private DcMotor motor1;
+
+    // Sensors
+    private IMU imu;
+
+    // Attachments
+    public DcMotorAttachment exampleAttachment;
+
+    public MyRobot(hardwareMap: HardwareMap) {
+        super(hardwareMap);
+        motor1 = hardwareMap.get(DcMotor.class, "m1");
+        imu = hardwareMap.get(IMU.class, "imu");
+        exampleAttachment = new DcMotorAttachment("Example", motor1, 0.5, 1000, 0, DcMotorSimple.Direction.FORWARD);
+    }
+
+    // Actions
+    public Action score() {
+        return VoltActionBuilderKt.voltAction(this, (VoltActionBuilder<? super Robot> builder) -> {
+            builder.unaryPlus(motor.goTo(0.6, 200));
+            builder.unaryPlus(motor.goTo(0.5, 0));
+            return kotlin.Unit.INSTANCE;
+        });
+    }
+}
+```
 
 </TabItem>
 
@@ -191,36 +263,20 @@ class Example : Robot() {
 ```kotlin
 package org.firstinspires.ftc.teamcode.robot
 
-import com.acmerobotics.roadrunner.Action
-import com.acmerobotics.roadrunner.Pose2d
-import dev.kingssack.volt.attachment.SimpleAttachmentWithDcMotor
+import dev.kingssack.volt.attachment.DcMotorAttachment
+import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.Robot
-import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.robotcore.external.Telemetry
 
-class Example : Robot() {
-    private val huskyLens: HuskyLens = hardwareMap.get(HuskyLens::class.java, "lens")
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    private val motor1 by motor("m1")
+    private val imu by imu("imu")
 
-    val exampleAttachment: SimpleAttachmentWithDcMotor = SimpleAttachmentWithDcMotor(hardwareMap, "motor", 0.5, 1000)
+    val exampleAttachment = DcMotorAttachment("Example", motor1, 0.5, 1000)
 
-    init {
-        attachments = listOf(exampleAttachment)
-
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.OBJECT_RECOGNITION)
-    }
-
-    fun moveMotorToSpecificPosition(): Action {
-        return exampleAttachment.goTo(0.5, 1000)
-    }
-
-    fun getDetectedObjects(telemetry: Telemetry): Array<out HuskyLens.Block>? {
-        val blocks = huskyLens.blocks()
-        telemetry.addData("Block count", blocks.size)
-        for (block in blocks) {
-            telemetry.addData("Block", block.toString())
-        }
-        return blocks
+    fun score() = voltAction(this) {
+        +motor1.goTo(0.6, 200)
+        +motor1.goTo(0.5, 0)
     }
 }
 ```
@@ -229,7 +285,40 @@ class Example : Robot() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+package org.firstinspires.ftc.teamcode.robot;
+
+import com.acmerobotics.roadrunner.Action;  
+import com.qualcomm.robotcore.hardware.DcMotor;  
+import com.qualcomm.robotcore.hardware.DcMotorSimple;  
+import com.qualcomm.robotcore.hardware.HardwareMap;  
+import dev.kingssack.volt.attachment.DcMotorAttachment;  
+import dev.kingssack.volt.core.VoltActionBuilder;  
+import dev.kingssack.volt.core.VoltActionBuilderKt;  
+import dev.kingssack.volt.robot.Robot;
+
+public class MyRobot extends Robot {
+    private DcMotor motor1;
+    private IMU imu;
+
+    public DcMotorAttachment exampleAttachment;
+
+    public MyRobot(hardwareMap: HardwareMap) {
+        super(hardwareMap);
+        motor1 = hardwareMap.get(DcMotor.class, "m1");
+        imu = hardwareMap.get(IMU.class, "imu");
+        exampleAttachment = new DcMotorAttachment("Example", motor1, 0.5, 1000, 0, DcMotorSimple.Direction.FORWARD);
+    }
+
+    public Action score() {
+        return VoltActionBuilderKt.voltAction(this, (VoltActionBuilder<? super Robot> builder) -> {
+            builder.unaryPlus(motor.goTo(0.6, 200));
+            builder.unaryPlus(motor.goTo(0.5, 0));
+            return kotlin.Unit.INSTANCE;
+        });
+    }
+}
+```
 
 </TabItem>
 

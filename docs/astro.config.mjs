@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import {defineConfig} from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 import markdoc from '@astrojs/markdoc';
@@ -11,10 +11,10 @@ export default defineConfig({
         logo: {
             src: './src/assets/favicon.svg',
         },
-        social: {
-            github: 'https://github.com/KingsSack/HootAndCompute',
-            youtube: 'https://www.youtube.com/@HootAndCompute',
-        },
+        social: [
+            {icon: 'github', label: 'GitHub', href: 'https://github.com/KingsSack/HootAndCompute'},
+            {icon: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/@HootAndCompute'},
+        ],
         tableOfContents: {
             minHeadingLevel: 2,
             maxHeadingLevel: 5,
@@ -25,40 +25,40 @@ export default defineConfig({
         sidebar: [
             {
                 label: 'Getting Started',
-                autogenerate: { directory: 'getting-started' },
+                autogenerate: {directory: 'getting-started'},
             },
             {
                 label: 'Guides',
-                autogenerate: { directory: 'guides' },
+                autogenerate: {directory: 'guides'},
             },
             {
                 label: 'Simple Attachments',
                 collapsed: true,
-                autogenerate: { directory: 'simple-attachments' },
+                autogenerate: {directory: 'simple-attachments'},
             },
             {
                 label: 'Simple Robots',
                 collapsed: true,
-                autogenerate: { directory: 'simple-robots' },
+                autogenerate: {directory: 'simple-robots'},
             },
             {
                 label: 'Simple Autonomous Modes',
                 collapsed: true,
-                autogenerate: { directory: 'simple-autonomous-modes' },
+                autogenerate: {directory: 'simple-autonomous-modes'},
             },
             {
                 label: 'Simple Manual Modes',
                 collapsed: true,
-                autogenerate: { directory: 'simple-manual-modes' },
+                autogenerate: {directory: 'simple-manual-modes'},
             },
             {
-            	label: 'Reference',
-            	autogenerate: { directory: 'reference' },
+                label: 'Reference',
+                autogenerate: {directory: 'reference'},
             },
         ],
         customCss: [
             './src/styles/theme.css',
             './src/styles/landing.css',
         ],
-		}), markdoc()],
+    }), markdoc()],
 });
