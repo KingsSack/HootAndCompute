@@ -3,7 +3,7 @@ buildscript {
     ext.min_rr_ftc_version = "0.1.23"
     ext.min_rr_version = "1.0.1"
     ext.min_dash_version = "0.4.17"
-    ext.min_pp_version = "2.0.3"
+    ext.min_pp_version = "2.0.4"
     ext.min_pp_telemetry_version = "1.0.0"
     ext.min_fullpanels_version = "1.0.2"
 }

@@ -56,3 +56,7 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
         return SequentialAction(actions)
     }
 }
+
+fun <R : Robot> voltAction(robot: R, block: VoltActionBuilder<R>.() -> Unit): Action {
+    return VoltActionBuilder(robot).apply(block).build()
+}
