@@ -1,40 +1,32 @@
 ---
 title: Creating your first Autonomous Mode
-description: Learn all about Volt autonomous modes.
+description: Learn to create your first Autonomous Mode with Volt.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Rapidly develop and test new Autonomous programs for your robot with the [Volt](../../api/Volt) library.
+An `AutonomousMode` is a pre-programmed sequence of actions that your `Robot` will perform autonomously.
 
-## What is an [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode)?
+## Guide
 
-An [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode) allows you to "assemble"
-a sequence of [Actions](../../reference/actions) to run without any user input.
+An `AutonomousMode` defines a sequence of `Action`s for your `Robot` to execute.
 
-## Creating an [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode)
+### 1. Create Your `AutonomousMode` Class
 
-Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/autonomous` package that inherits the [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode) class.
-
-The [AutonomousMode](../../api/Volt/dev.kingssack.volt.autonomous/-autonomous-mode) class contains:
-
-1. A robot
-2. A list of actions
-3. The function `execute()` that is called when the OpMode begins
+First, create a new class that inherits `AutonomousMode`.
+The constructor requires a `robotFactory`, which is used to create your `Robot` instance.
+Use a lambda function to provide the `robotFactory`.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin "AutonomousMode" {2-5}
-class ExampleAuto : AutonomousMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0) // Make sure to use radians!
-    ))
+```kotlin
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 
-    init {
-        // Initialize
+class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
+    override fun sequence() = execute {
+        // Your actions will go here
     }
 }
 ```
@@ -43,38 +35,48 @@ class ExampleAuto : AutonomousMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
+    }
+
+    @Override
+    public void sequence() {
+        execute(() -> {
+            // Your actions will go here
+        });
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-### Add an action
+### 2. Make A Sequence of `Action`s
 
-#### Create a function
-
-Create a new private function that returns a `SequentialAction`.
+We'll open the claw, then close the claw and score at the same time. We'll repeat this sequence three times.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {11-16}
-class ExampleAuto : AutonomousMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
+```kotlin {5-12}
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 
-    init {
-        // Initialize
-    }
+class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
+    override fun sequence() = execute {
+        repeat(3)  {
+            +robot.claw.open() // Add an action to the sequence
 
-    private fun doAnAction(): Action {
-        return SequentialAction(
-            robot.turnTo(90.0),
-            robot.strafeTo(Vector2d(24.0, 0.0))
-        )
+            parallel { // Run these actions at the same time
+                +robot.claw.close()
+                +robot.score()
+            }
+        }
     }
 }
 ```
@@ -83,36 +85,57 @@ class ExampleAuto : AutonomousMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java {11-18}
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
+    }
+
+    @Override
+    public void sequence() {
+        execute(builder -> {
+            for (int i = 0; i < 3; i++) {
+                builder.unaryPlus(robot.getClaw().open()); // Add an action to the sequence
+
+                parallel(() -> { // Run these actions at the same time
+                    builder.unaryPlus(robot.getClaw().close());
+                    builder.unaryPlus(robot.score());
+                });
+            }
+        });
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-#### Add the function to the action sequence
+### 3. Make it an OpMode
 
-In `init`, add the action to the action sequence.
+Add the `@Autonomous` annotation to the class definition. Without this annotation, the OpMode will not be registered and will not appear on the Driver Station.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {8}
-class ExampleAuto : AutonomousMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
+```kotlin {4}
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 
-    init {
-        actionSequence.add { doAnAction() } // Lambda function
-    }
+@Autonomous(name = "Example Auto", group = "Examples")
+class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
+    override fun sequence() = execute {
+        repeat(3)  {
+            +robot.claw.open()
 
-    private fun doAnAction(): Action {
-        return SequentialAction(
-            robot.turnTo(90.0),
-            robot.strafeTo(Vector2d(24.0, 0.0))
-        )
+            parallel {
+                +robot.claw.close()
+                +robot.score()
+            }
+        }
     }
 }
 ```
@@ -121,46 +144,31 @@ class ExampleAuto : AutonomousMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java {4}
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
 
-</TabItem>
-
-</Tabs>
-
-### Make it an OpMode
-
-Add the `@Autonomous` annotation to the class definition.
-
-<Tabs>
-
-<TabItem label="Kotlin">
-
-```kotlin {1}
-@Autonomous(name = "Example", group = "Examples")
-class ExampleAuto : AutonomousMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
-
-    init {
-        actionSequence.add { doAnAction() } // Lambda function
+@Autonomous(name = "Example Auto", group = "Examples")
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
     }
 
-    private fun doAnAction(): Action {
-        return SequentialAction(
-            robot.turnTo(90.0),
-            robot.strafeTo(Vector2d(24.0, 0.0))
-        )
+    @Override
+    public void sequence() {
+        execute(builder -> {
+            for (int i = 0; i < 3; i++) {
+                builder.unaryPlus(robot.getClaw().open());
+
+                parallel(() -> {
+                    builder.unaryPlus(robot.getClaw().close());
+                    builder.unaryPlus(robot.score());
+                });
+            }
+        });
     }
 }
 ```
-
-</TabItem>
-
-<TabItem label="Java">
-
-(Coming Soon)
 
 </TabItem>
 
@@ -175,27 +183,20 @@ class ExampleAuto : AutonomousMode() {
 ```kotlin
 package org.firstinspires.ftc.teamcode.opmodes.autonomous
 
-import com.acmerobotics.roadrunner.*
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import dev.kingssack.volt.autonomous.AutonomousMode
-import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 
-@Autonomous(name = "Example", group = "Examples")
-class ExampleAuto : AutonomousMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
+@Autonomous(name = "Example Auto", group = "Examples")
+class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
+    override fun sequence() = execute {
+        repeat(3)  {
+            +robot.claw.open()
 
-    init {
-        actionSequence.add { doAnAction() } // Lambda function
-    }
-
-    private fun doAnAction(): Action {
-        return SequentialAction(
-            robot.turnTo(90.0),
-            robot.strafeTo(Vector2d(24.0, 0.0))
-        )
+            parallel {
+                +robot.claw.close()
+                +robot.score()
+            }
+        }
     }
 }
 ```
@@ -204,7 +205,33 @@ class ExampleAuto : AutonomousMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+package org.firstinspires.ftc.teamcode.opmodes.autonomous;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+
+@Autonomous(name = "Example Auto", group = "Examples")
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
+    }
+
+    @Override
+    public void sequence() {
+        execute(builder -> {
+            for (int i = 0; i < 3; i++) {
+                builder.unaryPlus(robot.getClaw().open());
+
+                parallel(() -> {
+                    builder.unaryPlus(robot.getClaw().close());
+                    builder.unaryPlus(robot.score());
+                });
+            }
+        });
+    }
+}
+```
 
 </TabItem>
 

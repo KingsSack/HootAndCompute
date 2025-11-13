@@ -1,47 +1,32 @@
 ---
 title: Creating your first Manual Mode
-description: Learn all about Volt manual modes.
+description: Learn to create your first Manual Mode with Volt.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Rapidly develop and test new Tele-Operated programs for your robot with the [Volt](../../api/Volt) library.
+A `ManualMode` is a teleoperated mode that allows you to control your `Robot` using gamepads.
 
-## What is a [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode)?
+## Guide
 
-A [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) allows you to control the robot with gamepads.
+A `ManualMode` links inputs (buttons, analog sticks, etc.) to `Action`s from your `Robot`.
 
-## Creating a [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode)
+### 1. Create Your `ManualMode` Class
 
-Create a new Kotlin class in the `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/opmodes/manual` package that inherits the [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class.
-
-The [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class contains:
-
-1. A robot
-2. A list of actions
-3. A function called `tick()` that is called every tick
-
-The [ManualMode](../../api/Volt/dev.kingssack.volt.manual/-manual-mode) class also contains methods for:
-
-1. `isButtonPressed(button: String)`: Returns true if the button is pressed
-2. `isButtonTapped(button: String)`: Returns true if the button was released
-3. `isButtonDoubleTapped(button: String)`: Returns true if the button was double tapped
-4. `isButtonHeld(button: String, milliseconds: Double)`: Returns true if the button was held for the specified time
-5. `getAnalogValue(name: String)`: Returns the value of an analog input
+First, create a new class that inherits `ManualMode`.
+The constructor requires a `robotFactory`, which is used to create your `Robot` instance.
+Use a lambda function to provide the `robotFactory`.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin "ManualMode" {2-5}"
-class ExampleManual : ManualMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0) // Make sure to use radians!
-    ))
+```kotlin
+import dev.kingssack.volt.opmode.manual.ManualMode
 
+class ExampleTeleOp : ManualMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
     init {
-        // Initialize
+        // Your interactions will go here
     }
 }
 ```
@@ -50,33 +35,57 @@ class ExampleManual : ManualMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+import dev.kingssack.volt.opmode.manual.ManualMode;
+
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new);
+
+        // Your interactions will go here
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-### Add functionality
+### 2. Map `Action`s to Inputs
 
-#### Create an interaction
+The `ManualMode` class provides the following helper functions to map `Action`s to inputs:
 
-An [Interaction](../../api/Volt/dev.kingssack.volt.manual/-manual-mode/-interaction) takes a condition and an action.
+1. `onButtonPressed(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit)`: Triggers while the button is pressed
+2. `onButtonReleased(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit)`: Triggers when the button is released
+3. `onButtonDoubleTapped(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit)`: Triggers when the button was double tapped
+4. `onButtonHeld(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit)`: Triggers when the button was held for the specified time
+
+The `ManualMode` class also provides helper functions to read analog inputs:
+
+1. `getAnalogValue(analogInput: GamepadAnalogInput)`: Returns the value of an analog input
+2. `getRawAnalogValue(analogInput: GamepadAnalogInput)`: Returns the raw value of an analog input, before applying dead zones or scaling
+
+Let's map "A" on gamepad one to score, "A" on gamepad two to open the claw, and "B" on gamepad two to close the claw.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {7} {10}
-class ExampleManual : ManualMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
+```kotlin {6-14}
+import dev.kingssack.volt.opmode.manual.ManualMode
+import dev.kingssack.volt.util.GamepadButton
 
-    private val doSomething = Interaction({ isButtonTapped("a1") }, { robot.turnTo(90.0) })
-
+class ExampleTeleOp : ManualMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
     init {
-        interactions.add(doSomething)
+        onButtonReleased(GamepadButton.A1) {
+            +robot.score()
+        }
+        onButtonReleased(GamepadButton.A2) {
+            +robot.claw.open()
+        }
+        onButtonReleased(GamepadButton.B2) {
+            +robot.claw.close()
+        }
     }
 }
 ```
@@ -85,32 +94,56 @@ class ExampleManual : ManualMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java {8-16}
+import dev.kingssack.volt.opmode.manual.ManualMode;
+import dev.kingssack.volt.util.GamepadButton;
+
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new);
+
+        onButtonReleased(GamepadButton.A1, builder -> {
+            builder.unaryPlus(robot.score());
+        });
+        onButtonReleased(GamepadButton.A2, builder -> {)
+            builder.unaryPlus(robot.getClaw().open());
+        });
+        onButtonReleased(GamepadButton.B2, builder -> {
+            builder.unaryPlus(robot.getClaw().close());
+        });
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-### Make it an OpMode
+### 3. Make it an OpMode
 
-Add the `@TeleOp` annotation to the class definition.
+Add the `@TeleOp` annotation to the class definition. Without this annotation, the OpMode will not be registered and will not appear on the Driver Station.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {1}
-@TeleOp(name = "Example", group = "Examples")
-class ExampleManual : ManualMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
+```kotlin {5}
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import dev.kingssack.volt.opmode.manual.ManualMode
+import dev.kingssack.volt.util.GamepadButton
 
-    private val doSomething = Interaction({ isButtonTapped("a1") }, { robot.turnTo(90.0) })
-
+@TeleOp(name = "Example TeleOp", group = "Examples")
+class ExampleTeleOp : ManualMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
     init {
-        interactions.add(doSomething)
+        onButtonReleased(GamepadButton.A1) {
+            +robot.score()
+        }
+        onButtonReleased(GamepadButton.A2) {
+            +robot.claw.open()
+        }
+        onButtonReleased(GamepadButton.B2) {
+            +robot.claw.close()
+        }
     }
 }
 ```
@@ -119,7 +152,28 @@ class ExampleManual : ManualMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java {5}
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import dev.kingssack.volt.opmode.manual.ManualMode;
+import dev.kingssack.volt.util.GamepadButton;
+
+@TeleOp(name = "Example TeleOp", group = "Examples")
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new);
+
+        onButtonReleased(GamepadButton.A1, builder -> {
+            builder.unaryPlus(robot.score());
+        });
+        onButtonReleased(GamepadButton.A2, builder -> {
+            builder.unaryPlus(robot.getClaw().open());
+        });
+        onButtonReleased(GamepadButton.B2, builder -> {
+            builder.unaryPlus(robot.getClaw().close());
+        });
+    }
+}
+```
 
 </TabItem>
 
@@ -135,20 +189,21 @@ class ExampleManual : ManualMode() {
 package org.firstinspires.ftc.teamcode.opmodes.manual
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import dev.kingssack.volt.autonomous.ManualMode
-import dev.kingssack.volt.robot.SimpleRobotWithMecanumDrive
+import dev.kingssack.volt.opmode.manual.ManualMode
+import dev.kingssack.volt.util.GamepadButton
 
-@TeleOp(name = "Example", group = "Examples")
-class ExampleManual : ManualMode() {
-    override val robot = SimpleRobotWithMecanumDrive(hardwareMap, Pose2d(
-        Vector2d(0.0, 0.0),
-        Math.toRadians(0.0)
-    ))
-
-    private val doSomething = Interaction({ isButtonTapped("a1") }, { robot.turnTo(90.0) })
-
+@TeleOp(name = "Example TeleOp", group = "Examples")
+class ExampleTeleOp : ManualMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
     init {
-        interactions.add(doSomething)
+        onButtonReleased(GamepadButton.A1) {
+            +robot.score()
+        }
+        onButtonReleased(GamepadButton.A2) {
+            +robot.claw.open()
+        }
+        onButtonReleased(GamepadButton.B2) {
+            +robot.claw.close()
+        }
     }
 }
 ```
@@ -157,7 +212,30 @@ class ExampleManual : ManualMode() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+package org.firstinspires.ftc.teamcode.opmodes.manual;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import dev.kingssack.volt.opmode.manual.ManualMode;
+import dev.kingssack.volt.util.GamepadButton;
+
+@TeleOp(name = "Example TeleOp", group = "Examples")
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new);
+
+        onButtonReleased(GamepadButton.A1, builder -> {
+            builder.unaryPlus(robot.score());
+        });
+        onButtonReleased(GamepadButton.A2, builder -> {
+            builder.unaryPlus(robot.getClaw().open());
+        });
+        onButtonReleased(GamepadButton.B2, builder -> {
+            builder.unaryPlus(robot.getClaw().close());
+        });
+    }
+}
+```
 
 </TabItem>
 

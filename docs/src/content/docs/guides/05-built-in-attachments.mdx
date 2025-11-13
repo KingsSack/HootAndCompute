@@ -1,0 +1,74 @@
+---
+title: Built-In Attachments
+description: Learn how to use Volt's pre-made attachments.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Volt has several built-in `Attachment`s that can be used to quickly add functionality to your `Robot`.
+
+These `Attachment`s include:
+
+1. `DcMotorAttachment`
+2. `ServoAttachment`
+3. `CRServoAttachment`
+4. `CRServoWithPotentiometerAttachment`
+
+All four can be used as is, however, they can also be extended to add more functionality.
+
+## Using Built-In `Attachment`s
+
+There are two main ways to use a simple attachment:
+
+1. As-is
+2. Extended
+
+### As-is
+
+To use an `Attachment` as-is, simply create a new instance of the `Attachment` in your `Robot` class.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {4}
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    private val clawServo by servo("clawServo")
+
+    val claw = ServoAttachment("Claw", clawServo)
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>
+
+### Extended
+
+To extend an `Attachment`, create a new class that inherits the `Attachment`.
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin "ServoAttachment("Claw", servo)"
+class Claw(servo: Servo) : ServoAttachment("Claw", servo) {
+    // Custom functionality can be added here
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+(Coming Soon)
+
+</TabItem>
+
+</Tabs>

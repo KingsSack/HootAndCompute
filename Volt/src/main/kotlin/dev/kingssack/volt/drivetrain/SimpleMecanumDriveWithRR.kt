@@ -44,11 +44,15 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.VoltageSensor
+import dev.kingssack.volt.util.Degrees
 import dev.kingssack.volt.util.Drawing
 import dev.kingssack.volt.util.DriveCommandMessage
 import dev.kingssack.volt.util.Localizer
 import dev.kingssack.volt.util.MecanumCommandMessage
 import dev.kingssack.volt.util.PoseMessage
+import dev.kingssack.volt.util.Radians
+import dev.kingssack.volt.util.Seconds
+import dev.kingssack.volt.util.toRadians
 import java.util.LinkedList
 import kotlin.math.ceil
 import kotlin.math.max
@@ -534,53 +538,74 @@ class SimpleMecanumDriveWithRR(
     }
 
     /**
-     * Strafe to a [target] vector.
+     * Strafe from [from] to [to].
      *
      * @return the action
      */
-    fun strafeTo(target: Vector2d): Action =
-        driveActionBuilder(localizer.pose).strafeTo(target).build()
+    fun strafeTo(from: Pose2d, to: Vector2d): Action = driveActionBuilder(from).strafeTo(to).build()
 
     /**
-     * Strafe to a [target] vector with a linear [heading].
+     * Strafe from [from] to [to].
      *
      * @return the action
      */
-    fun strafeToLinearHeading(target: Vector2d, heading: Double): Action =
-        driveActionBuilder(localizer.pose).strafeToLinearHeading(target, heading).build()
+    fun strafeToLinearHeading(from: Pose2d, to: Pose2d): Action =
+        driveActionBuilder(from).strafeToLinearHeading(to.position, to.heading).build()
 
     /**
-     * Turn to a [target] angle in radians.
+     * Turn from [from] to [to].
      *
      * @return the action
      */
-    fun turnTo(target: Double): Action = driveActionBuilder(localizer.pose).turnTo(target).build()
+    fun turnTo(from: Pose2d, to: Radians): Action =
+        driveActionBuilder(from).turnTo(to.value).build()
+
+    /**
+     * Turn from [from] to [to].
+     *
+     * @return the action
+     */
+    fun turnTo(from: Pose2d, to: Degrees): Action =
+        driveActionBuilder(from).turnTo(to.toRadians().value).build()
 
     /**
      * Turn a certain number of [radians].
      *
+     * @param from the starting pose
      * @return the action
      */
-    fun turn(radians: Double): Action = driveActionBuilder(localizer.pose).turn(radians).build()
+    fun turn(from: Pose2d, radians: Radians): Action =
+        driveActionBuilder(from).turn(radians.value).build()
+
+    /**
+     * Turn a certain number of [degrees].
+     *
+     * @param from the starting pose
+     * @return the action
+     */
+    fun turn(from: Pose2d, degrees: Degrees): Action =
+        driveActionBuilder(from).turn(degrees.toRadians().value).build()
 
     /**
      * Wait for a certain number of [seconds].
      *
+     * @param from the starting pose
      * @return the action
      */
-    fun wait(seconds: Double): Action =
-        driveActionBuilder(localizer.pose).waitSeconds(seconds).build()
+    fun wait(from: Pose2d, seconds: Seconds): Action =
+        driveActionBuilder(from).waitSeconds(seconds.value).build()
 
     /**
      * Build a trajectory action.
      *
+     * @param from the starting pose
      * @return the built action
      */
     fun trajectory(
-        beginPose: Pose2d = localizer.pose,
+        from: Pose2d = localizer.pose,
         block: TrajectoryActionBuilder.() -> TrajectoryActionBuilder,
     ): Action {
-        return driveActionBuilder(beginPose).block().build()
+        return driveActionBuilder(from).block().build()
     }
 
     context(telemetry: Telemetry)

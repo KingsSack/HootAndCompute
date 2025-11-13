@@ -2,6 +2,16 @@ package dev.kingssack.volt.util
 
 import com.qualcomm.robotcore.hardware.Servo
 
+@JvmInline value class Inches(val value: Double)
+
+@JvmInline value class Radians(val value: Double)
+
+fun Radians.toDegrees(): Degrees = Degrees(Math.toDegrees(this.value))
+
+@JvmInline value class Degrees(val value: Double)
+
+fun Degrees.toRadians(): Radians = Radians(Math.toRadians(this.value))
+
 @JvmInline
 value class Power(val value: Double) {
     init {
@@ -25,5 +35,4 @@ value class ServoPosition(val value: Double) {
     }
 }
 
-@JvmInline
-value class Voltage(val value: Double)
+@JvmInline value class Voltage(val value: Double)

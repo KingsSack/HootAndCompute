@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.*
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
@@ -25,8 +24,8 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwa
         @JvmField var lidarRightName: String = "lidarr"
         @JvmField var huskyLensName: String = "lens"
 
-        @JvmField var leftLauncherMotorName: String = "ll"
-        @JvmField var rightLauncherMotorName: String = "rl"
+        @JvmField var leftLauncherMotorName: String = "fll"
+        @JvmField var rightLauncherMotorName: String = "flr"
     }
 
     // Drivetrain

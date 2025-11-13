@@ -12,8 +12,8 @@ import org.firstinspires.ftc.teamcode.robot.Jones
 class Manatee :
     SimpleManualModeWithSpeedModes<Jones>(robotFactory = { hardwareMap -> Jones(hardwareMap) }) {
     init {
-        onButtonPressed(GamepadButton.RIGHT_BUMPER2) { +{ robot.launcher.enable() } }
-        onButtonReleased(GamepadButton.RIGHT_BUMPER2) { +{ robot.launcher.disable() } }
+        onButtonPressed(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.enable() }
+        onButtonReleased(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.disable() }
     }
 
     override fun initialize() {

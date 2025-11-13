@@ -18,9 +18,9 @@ public class SampleAuto extends AutonomousMode<SampleRobot> {
     }
 
     @Override
-    protected void sequence() {
+    public void sequence() {
         execute(builder -> {
-            builder.unaryPlus(this::sampleAction);
+            builder.unaryPlus(sampleAction());
             return kotlin.Unit.INSTANCE;
         });
     }

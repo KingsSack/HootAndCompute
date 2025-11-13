@@ -16,7 +16,7 @@ class Prototype :
     ) {
     init {
         onButtonReleased(GamepadButton.A1) {
-            +{ InstantAction { telemetry.addData("Action", "Triggered") } }
+            +InstantAction { telemetry.addData("Action", "Triggered") }
         }
     }
 }

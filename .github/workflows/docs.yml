@@ -75,7 +75,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build kdocs
-        run: ./gradlew dokkaHtmlMultiModule
+        run: ./gradlew dokkaGenerateHtml
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

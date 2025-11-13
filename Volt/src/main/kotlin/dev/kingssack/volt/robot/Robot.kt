@@ -21,10 +21,34 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.typeOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.firstinspires.ftc.robotcore.external.Telemetry
+
+/** Represents the state of a robot. */
+sealed interface RobotState {
+    data object Initializing : RobotState
+
+    data object Initialized : RobotState
+
+    data object Idle : RobotState
+
+    data object Running : RobotState
+
+    data class Fault(val error: Throwable) : RobotState
+}
 
 /** Represents a robot with attachments. */
 abstract class Robot(protected val hardwareMap: HardwareMap) {
+    private val _state = MutableStateFlow<RobotState>(RobotState.Initializing)
+    val state: StateFlow<RobotState> = _state.asStateFlow()
+
+    /** Sets the state of the robot to [newState]. */
+    protected fun setState(newState: RobotState) {
+        _state.value = newState
+    }
+
     private var attachments = mutableListOf<Attachment>()
 
     init {
@@ -44,6 +68,8 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
                     attachments.add(value)
                 }
             }
+
+        setState(RobotState.Initialized)
     }
 
     /**
@@ -72,9 +98,10 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the continuous rotation servo
      * @return a ReadOnlyProperty that gets the continuous rotation servo from the hardware map
      */
-    protected fun crServo(name: String): ReadOnlyProperty<Any?, CRServo> = ReadOnlyProperty { _, _ ->
-        hardwareMap.crservo.get(name)
-    }
+    protected fun crServo(name: String): ReadOnlyProperty<Any?, CRServo> =
+        ReadOnlyProperty { _, _ ->
+            hardwareMap.crservo.get(name)
+        }
 
     /**
      * Helper function to create a HuskyLens property delegate.
@@ -161,7 +188,18 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      */
     context(telemetry: Telemetry)
     open fun update() {
-        attachments.forEach { it.update() }
+        setState(RobotState.Idle)
+        attachments.forEach {
+            it.update()
+
+            if (
+                it.isBusy() &&
+                    state.value !is RobotState.Running &&
+                    state.value !is RobotState.Fault
+            ) {
+                setState(RobotState.Running)
+            }
+        }
         telemetry.update()
     }
 }

@@ -5,8 +5,8 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.util.ActionSequenceBuilder
 import dev.kingssack.volt.util.AnalogHandler
 import dev.kingssack.volt.util.ButtonHandler
 import dev.kingssack.volt.util.GamepadAnalogInput
@@ -45,11 +45,11 @@ abstract class ManualMode<R : Robot>(
     private val interactionHandlers =
         mapOf(
             InteractionType.RELEASE to
-                mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
+                mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
             InteractionType.DOUBLE_TAP to
-                mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
-            InteractionType.HOLD to mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
-            InteractionType.PRESS to mutableMapOf<GamepadButton, ActionSequenceBuilder.() -> Unit>(),
+                mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
+            InteractionType.HOLD to mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
+            InteractionType.PRESS to mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
         )
 
     private lateinit var buttonStateGetters: EnumMap<GamepadButton, () -> Boolean>
@@ -169,12 +169,12 @@ abstract class ManualMode<R : Robot>(
     }
 
     private fun processActionType(
-        interactions: Map<GamepadButton, ActionSequenceBuilder.() -> Unit>,
+        interactions: Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>,
         condition: (GamepadButton) -> Boolean,
     ) {
         interactions.forEach { (button, actionBlock) ->
             if (condition(button)) {
-                val builder = ActionSequenceBuilder().apply(actionBlock)
+                val builder = VoltActionBuilder(robot).apply(actionBlock)
                 runningActions.add(builder.build())
             }
         }
@@ -215,7 +215,7 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
-    protected fun onButtonReleased(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
+    protected fun onButtonReleased(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
         interactionHandlers[InteractionType.RELEASE]?.set(button, block)
     }
 
@@ -237,7 +237,7 @@ abstract class ManualMode<R : Robot>(
      */
     protected fun onButtonDoubleTapped(
         button: GamepadButton,
-        block: ActionSequenceBuilder.() -> Unit,
+        block: VoltActionBuilder<R>.() -> Unit,
     ) {
         interactionHandlers[InteractionType.DOUBLE_TAP]?.set(button, block)
     }
@@ -259,7 +259,7 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
-    protected fun onButtonHeld(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
+    protected fun onButtonHeld(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
         interactionHandlers[InteractionType.HOLD]?.set(button, block)
     }
 
@@ -279,7 +279,7 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
-    protected fun onButtonPressed(button: GamepadButton, block: ActionSequenceBuilder.() -> Unit) {
+    protected fun onButtonPressed(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
         interactionHandlers[InteractionType.PRESS]?.set(button, block)
     }
 

@@ -21,7 +21,7 @@ class SimpleMecanumDriveWithPP(
     driveConstants: MecanumConstants,
     var pose: Pose = Pose(),
 ) : Drivetrain() {
-    private val follower: Follower =
+    val follower: Follower =
         FollowerBuilder(followerConstants, hardwareMap)
             .driveEncoderLocalizer(localizerConstants)
             .pathConstraints(pathConstraints)
@@ -42,7 +42,7 @@ class SimpleMecanumDriveWithPP(
     }
 
     fun pathTo(pathChain: PathChain): Action = Action {
-        if (!follower.isBusy) follower.followPath(pathChain)
+        follower.followPath(pathChain)
 
         follower.update()
         val finished = !follower.isBusy

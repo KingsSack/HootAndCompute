@@ -1,180 +1,43 @@
 ---
 title: Creating your first Attachment
-description: Learn all about Volt attachments.
+description: Learn to create your first Attachment with Volt.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Rapidly develop and test new attachments for your robot with the [Volt](../../api/Volt) library.
+An `Attachment` represents a distinct subsystem of your `Robot`, such as an intake, a claw, or an arm. The `Attachment` base class provides a powerful structure for managing state, creating `Action`s, and displaying telemetry, all of which are automatically handled by your `Robot` class.
 
-## What is an [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment)?
+An `Attachment` can be shared by multiple `Robot`s.
 
-An [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment) is anything
-that has a function on the [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot).
-This could be a motor, a servo, a sensor, or anything else that can be controlled.
-Attachments are used to control the [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot)
-and interact with the environment.
+## Guide
 
-There should be one [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment) per "interaction"
-your [Robot](../../api/Volt/dev.kingssack.volt.robot/-robot) can perform.
-
-## Creating an [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment)
+There should be one `Attachment` per "interaction" your `Robot` can perform.
 
 :::caution
 
-This page goes over creating an [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment) from scratch, which isn't always necessary.
+This page goes over creating your own `Attachment` from the abstract base class, which isn't always necessary.
 
-See [Simple Attachments](../07-simple-attachments) to learn more.
+See [Built-In Attachments](../05-built-in-attachments) to learn more.
 
 :::
 
-Create a new Kotlin class in `TeamCode/src/main/kotlin/org/firstinspires/ftc/teamcode/attachment` that inherits the [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment) class.
+### 1. Create Your `Attachment` Class
 
-The [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment) class contains:
-
-1. A list of motors
-2. A list of servos
-3. A list of continuous rotation servos
-4. A boolean that is true when the attachment's [ControlAction](../../api/Volt/dev.kingssack.volt.attachment/-attachment/-control-action) is running
-5. The function `update(telemetry: Telemetry)` that is called every tick
-6. The function `stop()` that is called when the robot is stopped
-
-<Tabs>
-
-<TabItem label="Kotlin">
-
-```kotlin "Attachment"
-class Example : Attachment() {
-    init {
-        // Initialize
-    }
-    
-    override fun update(telemetry: Telemetry) {
-        // Update
-    }
-}
-```
-
-</TabItem>
-
-<TabItem label="Java">
-
-(Coming Soon)
-
-</TabItem>
-
-</Tabs>
-
-### Add a motor
-
-
-#### Defining the motor
-
-Add the parameters `hardwareMap` and `name` for initializing a motor. Create a new `DcMotor`.
-
-<Tabs>
-
-<TabItem label="Kotlin">
-
-```kotlin /hardwareMap.*String/ {2}
-class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
-    val motor = hardwareMap.dcMotor[name]
-
-    init {
-        // Initialize
-    }
-
-    override fun update(telemetry: Telemetry) {
-        // Update
-    }
-}
-```
-
-</TabItem>
-
-<TabItem label="Java">
-
-(Coming Soon)
-
-</TabItem>
-
-</Tabs>
-
-#### Setting up the motor
-
-Set the motor's mode to `DcMotor.RunMode.RUN_USING_ENCODER` to use the motor's built-in encoder.
-Set the motor's zero-power behavior
-to `DcMotor.ZeroPowerBehavior.BRAKE` so the motor holds its position when the motor's power is set to `0.0`.
-Add the motor to the `motors` list
-so that it can be managed by the [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment) class.
-
-<Tabs>
-
-<TabItem label="Kotlin">
-
-```kotlin {5-12}
-class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
-    val motor = hardwareMap.dcMotor[name]
-
-    init {
-        // Set mode
-        motor.mode = DcMotorSimple.RunMode.RUN_USING_ENCODER
-
-        // Set zero power behavior
-        motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        // Add to list
-        motors = listOf(motor)
-    }
-
-    override fun update(telemetry: Telemetry) {
-        // Update
-    }
-}
-```
-
-</TabItem>
-
-<TabItem label="Java">
-
-(Coming Soon)
-
-</TabItem>
-
-</Tabs>
-
-### Add logic
-
-#### Setup the [ControlAction](../../api/Volt/dev.kingssack.volt.attachment/-attachment/-control-action)
-
-Create a new `inner class` called `Control`
-that inherits [ControlAction](../../api/Volt/dev.kingssack.volt.attachment/-attachment/-control-action).
-This class will be used to define the [Attachment](../../api/Volt/dev.kingssack.volt.attachment/-attachment)'s logic.
-
-The [ControlAction](../../api/Volt/dev.kingssack.volt.attachment/-attachment/-control-action) class contains:
-
-1. A function called `init()` that is called when the action is triggered
-2. A function called `update(packet: TelemetryPacket): Boolean` that is called while the action is running and returns whether the action is complete
-3. A function called `handleStop()` that is called when the action is stopped
+First, create a new class that inherits `Attachment`.
+The constructor requires a `name` for the attachment, which is used as an identifier and for logging telemetry.
+This `name` should be unique for each `Attachment` you create.
+You should also pass in any hardware devices this subsystem will control.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
 ```kotlin
-inner class Control : ControlAction() {
-    override fun init() {
-        // Start
-    }
-    
-    override fun update(packet: TelemetryPacket): Boolean {
-        // Logic
-        return true
-    }
-    
-    override fun handleStop() {
-        // End
-    }
+import com.qualcomm.robotcore.hardware.Servo
+import dev.kingssack.volt.attachment.Attachment
+
+class Claw(private val claw: Servo) : Attachment("Claw") {
+    // Attachment logic will go here
 }
 ```
 
@@ -182,49 +45,50 @@ inner class Control : ControlAction() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+import com.qualcomm.robotcore.hardware.Servo;
+import dev.kingssack.volt.attachment.Attachment;
+
+class Claw extends Attachment {
+    private Servo claw;
+
+    public Claw(Servo claw) {
+        super("Claw");
+        this.claw = claw;
+    }
+
+    // Attachment logic will go here
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-#### Control the motor
+### 2. The `update()` Method
 
-Add parameters for a `power` and a `targetPosition`. Create an instance variable for whether the motor is `reversing`.
-Set the motor's power in the `init()` function.
-Determine whether the motor has reached the `targetPosition`. Stop the motor in the `handleStop()` function.
+The `Robot` class automatically calls the `update()` method on every registered attachment during each tick of your OpMode.
+
+The base `Attachment` already implements `update()`  to add telemetry about the attachment's state
+(`Idle`, `Running`, or `Fault`).
+If you need continuous logic or custom telemetry, you can override this method.
+
+In this example, we'll log the claw's current position:
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
-```kotlin {2-3, 5, 8-12, 16-21, 25-26}
-inner class Control(
-    private val power: Double,
-    private val targetPosition: Int
-) : ControlAction() {
-    private var reversing = false
+```kotlin {6-10}
+import com.qualcomm.robotcore.hardware.Servo
+import dev.kingssack.volt.attachment.Attachment
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
-    override fun init() {
-        // Determine reversing
-        reversing = targetPosition < motor.currentPosition
-
-        // Set power
-        motor.power = if (reversing) -power else power
-    }
-
-    override fun update(packet: TelemetryPacket): Boolean {
-        // Get position
-        val currentPosition = motor.currentPosition
-
-        // Determine if at target position
-        if ((currentPosition < targetPosition) xor reversing) return false
-        return true
-    }
-
-    override fun handleStop() {
-        // Stop the motor
-        motor.power = 0.0
+class Claw(private val claw: Servo) : Attachment("Claw") {
+    context(telemetry: Telemetry)
+    override fun update() {
+        super.update()
+        telemetry.addData("Position", claw.position)
     }
 }
 ```
@@ -233,30 +97,180 @@ inner class Control(
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java {14-18}
+import com.qualcomm.robotcore.hardware.Servo;
+import dev.kingssack.volt.attachment.Attachment;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.jetbrains.annotations.NotNull;
+
+class Claw extends Attachment {
+    private Servo claw;
+
+    public Claw(Servo claw) {
+        super("Claw");
+        this.claw = claw;
+    }
+
+    @Override
+    public void update(Telemetry telemetry) {
+        super.update(telemetry);
+        telemetry.addData("Position", claw.getPosition());
+    }
+}
+```
 
 </TabItem>
 
 </Tabs>
 
-:::danger
+### 3. State Management
 
-It is usually recommended to use `RUN_TO_POSITION` rather than manually checking if it has reached the target position. However, for this guide, we will be manually checking the position.
+Every `Attachment` has a state, which is managed automatically when using `Action`s. The possible states are:
 
-:::
+- `Idle`: The `Attachment` is not executing an `Action`.
+- `Running`: The `Attachment` is executing an `Action`.
+- `Fault(val error: Throwable)`: An error has occurred.
 
-### Add a callable action
+The `Attachment` class provides helper functions to check the current state:
 
-Create a function called `goTo(power: Double, position: Int)` that returns a new `Action`.
+- `isBusy()`: Returns `true` if the state is `Running`.
+- `isFaulted()`: Returns `true` if the state is `Fault`.
+- `requireReady()`: Throws an exception if the attachment is not `Idle`. This is useful for preventing new commands from starting while one is already running.
+
+### 4. Creating Actions
+
+The most powerful feature of an `Attachment` is the `action` builder,
+which simplifies the creation of stateful, multi-step tasks.
+This is perfect for commands like "open the claw,"
+"move the arm to a position," or "run the intake for a number of seconds."
+
+The `action` builder creates an `Action` and automatically manages the attachment's state (`Running` -> `Idle`/`Fault`), including robust error handling.
+
+The builder has three main parts:
+
+- `init { }`: This block runs **once** when the action begins. Use it for setup tasks, like setting a motor's target position of moving a servo.
+- `loop { }` This block runs **until it returns `true`**. The main logic of your `Action` goes here. Return `false` to continue the `Action`, or `true` to complete the  `Action`.
+- `cleanup { }`: This block runs **once** after the `loop` finishes or if an error occurs. Use it to reset hardware to a safe state, like turning off a motor.
+
+Let's create `open()` and `close()` `Action`s for the `Claw`:
+
+<Tabs>
+
+<TabItem label="Kotlin">
+
+```kotlin {7-32}
+import com.acmerobotics.roadrunner.Action
+import com.qualcomm.robotcore.hardware.Servo
+import dev.kingssack.volt.attachment.Attachment
+import org.firstinspires.ftc.robotcore.external.Telemetry
+
+class Claw(private val claw: Servo) : Attachment("Claw") {
+    private val OPEN_POSITION = 0.8
+    private val CLOSED_POSITION = 0.3
+
+    fun open(): Action = action {
+        init {
+            requireReady() // Require attachment to be idle
+        }
+
+        loop {
+            claw.position = OPEN_POSITION
+            true // Return true because the action is complete
+        }
+
+        // No cleanup required
+    }
+
+    fun open(): Action = action {
+        init {
+            requireReady()
+        }
+
+        loop {
+            claw.position = CLOSED_POSITION
+            true
+        }
+    }
+
+    context(telemetry: Telemetry)
+    override fun update() {
+        super.update()
+        telemetry.addData("Position", claw.position)
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {8-9} {18-36}
+import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.hardware.Servo;
+import dev.kingssack.volt.attachment.Attachment;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.jetbrains.annotations.NotNull;
+
+class Claw extends Attachment {
+    private static final double OPEN_POSITION = 0.8;
+    private static final double CLOSED_POSITION = 0.3;
+
+    private Servo claw;
+
+    public Claw(Servo claw) {
+        super("Claw");
+        this.claw = claw;
+    }
+
+    public Action open() {
+        return action(() -> {
+            requireReady(); // Require attachment to be idle
+        }, () -> {
+            claw.setPosition(OPEN_POSITION);
+            return true; // Return true because the action is complete
+        }, () -> {
+            // No cleanup required
+        });
+    }
+
+    public Action close() {
+        return action(() -> {
+            requireReady();
+        }, () -> {
+            claw.setPosition(CLOSED_POSITION);
+            return true;
+        });
+    }
+
+    @Override
+    public void update(Telemetry telemetry) {
+        super.update(telemetry);
+        telemetry.addData("Position", claw.getPosition());
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+In this example, when the `Action` built by either `open()` or `close()` is executed,
+the attachment's state to `Running`, execute the logic, and then set the state back to `Idle` upon completion.
+
+### 5. Using Attachments in Your Robot
+
+Once your `Attachment` is defined, you can instantiate it in your `Robot` class.
+The `Robot` will automatically discover it and handle `update()` method.
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
 ```kotlin
-fun goTo(power: Double, position: Int): Action {
-    // Return Control
-    return Control(power, position)
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    private val clawServo by servo("cs")
+
+    val claw = Claw(clawServo)
 }
 ```
 
@@ -264,34 +278,19 @@ fun goTo(power: Double, position: Int): Action {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+public class MyRobot extends Robot {
+    private Servo clawServo;
+    
+    public Claw claw;
 
-</TabItem>
-
-</Tabs>
-
-### Log the position of the motor
-
-Modify the `update(telemetry: Telemetry)` function to log the position of `motor`.
-
-<Tabs>
-
-<TabItem label="Kotlin">
-
-```kotlin {2-5}
-override fun update(telemetry: Telemetry) {
-    // Log motor position
-    telemetry.addLine("==== EXAMPLE ====")
-    telemetry.addData("Position", motor.currentPosition)
-    telemetry.addLine()
+    public MyRobot(hardwareMap: HardwareMap) {
+        super(hardwareMap);
+        clawServo = hardwareMap.get(Servo.class, "cs");
+        claw = new Claw(clawServo);
+    }
 }
 ```
-
-</TabItem>
-
-<TabItem label="Java">
-
-(Coming Soon)
 
 </TabItem>
 
@@ -306,52 +305,37 @@ override fun update(telemetry: Telemetry) {
 ```kotlin
 package org.firstinspires.ftc.teamcode.attachment
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.attachment.Attachment
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorSimple
-import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
-class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
-    val motor = hardwareMap.dcMotor[name]
+class Claw(private val claw: Servo) : Attachment("Claw") {
+    private val OPEN_POSITION = 0.8
+    private val CLOSED_POSITION = 0.3
 
-    init {
-        motor.mode = DcMotorSimple.RunMode.RUN_USING_ENCODER
-        motor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        motors = listOf(motor)
-    }
+    fun open(): Action = action {
+        init { requireReady() }
 
-    inner class Control(
-        private val power: Double,
-        private val targetPosition: Int
-    ) : ControlAction() {
-        private var reversing = false
-
-        override fun init() {
-            reversing = targetPosition < motor.currentPosition
-            motor.power = if (reversing) -power else power
-        }
-
-        override fun update(packet: TelemetryPacket): Boolean {
-            val currentPosition = motor.currentPosition
-            if ((currentPosition < targetPosition) xor reversing) return false
-            return true
-        }
-
-        override fun handleStop() {
-            motor.power = 0.0
+        loop {
+            claw.position = OPEN_POSITION
+            true
         }
     }
-    fun goTo(power: Double, position: Int): Action {
-        return Control(power, position)
+
+    fun open(): Action = action {
+        init { requireReady() }
+
+        loop {
+            claw.position = CLOSED_POSITION
+            true
+        }
     }
 
-    override fun update(telemetry: Telemetry) {
-        telemetry.addLine("==== EXAMPLE ====")
-        telemetry.addData("Position", motor.currentPosition)
-        telemetry.addLine()
+    context(telemetry: Telemetry)
+    override fun update() {
+        super.update()
+        telemetry.addData("Position", claw.position)
     }
 }
 ```
@@ -360,7 +344,51 @@ class Example(hardwareMap: HardwareMap, name: String) : Attachment() {
 
 <TabItem label="Java">
 
-(Coming Soon)
+```java
+package org.firstinspires.ftc.teamcode.attachment;
+
+import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.hardware.Servo;
+import dev.kingssack.volt.attachment.Attachment;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.jetbrains.annotations.NotNull;
+
+class Claw extends Attachment {
+    private static final double OPEN_POSITION = 0.8;
+    private static final double CLOSED_POSITION = 0.3;
+
+    private Servo claw;
+
+    public Claw(Servo claw) {
+        super("Claw");
+        this.claw = claw;
+    }
+
+    public Action open() {
+        return action(() -> {
+            requireReady();
+        }, () -> {
+            claw.setPosition(OPEN_POSITION);
+            return true;
+        });
+    }
+
+    public Action close() {
+        return action(() -> {
+            requireReady();
+        }, () -> {
+            claw.setPosition(CLOSED_POSITION);
+            return true;
+        });
+    }
+
+    @Override
+    public void update(Telemetry telemetry) {
+        super.update(telemetry);
+        telemetry.addData("Position", claw.getPosition());
+    }
+}
+```
 
 </TabItem>
 

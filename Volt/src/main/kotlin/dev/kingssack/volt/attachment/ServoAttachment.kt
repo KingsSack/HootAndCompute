@@ -3,8 +3,8 @@ package dev.kingssack.volt.attachment
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.util.ServoPosition
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import kotlin.math.abs
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * [ServoAttachment] is an [Attachment] that controls a [servo].
