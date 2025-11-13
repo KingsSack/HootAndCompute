@@ -112,7 +112,7 @@ abstract class Attachment(val name: String) {
     /** Updates the telemetry with the current state of the attachment. */
     context(telemetry: Telemetry)
     open fun update() {
-        with(telemetry) {
+        with (telemetry) {
             addLine()
             addLine("$name-->")
             addData("State", state.value)
