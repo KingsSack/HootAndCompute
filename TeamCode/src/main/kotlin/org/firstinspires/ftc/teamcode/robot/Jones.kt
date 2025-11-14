@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.PoseVelocity2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
@@ -8,6 +11,7 @@ import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithPP
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import kotlin.math.*
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.pp.Constants
 
@@ -20,12 +24,17 @@ import org.firstinspires.ftc.teamcode.pp.Constants
 @Config
 class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwareMap) {
     companion object {
-        @JvmField var lidarLeftName: String = "lidarl"
-        @JvmField var lidarRightName: String = "lidarr"
-        @JvmField var huskyLensName: String = "lens"
+        @JvmField
+        var lidarLeftName: String = "lidarl"
+        @JvmField
+        var lidarRightName: String = "lidarr"
+        @JvmField
+        var huskyLensName: String = "lens"
 
-        @JvmField var leftLauncherMotorName: String = "fll"
-        @JvmField var rightLauncherMotorName: String = "flr"
+        @JvmField
+        var leftLauncherMotorName: String = "fll"
+        @JvmField
+        var rightLauncherMotorName: String = "flr"
     }
 
     // Drivetrain
@@ -85,6 +94,26 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwa
         telemetry.addData("Filtered count", result.size)
 
         return result
+    }
+
+    context(telemetry: Telemetry)
+    fun pointTowardsAprilTag(id: Int): Action? {
+        val driveVel = 1.0
+        getDetectedAprilTags(id).firstOrNull() ?: return null
+        return Action {
+            val detectedTag: HuskyLens.Block? = getDetectedAprilTags(id).firstOrNull()
+            val shouldStop = abs((detectedTag?.x ?: 160) - 160) < 5
+            if (shouldStop) {
+                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
+            } else {
+                if (detectedTag!!.x < 160) {
+                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), driveVel))
+                } else {
+                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -driveVel))
+                }
+            }
+            shouldStop
+        }
     }
 
     /**
