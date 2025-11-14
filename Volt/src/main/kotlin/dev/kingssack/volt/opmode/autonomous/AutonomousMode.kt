@@ -4,9 +4,9 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.core.VoltActionBuilder
+import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
 
 /**
@@ -14,23 +14,12 @@ import dev.kingssack.volt.robot.Robot
  *
  * @property robot the robot instance
  */
-abstract class AutonomousMode<R : Robot>(private val robotFactory: (HardwareMap) -> R) :
-    LinearOpMode() {
-    protected lateinit var robot: R
-        private set
-
+abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
+    VoltOpMode<R>(robotFactory) {
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
 
-    /** Optional initialization code for the autonomous mode. */
-    open fun initialize() {
-        // Default implementation does nothing
-    }
-
-    override fun runOpMode() {
-        robot = robotFactory(hardwareMap)
-        initialize()
-        waitForStart()
+    override fun begin() {
         sequence()
     }
 

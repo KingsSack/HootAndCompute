@@ -3,9 +3,9 @@ package dev.kingssack.volt.opmode.manual
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.core.VoltActionBuilder
+import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.AnalogHandler
 import dev.kingssack.volt.util.ButtonHandler
@@ -21,9 +21,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @property robot the robot instance
  */
 abstract class ManualMode<R : Robot>(
-    private val robotFactory: (HardwareMap) -> R,
+    robotFactory: (HardwareMap) -> R,
     private val params: ManualParams = ManualParams(),
-) : LinearOpMode() {
+) : VoltOpMode<R>(robotFactory) {
     /**
      * Configuration object for manual control.
      *
@@ -31,9 +31,6 @@ abstract class ManualMode<R : Robot>(
      * @property inputExp the input exponential for fine control
      */
     data class ManualParams(val deadzone: Double = 0.1, val inputExp: Double = 2.0)
-
-    protected lateinit var robot: R
-        private set
 
     private enum class InteractionType {
         RELEASE,
@@ -124,19 +121,13 @@ abstract class ManualMode<R : Robot>(
         }
     }
 
-    /** Optional initialization code can be added here. */
-    open fun initialize() {
-        // Default implementation does nothing
+    override fun initialize() {
+        super.initialize()
+        initializeInputMappings()
     }
 
-    override fun runOpMode() {
-        initializeInputMappings()
-        robot = robotFactory(hardwareMap)
-        initialize()
-        waitForStart()
-        while (opModeIsActive()) {
-            context(telemetry) { tick() }
-        }
+    override fun begin() {
+        while (opModeIsActive()) context(telemetry) { tick() }
     }
 
     private fun updateButtonHandlers() {
