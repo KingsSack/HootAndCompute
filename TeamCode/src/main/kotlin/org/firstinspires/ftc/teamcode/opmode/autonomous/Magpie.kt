@@ -12,11 +12,9 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 @Config
 @Autonomous(name = "Magpie", group = "Competition")
 class Magpie :
-    AutonomousMode<Jones>(
-        robotFactory = { hardwareMap ->
-            Jones(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
-        }
-    ) {
+    AutonomousMode<Jones>({ hardwareMap ->
+        Jones(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
+    }) {
     companion object {
         @JvmField var INITIAL_X: Double = 56.0
         @JvmField var INITIAL_Y: Double = 8.0
@@ -25,7 +23,5 @@ class Magpie :
 
     private val paths by lazy { PathConstants(robot.drivetrain.follower, AllianceColor.BLUE) }
 
-    override fun sequence() = execute {
-        +robot.drivetrain.pathTo(paths.pathToLoadingZone)
-    }
+    override fun sequence() = execute { +robot.drivetrain.pathTo(paths.pathToLoadingZone) }
 }

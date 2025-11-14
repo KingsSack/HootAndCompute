@@ -9,9 +9,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Autonomous(name = "Pigeon", group = "Competition")
 class Pigeon :
-    AutonomousMode<Gabe>(
-        robotFactory = { hardwareMap -> Gabe(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0)) }
-    ) {
+    AutonomousMode<Gabe>({ hardwareMap -> Gabe(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0)) }) {
     override fun sequence() = execute {
         robot.drivetrain.trajectory {
             strafeTo(Vector2d(0.0, 0.0))

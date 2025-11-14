@@ -4,11 +4,10 @@ import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithPP
+import dev.kingssack.volt.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.pp.Constants
 
 /**
@@ -23,14 +22,11 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwa
         @JvmField var lidarLeftName: String = "lidarl"
         @JvmField var lidarRightName: String = "lidarr"
         @JvmField var huskyLensName: String = "lens"
-
-        @JvmField var leftLauncherMotorName: String = "fll"
-        @JvmField var rightLauncherMotorName: String = "flr"
     }
 
     // Drivetrain
     val drivetrain =
-        SimpleMecanumDriveWithPP(
+        MecanumDriveWithPP(
             hardwareMap,
             Constants.followerConstants,
             Constants.localizerConstants,
@@ -44,11 +40,7 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwa
     private val lidarRight by distanceSensor(lidarRightName)
     private val huskyLens by huskyLens(huskyLensName)
 
-    private val leftLauncherMotor by motor(leftLauncherMotorName)
-    private val rightLauncherMotor by motor(rightLauncherMotorName)
-
     // Attachments
-    val launcher = Launcher(leftLauncherMotor, rightLauncherMotor)
 
     init {
         // Set huskylens mode

@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode.robot
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.dfrobot.HuskyLens
-import com.qualcomm.hardware.dfrobot.HuskyLens.Block
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.drivetrain.SimpleMecanumDriveWithRR
+import dev.kingssack.volt.drivetrain.MecanumDriveWithRR
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.attachment.Launcher
 
 /**
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
@@ -46,10 +46,10 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 
 
     // Drivetrain
     val drivetrain =
-        SimpleMecanumDriveWithRR(
+        MecanumDriveWithRR(
             hardwareMap,
             initialPose,
-            SimpleMecanumDriveWithRR.DriveParams(
+            MecanumDriveWithRR.DriveParams(
                 logoFacingDirection = logoFacingDirection,
                 usbFacingDirection = usbFacingDirection,
                 inPerTick = inPerTick,
@@ -72,7 +72,11 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 
     // Hardware
     private val huskyLens by huskyLens("lens")
 
+    private val leftLauncherMotor by motor("fll")
+    private val rightLauncherMotor by motor("flr")
+
     // Attachments
+    val launcher = Launcher(leftLauncherMotor, rightLauncherMotor)
 
     /**
      * Get detected AprilTags from HuskyLens.
