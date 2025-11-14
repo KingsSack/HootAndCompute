@@ -13,7 +13,7 @@ import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
-class SimpleMecanumDriveWithPP(
+class MecanumDriveWithPP(
     hardwareMap: HardwareMap,
     followerConstants: FollowerConstants,
     localizerConstants: DriveEncoderConstants,
@@ -47,14 +47,14 @@ class SimpleMecanumDriveWithPP(
         follower.update()
         val finished = !follower.isBusy
 
-        finished
+        !finished
     }
 
     context(telemetry: Telemetry)
     override fun update() {
         follower.update()
 
-        telemetry.addLine("DRIVETRAIN-->")
+        super.update()
         telemetry.addData("x", follower.pose.x)
         telemetry.addData("y", follower.pose.y)
         telemetry.addData("heading", follower.pose.heading)

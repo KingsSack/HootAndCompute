@@ -59,7 +59,7 @@ import kotlin.math.max
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 
-class SimpleMecanumDriveWithRR(
+class MecanumDriveWithRR(
     hardwareMap: HardwareMap,
     var pose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0),
     private val params: DriveParams = DriveParams(),
