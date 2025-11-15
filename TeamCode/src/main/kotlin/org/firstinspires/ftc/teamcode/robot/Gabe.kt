@@ -10,6 +10,7 @@ import dev.kingssack.volt.drivetrain.MecanumDriveWithRR
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
+import org.firstinspires.ftc.teamcode.attachment.Storage
 
 /**
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
@@ -75,8 +76,11 @@ class Gabe(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 
     private val leftLauncherMotor by motor("fll")
     private val rightLauncherMotor by motor("flr")
 
+    private val storageServo by servo("ss")
+
     // Attachments
     val launcher = Launcher(leftLauncherMotor, rightLauncherMotor)
+    val storage = Storage(storageServo)
 
     /**
      * Get detected AprilTags from HuskyLens.
