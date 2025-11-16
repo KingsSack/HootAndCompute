@@ -69,7 +69,6 @@ abstract class Attachment(val name: String) {
 
                 override fun run(p: TelemetryPacket): Boolean {
                     if (!initialized) {
-                        setState(AttachmentState.Running)
                         runCatching { init?.invoke() }
                             .onFailure { e ->
                                 setState(AttachmentState.Fault(e))
@@ -80,6 +79,7 @@ abstract class Attachment(val name: String) {
                                     }
                                 throw e
                             }
+                        setState(AttachmentState.Running)
                         initialized = true
                     }
 
