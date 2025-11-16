@@ -247,7 +247,7 @@ class MecanumDriveWithRR(
         }
 
         init {
-            rightFront.direction = DcMotorSimple.Direction.REVERSE
+            leftBack.direction = DcMotorSimple.Direction.REVERSE
             rightBack.direction = DcMotorSimple.Direction.REVERSE
         }
     }
@@ -261,7 +261,7 @@ class MecanumDriveWithRR(
 
         driveMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
 
-        rightFront.direction = DcMotorSimple.Direction.REVERSE
+        leftBack.direction = DcMotorSimple.Direction.REVERSE
         rightBack.direction = DcMotorSimple.Direction.REVERSE
     }
 
@@ -326,7 +326,7 @@ class MecanumDriveWithRR(
             }
 
             val txWorldTarget = timeTrajectory[t]
-            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
+//            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
 
             val robotVelRobot = updatePoseEstimate()
 
@@ -340,7 +340,7 @@ class MecanumDriveWithRR(
                         params.headingVelGain,
                     )
                     .compute(txWorldTarget, localizer.pose, robotVelRobot)
-            driveCommandWriter.write(DriveCommandMessage(command))
+//            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
@@ -355,15 +355,15 @@ class MecanumDriveWithRR(
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
             val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
             val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
-            mecanumCommandWriter.write(
-                MecanumCommandMessage(
-                    voltage,
-                    leftFrontPower,
-                    leftBackPower,
-                    rightBackPower,
-                    rightFrontPower,
-                )
-            )
+//            mecanumCommandWriter.write(
+//                MecanumCommandMessage(
+//                    voltage,
+//                    leftFrontPower,
+//                    leftBackPower,
+//                    rightBackPower,
+//                    rightFrontPower,
+//                )
+//            )
 
             leftFront.power = leftFrontPower
             leftBack.power = leftBackPower
@@ -424,7 +424,7 @@ class MecanumDriveWithRR(
             }
 
             val txWorldTarget = turn[t]
-            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
+//            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
 
             val robotVelRobot = updatePoseEstimate()
 
@@ -438,7 +438,7 @@ class MecanumDriveWithRR(
                         params.headingVelGain,
                     )
                     .compute(txWorldTarget, localizer.pose, robotVelRobot)
-            driveCommandWriter.write(DriveCommandMessage(command))
+//            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
@@ -452,15 +452,15 @@ class MecanumDriveWithRR(
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
             val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
             val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
-            mecanumCommandWriter.write(
-                MecanumCommandMessage(
-                    voltage,
-                    leftFrontPower,
-                    leftBackPower,
-                    rightBackPower,
-                    rightFrontPower,
-                )
-            )
+//            mecanumCommandWriter.write(
+//                MecanumCommandMessage(
+//                    voltage,
+//                    leftFrontPower,
+//                    leftBackPower,
+//                    rightBackPower,
+//                    rightFrontPower,
+//                )
+//            )
 
             leftFront.power = feedforward.compute(wheelVels.leftFront) / voltage
             leftBack.power = feedforward.compute(wheelVels.leftBack) / voltage
@@ -612,10 +612,9 @@ class MecanumDriveWithRR(
     override fun update() {
         updatePoseEstimate()
 
-        telemetry.addLine("DRIVETRAIN-->")
+        super.update()
         telemetry.addData("x", localizer.pose.position.x)
         telemetry.addData("y", localizer.pose.position.y)
         telemetry.addData("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()))
-        telemetry.addLine()
     }
 }

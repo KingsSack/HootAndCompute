@@ -11,6 +11,7 @@ import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.attachment.Attachment
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 class MecanumDriveWithPP(
