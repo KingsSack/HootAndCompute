@@ -37,6 +37,7 @@ abstract class ManualMode<R : Robot>(
         DOUBLE_TAP,
         HOLD,
         PRESS,
+        ANALOG,
     }
 
     private val interactionHandlers =
@@ -47,6 +48,8 @@ abstract class ManualMode<R : Robot>(
                 mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
             InteractionType.HOLD to mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
             InteractionType.PRESS to mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
+            InteractionType.ANALOG to
+                mutableMapOf<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>(),
         )
 
     private lateinit var buttonStateGetters: EnumMap<GamepadButton, () -> Boolean>
@@ -144,18 +147,37 @@ abstract class ManualMode<R : Robot>(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun processInteractions() {
-        processActionType(interactionHandlers[InteractionType.RELEASE]!!) { button ->
+        processActionType(
+            interactionHandlers[InteractionType.RELEASE]!!
+                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
+        ) { button ->
             isButtonReleased(button)
         }
-        processActionType(interactionHandlers[InteractionType.DOUBLE_TAP]!!) { button ->
+        processActionType(
+            interactionHandlers[InteractionType.DOUBLE_TAP]!!
+                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
+        ) { button ->
             isButtonDoubleTapped(button)
         }
-        processActionType(interactionHandlers[InteractionType.HOLD]!!) { button ->
+        processActionType(
+            interactionHandlers[InteractionType.HOLD]!!
+                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
+        ) { button ->
             isButtonHeld(button, 500.0)
         }
-        processActionType(interactionHandlers[InteractionType.PRESS]!!) { button ->
+        processActionType(
+            interactionHandlers[InteractionType.PRESS]!!
+                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
+        ) { button ->
             isButtonPressed(button)
+        }
+        processAnalogActionType(
+            interactionHandlers[InteractionType.ANALOG]!!
+                as Map<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>
+        ) { analogInput ->
+            getAnalogValue(analogInput)
         }
     }
 
@@ -168,6 +190,16 @@ abstract class ManualMode<R : Robot>(
                 val builder = VoltActionBuilder(robot).apply(actionBlock)
                 runningActions.add(builder.build())
             }
+        }
+    }
+
+    private fun processAnalogActionType(
+        interactions: Map<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>,
+        value: (GamepadAnalogInput) -> Double,
+    ) {
+        interactions.forEach { (analogInput, actionBlock) ->
+            val builder = VoltActionBuilder(robot).apply { actionBlock(value(analogInput)) }
+            runningActions.add(builder.build())
         }
     }
 
@@ -207,7 +239,9 @@ abstract class ManualMode<R : Robot>(
      * @param block the action sequence to execute
      */
     protected fun onButtonReleased(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
-        interactionHandlers[InteractionType.RELEASE]?.set(button, block)
+        @Suppress("UNCHECKED_CAST")
+        (interactionHandlers[InteractionType.RELEASE]
+            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
     }
 
     /**
@@ -230,7 +264,9 @@ abstract class ManualMode<R : Robot>(
         button: GamepadButton,
         block: VoltActionBuilder<R>.() -> Unit,
     ) {
-        interactionHandlers[InteractionType.DOUBLE_TAP]?.set(button, block)
+        @Suppress("UNCHECKED_CAST")
+        (interactionHandlers[InteractionType.DOUBLE_TAP]
+            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
     }
 
     /**
@@ -251,7 +287,9 @@ abstract class ManualMode<R : Robot>(
      * @param block the action sequence to execute
      */
     protected fun onButtonHeld(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
-        interactionHandlers[InteractionType.HOLD]?.set(button, block)
+        @Suppress("UNCHECKED_CAST")
+        (interactionHandlers[InteractionType.HOLD]
+            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
     }
 
     /**
@@ -271,7 +309,9 @@ abstract class ManualMode<R : Robot>(
      * @param block the action sequence to execute
      */
     protected fun onButtonPressed(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
-        interactionHandlers[InteractionType.PRESS]?.set(button, block)
+        @Suppress("UNCHECKED_CAST")
+        (interactionHandlers[InteractionType.PRESS]
+            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
     }
 
     /**
@@ -301,5 +341,15 @@ abstract class ManualMode<R : Robot>(
      */
     protected fun getRawAnalogValue(analogInput: GamepadAnalogInput): Float {
         return analogStateGetters[analogInput]?.invoke() ?: 0.0f
+    }
+
+    protected fun onAnalogValueChanged(
+        analogInput: GamepadAnalogInput,
+        block: VoltActionBuilder<R>.(Double) -> Unit,
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        (interactionHandlers[InteractionType.ANALOG]
+            as MutableMap<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>)[analogInput] =
+            block
     }
 }

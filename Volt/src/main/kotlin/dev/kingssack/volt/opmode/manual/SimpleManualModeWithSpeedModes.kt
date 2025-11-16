@@ -107,7 +107,6 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
     context(telemetry: Telemetry)
     override fun tick() {
         telemetry.addData("Speed Mode", currentSpeedMode)
-        telemetry.addLine()
         super.tick()
     }
 }
