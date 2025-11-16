@@ -12,7 +12,7 @@ import dev.kingssack.volt.attachment.Attachment
  * @param rightMotor the right [DcMotor] of the [Launcher]
  */
 class Launcher(private val leftMotor: DcMotor, private val rightMotor: DcMotor) :
-    Attachment("launcher") {
+    Attachment("Launcher") {
     init {
         leftMotor.direction = DcMotorSimple.Direction.FORWARD
         rightMotor.direction = DcMotorSimple.Direction.REVERSE
@@ -34,6 +34,15 @@ class Launcher(private val leftMotor: DcMotor, private val rightMotor: DcMotor) 
         init {
             leftMotor.power = 0.0
             rightMotor.power = 0.0
+        }
+
+        loop { true }
+    }
+
+    fun setPower(power: Double): Action = action {
+        init {
+            leftMotor.power = power
+            rightMotor.power = power
         }
 
         loop { true }

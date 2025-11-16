@@ -4,11 +4,9 @@ import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import org.firstinspires.ftc.teamcode.pp.Constants
 
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
@@ -17,23 +15,12 @@ import org.firstinspires.ftc.teamcode.pp.Constants
  * @param initialPose for setting the initial pose
  */
 @Config
-class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwareMap) {
+open class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwareMap) {
     companion object {
         @JvmField var lidarLeftName: String = "lidarl"
         @JvmField var lidarRightName: String = "lidarr"
         @JvmField var huskyLensName: String = "lens"
     }
-
-    // Drivetrain
-    val drivetrain =
-        MecanumDriveWithPP(
-            hardwareMap,
-            Constants.followerConstants,
-            Constants.localizerConstants,
-            Constants.pathConstraints,
-            Constants.driveConstants,
-            initialPose,
-        )
 
     // Hardware
     private val lidarLeft by distanceSensor(lidarLeftName)
@@ -97,11 +84,5 @@ class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwa
         telemetry.addData("Average range", "%.01f mm".format(averageDistance))
 
         return averageDistance
-    }
-
-    context(telemetry: Telemetry)
-    override fun update() {
-        drivetrain.update()
-        super.update()
     }
 }

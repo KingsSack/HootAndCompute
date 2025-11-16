@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
+import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.robot.Gabe
@@ -14,8 +15,14 @@ class Manatee : SimpleManualModeWithSpeedModes<Gabe>({ hardwareMap -> Gabe(hardw
         onButtonPressed(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.enable() }
         onButtonReleased(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.disable() }
 
-        onButtonPressed(GamepadButton.A2) { +robot.storage.release() }
-        onButtonReleased(GamepadButton.A2) { +robot.storage.close() }
+        onButtonReleased(GamepadButton.A2) { +robot.storage.release() }
+        onButtonReleased(GamepadButton.B2) { +robot.storage.close() }
+
+        onAnalogValueChanged(GamepadAnalogInput.RIGHT_TRIGGER2) { value ->
+            if (!isButtonPressed(GamepadButton.RIGHT_BUMPER2)) {
+                +robot.launcher.setPower(value)
+            }
+        }
     }
 
     context(telemetry: Telemetry)

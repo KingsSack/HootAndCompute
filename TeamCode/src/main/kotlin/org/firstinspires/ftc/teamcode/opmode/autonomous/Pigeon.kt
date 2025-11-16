@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 class Pigeon :
     AutonomousMode<Gabe>({ hardwareMap -> Gabe(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0)) }) {
     override fun sequence() = execute {
-        robot.drivetrain.trajectory {
+        +robot.drivetrain.trajectory {
             strafeTo(Vector2d(0.0, 0.0))
             strafeToLinearHeading(Vector2d(48.0, 0.0), 0.0.toRadians())
         }
