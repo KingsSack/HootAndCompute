@@ -48,25 +48,25 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
         _state.value = newState
     }
 
-    private var attachments = mutableListOf<Attachment>()
+    protected var attachments = mutableListOf<Attachment>()
 
     init {
-        fun KType.isAttachmentOrNullableAttachment(): Boolean {
-            val attachment = typeOf<Attachment>()
-            val nullableAttachment = attachment.withNullability(true)
-            return this.isSubtypeOf(attachment) || this.isSubtypeOf(nullableAttachment)
-        }
-
-        this::class
-            .memberProperties
-            .filterIsInstance<KProperty1<Robot, *>>()
-            .filter { prop -> prop.returnType.isAttachmentOrNullableAttachment() }
-            .forEach { prop ->
-                val value = runCatching { prop.get(this) }.getOrNull()
-                if (value is Attachment) {
-                    attachments.add(value)
-                }
-            }
+//        fun KType.isAttachmentOrNullableAttachment(): Boolean {
+//            val attachment = typeOf<Attachment>()
+//            val nullableAttachment = attachment.withNullability(true)
+//            return this.isSubtypeOf(attachment) || this.isSubtypeOf(nullableAttachment)
+//        }
+//
+//        this::class
+//            .memberProperties
+//            .filterIsInstance<KProperty1<Robot, *>>()
+//            .filter { prop -> prop.returnType.isAttachmentOrNullableAttachment() }
+//            .forEach { prop ->
+//                val value = runCatching { prop.get(this) }.getOrNull()
+//                if (value is Attachment) {
+//                    attachments.add(value)
+//                }
+//            }
 
         setState(RobotState.Initialized)
     }
