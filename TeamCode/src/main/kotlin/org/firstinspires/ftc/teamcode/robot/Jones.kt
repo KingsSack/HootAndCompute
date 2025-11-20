@@ -1,10 +1,10 @@
 package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
-import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
-import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
+import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 
@@ -12,10 +12,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
- * @param initialPose for setting the initial pose
  */
 @Config
-open class Jones(hardwareMap: HardwareMap, initialPose: Pose = Pose()) : Robot(hardwareMap) {
+abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
+    RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     companion object {
         @JvmField var lidarLeftName: String = "lidarl"
         @JvmField var lidarRightName: String = "lidarr"

@@ -15,14 +15,14 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * [Jones] with [MecanumDriveWithPP] drivetrain.
+ * [Gabe] with [MecanumDriveWithPP] drivetrain.
  *
  * @param hardwareMap The FTC hardware map.
  * @param initialPose The initial pose of the robot.
  */
 @Config
-class JonesPP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
-    Jones<MecanumDriveWithPP>(
+class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
+    Gabe<MecanumDriveWithPP>(
         hardwareMap,
         MecanumDriveWithPP(
             hardwareMap,

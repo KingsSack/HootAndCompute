@@ -15,7 +15,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.drivetrain.MecanumDriveWithRR
+import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithRR
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Drawing.drawRobot
 import java.util.*

@@ -10,35 +10,35 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithRR
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * [Jones] with [MecanumDriveWithRR] drivetrain.
+ * [Gabe] with [MecanumDriveWithRR] drivetrain.
  *
  * @param hardwareMap The FTC hardware map.
  * @param initialPose The initial pose of the robot.
  */
 @Config
-class JonesRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
-    Jones<MecanumDriveWithRR>(
+class GabeRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
+    Gabe<MecanumDriveWithRR>(
         hardwareMap,
         MecanumDriveWithRR(
             hardwareMap,
             initialPose,
             MecanumDriveWithRR.DriveParams(
-                logoFacingDirection = logoFacingDirection,
-                usbFacingDirection = usbFacingDirection,
-                inPerTick = inPerTick,
-                lateralInPerTick = lateralInPerTick,
-                trackWidthTicks = trackWidthTicks,
-                kS = kS,
-                kV = kV,
-                kA = kA,
-                maxWheelVel = maxWheelVel,
-                minProfileAccel = minProfileAccel,
-                maxProfileAccel = maxProfileAccel,
-                maxAngVel = maxAngVel,
-                maxAngAccel = maxAngAccel,
-                axialGain = axialGain,
-                lateralGain = lateralGain,
-                headingGain = headingGain,
+                logoFacingDirection,
+                usbFacingDirection,
+                inPerTick,
+                lateralInPerTick,
+                trackWidthTicks,
+                kS,
+                kV,
+                kA,
+                maxWheelVel,
+                minProfileAccel,
+                maxProfileAccel,
+                maxAngVel,
+                maxAngAccel,
+                axialGain,
+                lateralGain,
+                headingGain,
             ),
         ),
     ) {

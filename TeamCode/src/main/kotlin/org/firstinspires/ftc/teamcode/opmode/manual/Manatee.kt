@@ -2,32 +2,29 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithRR
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.robot.Gabe
+import org.firstinspires.ftc.teamcode.robot.GabeRR
 
 @Config
 @TeleOp(name = "Manatee", group = "Competition")
-class Manatee : SimpleManualModeWithSpeedModes<Gabe>({ hardwareMap -> Gabe(hardwareMap) }) {
+class Manatee :
+    SimpleManualModeWithSpeedModes<MecanumDriveWithRR, GabeRR>({ hardwareMap ->
+        GabeRR(hardwareMap)
+    }) {
     init {
-        onButtonPressed(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.enable() }
+        onButtonTapped(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.enable() }
         onButtonReleased(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.disable() }
 
         onButtonReleased(GamepadButton.A2) { +robot.storage.release() }
         onButtonReleased(GamepadButton.B2) { +robot.storage.close() }
 
-        onAnalogValueChanged(GamepadAnalogInput.RIGHT_TRIGGER2) { value ->
+        onAnalog(GamepadAnalogInput.RIGHT_TRIGGER2) { value ->
             if (!isButtonPressed(GamepadButton.RIGHT_BUMPER2)) {
-                +robot.launcher.setPower(value)
+                robot.launcher.setPower(value.toDouble())
             }
         }
-    }
-
-    context(telemetry: Telemetry)
-    override fun tick() {
-        robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
-        super.tick()
     }
 }
