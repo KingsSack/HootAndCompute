@@ -1,4 +1,4 @@
-package dev.kingssack.volt.drivetrain
+package dev.kingssack.volt.attachment.drivetrain
 
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.PoseVelocity2d
@@ -11,9 +11,19 @@ import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.Attachment
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
+/**
+ * A mecanum drivetrain integrated with the PedroPathing library.
+ *
+ * @param hardwareMap The FTC hardware map.
+ * @param followerConstants Constants for the path follower.
+ * @param localizerConstants Constants for the drive encoder localizer.
+ * @param pathConstraints Constraints for path following.
+ * @param driveConstants Constants specific to the mecanum drivetrain.
+ * @property pose The initial pose of the robot.
+ * @property follower The path follower instance.
+ */
 class MecanumDriveWithPP(
     hardwareMap: HardwareMap,
     followerConstants: FollowerConstants,
@@ -21,7 +31,7 @@ class MecanumDriveWithPP(
     pathConstraints: PathConstraints,
     driveConstants: MecanumConstants,
     var pose: Pose = Pose(),
-) : Drivetrain() {
+) : MecanumDrivetrain() {
     val follower: Follower =
         FollowerBuilder(followerConstants, hardwareMap)
             .driveEncoderLocalizer(localizerConstants)
@@ -38,7 +48,7 @@ class MecanumDriveWithPP(
         follower.startTeleOpDrive()
     }
 
-    fun setDrivePowers(powers: PoseVelocity2d) {
+    override fun setDrivePowers(powers: PoseVelocity2d) {
         follower.setTeleOpDrive(powers.linearVel.x, powers.linearVel.y, powers.angVel)
     }
 

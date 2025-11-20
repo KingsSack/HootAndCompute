@@ -14,12 +14,6 @@ import com.qualcomm.robotcore.hardware.LED
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor
 import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.attachment.Attachment
-import kotlin.reflect.KProperty1
-import kotlin.reflect.KType
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.withNullability
-import kotlin.reflect.typeOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,26 +42,17 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
         _state.value = newState
     }
 
-    protected var attachments = mutableListOf<Attachment>()
+    private var attachments = mutableListOf<Attachment>()
+
+    protected fun registerAttachment(attachment: Attachment) {
+        attachments.add(attachment)
+    }
+
+    protected fun <T : Attachment> attachment(factory: () -> T): Lazy<T> = lazy {
+        factory().also(::registerAttachment)
+    }
 
     init {
-//        fun KType.isAttachmentOrNullableAttachment(): Boolean {
-//            val attachment = typeOf<Attachment>()
-//            val nullableAttachment = attachment.withNullability(true)
-//            return this.isSubtypeOf(attachment) || this.isSubtypeOf(nullableAttachment)
-//        }
-//
-//        this::class
-//            .memberProperties
-//            .filterIsInstance<KProperty1<Robot, *>>()
-//            .filter { prop -> prop.returnType.isAttachmentOrNullableAttachment() }
-//            .forEach { prop ->
-//                val value = runCatching { prop.get(this) }.getOrNull()
-//                if (value is Attachment) {
-//                    attachments.add(value)
-//                }
-//            }
-
         setState(RobotState.Initialized)
     }
 
@@ -170,16 +155,18 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      */
     context(telemetry: Telemetry)
     open fun update() {
-        setState(RobotState.Idle)
-        attachments.forEach {
-            it.update()
+        if (state.value !is RobotState.Fault) {
+            setState(RobotState.Idle)
+            attachments.forEach {
+                it.update()
 
-            if (
-                it.isBusy() &&
-                    state.value !is RobotState.Running &&
-                    state.value !is RobotState.Fault
-            ) {
-                setState(RobotState.Running)
+                if (
+                    it.isBusy() &&
+                        state.value !is RobotState.Running &&
+                        state.value !is RobotState.Fault
+                ) {
+                    setState(RobotState.Running)
+                }
             }
         }
         telemetry.update()

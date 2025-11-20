@@ -4,19 +4,28 @@ import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
+import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import java.util.EnumMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * SimpleManualModeWithSpeedModes is an abstract class that defines the methods for running a manual
- * mode with speed modes.
+ * An abstract class that defines the methods for running a manual mode with speed modes for a robot
+ * with a mecanum drivetrain.
  *
+ * @param T the type of mecanum drivetrain
+ * @param R the type of robot with mecanum drivetrain
  * @property params the configuration object for manual control
+ * @property x the x-axis input from the gamepad
+ * @property y the y-axis input from the gamepad
+ * @property rx the rotation input from the gamepad
  */
-abstract class SimpleManualModeWithSpeedModes<R : Robot>(
+abstract class SimpleManualModeWithSpeedModes<
+    T : MecanumDrivetrain,
+    R : RobotWithMecanumDrivetrain<T>,
+>(
     robotFactory: (hardwareMap: HardwareMap) -> R,
     private val params: SimpleManualModeWithSpeedModesParams =
         SimpleManualModeWithSpeedModesParams(),
@@ -59,19 +68,23 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
 
     private var currentSpeedMode = SpeedMode.NORMAL
 
+    var x = 0.0
+    var y = 0.0
+    var rx = 0.0
+
     init {
-        onButtonReleased(GamepadButton.Y1) {
-            +InstantAction { currentSpeedMode = SpeedMode.TURBO }
-        }
+        onButtonReleased(GamepadButton.Y1) { +InstantAction { currentSpeedMode = SpeedMode.TURBO } }
         onButtonReleased(GamepadButton.B1) {
             +InstantAction { currentSpeedMode = SpeedMode.NORMAL }
         }
         onButtonReleased(GamepadButton.A1) {
             +InstantAction { currentSpeedMode = SpeedMode.PRECISE }
         }
-        onButtonReleased(GamepadButton.X1) {
-            +InstantAction { currentSpeedMode = SpeedMode.SLOW }
-        }
+        onButtonReleased(GamepadButton.X1) { +InstantAction { currentSpeedMode = SpeedMode.SLOW } }
+
+        onAnalog(GamepadAnalogInput.LEFT_STICK_X1) { value -> x = -value.toDouble() }
+        onAnalog(GamepadAnalogInput.LEFT_STICK_Y1) { value -> y = -value.toDouble() }
+        onAnalog(GamepadAnalogInput.RIGHT_STICK_X1) { value -> rx = -value * params.turnScale }
     }
 
     /**
@@ -80,17 +93,15 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
      * @return the pose velocity
      */
     fun calculatePoseWithGamepad(): PoseVelocity2d {
-        // Get gamepad input with deadzone and exponential scaling
-        val x = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_X1)
-        val y = -getAnalogValue(GamepadAnalogInput.LEFT_STICK_Y1)
-        val rx = -getAnalogValue(GamepadAnalogInput.RIGHT_STICK_X1) * params.turnScale
-
         // Apply current speed mode scaling
         val scale = speedModes[currentSpeedMode]!!
+        val scaledX = x * scale
+        val scaledY = y * scale
+        val scaledRx = rx * scale
 
         // Create linear and angular velocities with scaling
-        val linearVelocity = Vector2d(applyMinPower(y * scale), applyMinPower(x * scale))
-        val angularVelocity = applyMinPower(rx * scale)
+        val linearVelocity = Vector2d(applyMinPower(scaledY), applyMinPower(scaledX))
+        val angularVelocity = applyMinPower(scaledRx)
 
         // Return the calculated pose velocity
         return PoseVelocity2d(linearVelocity, angularVelocity)
@@ -106,6 +117,7 @@ abstract class SimpleManualModeWithSpeedModes<R : Robot>(
 
     context(telemetry: Telemetry)
     override fun tick() {
+        robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
         telemetry.addData("Speed Mode", currentSpeedMode)
         super.tick()
     }

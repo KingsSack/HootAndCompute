@@ -12,6 +12,7 @@ import dev.kingssack.volt.robot.Robot
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
  *
+ * @param R the type of robot
  * @property robot the robot instance
  */
 abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
@@ -31,7 +32,7 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
         val action = VoltActionBuilder(robot).apply(block).build()
         runAction(action)
 
-        with (telemetry) {
+        with(telemetry) {
             addData("Status", "Autonomous Complete")
             update()
         }

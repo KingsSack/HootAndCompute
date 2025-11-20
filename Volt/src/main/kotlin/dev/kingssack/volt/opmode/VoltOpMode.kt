@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 
 abstract class VoltOpMode<R : Robot>(robotFactory: (HardwareMap) -> R) : LinearOpMode() {
-    protected val robot : R by lazy { robotFactory(hardwareMap) }
+    protected val robot: R by lazy { robotFactory(hardwareMap) }
 
     /** Optional initialization code. */
     open fun initialize() {

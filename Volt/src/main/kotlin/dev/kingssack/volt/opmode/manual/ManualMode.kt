@@ -17,6 +17,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
  *
+ * @param R the robot type
  * @property params the configuration object for manual control
  * @property robot the robot instance
  */
@@ -30,30 +31,27 @@ abstract class ManualMode<R : Robot>(
      * @property deadzone the minimum joystick input to register
      * @property inputExp the input exponential for fine control
      */
-    data class ManualParams(val deadzone: Double = 0.1, val inputExp: Double = 2.0)
+    data class ManualParams(val deadzone: Float = 0.1f, val inputExp: Float = 2.0f)
 
     private enum class InteractionType {
         RELEASE,
+        TAP,
         DOUBLE_TAP,
         HOLD,
-        PRESS,
-        ANALOG,
     }
 
     private val interactionHandlers =
         mapOf(
             InteractionType.RELEASE to
                 mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
+            InteractionType.TAP to mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
             InteractionType.DOUBLE_TAP to
                 mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
             InteractionType.HOLD to mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
-            InteractionType.PRESS to mutableMapOf<GamepadButton, VoltActionBuilder<R>.() -> Unit>(),
-            InteractionType.ANALOG to
-                mutableMapOf<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>(),
         )
 
-    private lateinit var buttonStateGetters: EnumMap<GamepadButton, () -> Boolean>
-    private lateinit var analogStateGetters: EnumMap<GamepadAnalogInput, () -> Float>
+    private val instantHoldHandlers = mutableMapOf<GamepadButton, R.() -> Unit>()
+    private val instantAnalogHandlers = mutableMapOf<GamepadAnalogInput, R.(Float) -> Unit>()
 
     private val buttonHandlers = EnumMap<GamepadButton, ButtonHandler>(GamepadButton::class.java)
     private val analogHandlers =
@@ -63,61 +61,6 @@ abstract class ManualMode<R : Robot>(
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
 
     private fun initializeInputMappings() {
-        buttonStateGetters =
-            EnumMap(
-                mapOf(
-                    GamepadButton.A1 to gamepad1::a,
-                    GamepadButton.B1 to gamepad1::b,
-                    GamepadButton.X1 to gamepad1::x,
-                    GamepadButton.Y1 to gamepad1::y,
-                    GamepadButton.LEFT_BUMPER1 to gamepad1::left_bumper,
-                    GamepadButton.RIGHT_BUMPER1 to gamepad1::right_bumper,
-                    GamepadButton.LEFT_STICK_BUTTON1 to gamepad1::left_stick_button,
-                    GamepadButton.RIGHT_STICK_BUTTON1 to gamepad1::right_stick_button,
-                    GamepadButton.DPAD_UP1 to gamepad1::dpad_up,
-                    GamepadButton.DPAD_DOWN1 to gamepad1::dpad_down,
-                    GamepadButton.DPAD_LEFT1 to gamepad1::dpad_left,
-                    GamepadButton.DPAD_RIGHT1 to gamepad1::dpad_right,
-                    GamepadButton.BACK1 to gamepad1::back,
-                    GamepadButton.START1 to gamepad1::start,
-                    GamepadButton.GUIDE1 to gamepad1::guide,
-                    GamepadButton.A2 to gamepad2::a,
-                    GamepadButton.B2 to gamepad2::b,
-                    GamepadButton.X2 to gamepad2::x,
-                    GamepadButton.Y2 to gamepad2::y,
-                    GamepadButton.LEFT_BUMPER2 to gamepad2::left_bumper,
-                    GamepadButton.RIGHT_BUMPER2 to gamepad2::right_bumper,
-                    GamepadButton.LEFT_STICK_BUTTON2 to gamepad2::left_stick_button,
-                    GamepadButton.RIGHT_STICK_BUTTON2 to gamepad2::right_stick_button,
-                    GamepadButton.DPAD_UP2 to gamepad2::dpad_up,
-                    GamepadButton.DPAD_DOWN2 to gamepad2::dpad_down,
-                    GamepadButton.DPAD_LEFT2 to gamepad2::dpad_left,
-                    GamepadButton.DPAD_RIGHT2 to gamepad2::dpad_right,
-                    GamepadButton.BACK2 to gamepad2::back,
-                    GamepadButton.START2 to gamepad2::start,
-                    GamepadButton.GUIDE2 to gamepad2::guide,
-                )
-            )
-
-        analogStateGetters =
-            EnumMap(
-                mapOf(
-                    GamepadAnalogInput.LEFT_STICK_X1 to gamepad1::left_stick_x,
-                    GamepadAnalogInput.LEFT_STICK_Y1 to gamepad1::left_stick_y,
-                    GamepadAnalogInput.RIGHT_STICK_X1 to gamepad1::right_stick_x,
-                    GamepadAnalogInput.RIGHT_STICK_Y1 to gamepad1::right_stick_y,
-                    GamepadAnalogInput.LEFT_TRIGGER1 to gamepad1::left_trigger,
-                    GamepadAnalogInput.RIGHT_TRIGGER1 to gamepad1::right_trigger,
-                    GamepadAnalogInput.LEFT_STICK_X2 to gamepad2::left_stick_x,
-                    GamepadAnalogInput.LEFT_STICK_Y2 to gamepad2::left_stick_y,
-                    GamepadAnalogInput.RIGHT_STICK_X2 to gamepad2::right_stick_x,
-                    GamepadAnalogInput.RIGHT_STICK_Y2 to gamepad2::right_stick_y,
-                    GamepadAnalogInput.LEFT_TRIGGER2 to gamepad2::left_trigger,
-                    GamepadAnalogInput.RIGHT_TRIGGER2 to gamepad2::right_trigger,
-                )
-            )
-
-        // Initialize the handler maps
         GamepadButton.entries.forEach { button -> buttonHandlers[button] = ButtonHandler() }
         GamepadAnalogInput.entries.forEach { analog ->
             analogHandlers[analog] = AnalogHandler(params.deadzone, params.inputExp)
@@ -134,50 +77,42 @@ abstract class ManualMode<R : Robot>(
     }
 
     private fun updateButtonHandlers() {
-        // Iterate through the enum values and update corresponding handlers
-        for (button in GamepadButton.entries) {
-            buttonHandlers[button]?.update(buttonStateGetters[button]!!())
+        GamepadButton.entries.forEach { btn ->
+            val state = btn.get(gamepad1, gamepad2)
+            buttonHandlers[btn]?.update(state)
         }
     }
 
     private fun updateAnalogHandlers() {
-        // Iterate through the enum values and update corresponding handlers
-        for (analogInput in GamepadAnalogInput.entries) {
-            analogHandlers[analogInput]?.update(analogStateGetters[analogInput]!!().toDouble())
+        GamepadAnalogInput.entries.forEach { btn ->
+            val state = btn.get(gamepad1, gamepad2)
+            analogHandlers[btn]?.update(state)
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun processInteractions() {
-        processActionType(
-            interactionHandlers[InteractionType.RELEASE]!!
-                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
-        ) { button ->
+        processActionType(interactionHandlers[InteractionType.RELEASE]!!) { button ->
             isButtonReleased(button)
         }
-        processActionType(
-            interactionHandlers[InteractionType.DOUBLE_TAP]!!
-                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
-        ) { button ->
+        processActionType(interactionHandlers[InteractionType.TAP]!!) { button ->
+            isButtonTapped(button)
+        }
+        processActionType(interactionHandlers[InteractionType.DOUBLE_TAP]!!) { button ->
             isButtonDoubleTapped(button)
         }
-        processActionType(
-            interactionHandlers[InteractionType.HOLD]!!
-                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
-        ) { button ->
+        processActionType(interactionHandlers[InteractionType.HOLD]!!) { button ->
             isButtonHeld(button, 500.0)
         }
-        processActionType(
-            interactionHandlers[InteractionType.PRESS]!!
-                as Map<GamepadButton, VoltActionBuilder<R>.() -> Unit>
-        ) { button ->
-            isButtonPressed(button)
+
+        instantHoldHandlers.forEach { (button, block) ->
+            if (buttonHandlers[button]?.pressed == true) {
+                robot.block()
+            }
         }
-        processAnalogActionType(
-            interactionHandlers[InteractionType.ANALOG]!!
-                as Map<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>
-        ) { analogInput ->
-            getAnalogValue(analogInput)
+
+        instantAnalogHandlers.forEach { (input, block) ->
+            val value = getAnalogValue(input)
+            robot.block(value)
         }
     }
 
@@ -190,16 +125,6 @@ abstract class ManualMode<R : Robot>(
                 val builder = VoltActionBuilder(robot).apply(actionBlock)
                 runningActions.add(builder.build())
             }
-        }
-    }
-
-    private fun processAnalogActionType(
-        interactions: Map<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>,
-        value: (GamepadAnalogInput) -> Double,
-    ) {
-        interactions.forEach { (analogInput, actionBlock) ->
-            val builder = VoltActionBuilder(robot).apply { actionBlock(value(analogInput)) }
-            runningActions.add(builder.build())
         }
     }
 
@@ -239,9 +164,15 @@ abstract class ManualMode<R : Robot>(
      * @param block the action sequence to execute
      */
     protected fun onButtonReleased(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
-        @Suppress("UNCHECKED_CAST")
-        (interactionHandlers[InteractionType.RELEASE]
-            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
+        interactionHandlers[InteractionType.RELEASE]?.set(button, block)
+    }
+
+    protected fun isButtonTapped(button: GamepadButton): Boolean {
+        return buttonHandlers[button]?.tapped() ?: false
+    }
+
+    protected fun onButtonTapped(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
+        interactionHandlers[InteractionType.TAP]?.set(button, block)
     }
 
     /**
@@ -264,9 +195,7 @@ abstract class ManualMode<R : Robot>(
         button: GamepadButton,
         block: VoltActionBuilder<R>.() -> Unit,
     ) {
-        @Suppress("UNCHECKED_CAST")
-        (interactionHandlers[InteractionType.DOUBLE_TAP]
-            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
+        interactionHandlers[InteractionType.DOUBLE_TAP]?.set(button, block)
     }
 
     /**
@@ -287,9 +216,7 @@ abstract class ManualMode<R : Robot>(
      * @param block the action sequence to execute
      */
     protected fun onButtonHeld(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
-        @Suppress("UNCHECKED_CAST")
-        (interactionHandlers[InteractionType.HOLD]
-            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
+        interactionHandlers[InteractionType.HOLD]?.set(button, block)
     }
 
     /**
@@ -300,18 +227,6 @@ abstract class ManualMode<R : Robot>(
      */
     protected fun isButtonPressed(button: GamepadButton): Boolean {
         return buttonHandlers[button]?.pressed ?: false
-    }
-
-    /**
-     * Registers an action sequence to be executed when a button is pressed.
-     *
-     * @param button the button
-     * @param block the action sequence to execute
-     */
-    protected fun onButtonPressed(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
-        @Suppress("UNCHECKED_CAST")
-        (interactionHandlers[InteractionType.PRESS]
-            as MutableMap<GamepadButton, VoltActionBuilder<R>.() -> Unit>)[button] = block
     }
 
     /**
@@ -327,29 +242,37 @@ abstract class ManualMode<R : Robot>(
     /**
      * Gets the value of an analog button.
      *
-     * @param analogInput the analog button
+     * @param input the analog input
      */
-    protected fun getAnalogValue(analogInput: GamepadAnalogInput): Double {
-        return analogHandlers[analogInput]?.value ?: 0.0
+    protected fun getAnalogValue(input: GamepadAnalogInput): Float {
+        return analogHandlers[input]?.value ?: 0.0f
     }
 
     /**
      * Gets the raw value of an analog input, before deadzone and exponentiation.
      *
-     * @param analogInput The GamepadAnalogInput enum value.
-     * @return The raw analog value.
+     * @param input the analog input
+     * @return the raw analog value
      */
-    protected fun getRawAnalogValue(analogInput: GamepadAnalogInput): Float {
-        return analogStateGetters[analogInput]?.invoke() ?: 0.0f
+    protected fun getRawAnalogValue(input: GamepadAnalogInput): Float {
+        return input.get(gamepad1, gamepad2)
     }
 
-    protected fun onAnalogValueChanged(
-        analogInput: GamepadAnalogInput,
-        block: VoltActionBuilder<R>.(Double) -> Unit,
-    ) {
-        @Suppress("UNCHECKED_CAST")
-        (interactionHandlers[InteractionType.ANALOG]
-            as MutableMap<GamepadAnalogInput, VoltActionBuilder<R>.(Double) -> Unit>)[analogInput] =
-            block
+    /**
+     * Registers a block to be executed continuously while a button is held down.
+     *
+     * @param button the button
+     */
+    protected fun whileButtonHeld(button: GamepadButton, block: R.() -> Unit) {
+        instantHoldHandlers[button] = block
+    }
+
+    /**
+     * Registers a block to be executed continuously with the value of an analog input.
+     *
+     * @param input the analog input
+     */
+    protected fun onAnalog(input: GamepadAnalogInput, block: R.(Float) -> Unit) {
+        instantAnalogHandlers[input] = block
     }
 }

@@ -1,4 +1,4 @@
-package dev.kingssack.volt.drivetrain
+package dev.kingssack.volt.attachment.drivetrain
 
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
@@ -46,10 +46,7 @@ import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.VoltageSensor
 import dev.kingssack.volt.util.Degrees
 import dev.kingssack.volt.util.Drawing
-import dev.kingssack.volt.util.DriveCommandMessage
 import dev.kingssack.volt.util.Localizer
-import dev.kingssack.volt.util.MecanumCommandMessage
-import dev.kingssack.volt.util.PoseMessage
 import dev.kingssack.volt.util.Radians
 import dev.kingssack.volt.util.Seconds
 import dev.kingssack.volt.util.toRadians
@@ -59,11 +56,25 @@ import kotlin.math.max
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 
+/**
+ * A mecanum drivetrain integrated with the RoadRunner library.
+ *
+ * @param hardwareMap the hardware map
+ * @property pose the pose
+ * @param params the drive parameters
+ * @property leftFront the left front motor
+ * @property leftBack the left back motor
+ * @property rightBack the right back motor
+ * @property rightFront the right front motor
+ * @property voltageSensor the voltage sensor
+ * @property lazyImu the lazy IMU
+ * @property localizer the drive localizer
+ */
 class MecanumDriveWithRR(
     hardwareMap: HardwareMap,
     var pose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0),
     private val params: DriveParams = DriveParams(),
-) : Drivetrain() {
+) : MecanumDrivetrain() {
     /**
      * Parameters for the robot's mecanum drive.
      *
@@ -271,7 +282,7 @@ class MecanumDriveWithRR(
      * @param powers the drive powers
      * @see PoseVelocity2d
      */
-    fun setDrivePowers(powers: PoseVelocity2d) {
+    override fun setDrivePowers(powers: PoseVelocity2d) {
         val wheelVels = MecanumKinematics(1.0).inverse(PoseVelocity2dDual.constant<Time>(powers, 1))
 
         var maxPowerMag = 1.0
@@ -326,7 +337,7 @@ class MecanumDriveWithRR(
             }
 
             val txWorldTarget = timeTrajectory[t]
-//            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
+            //            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
 
             val robotVelRobot = updatePoseEstimate()
 
@@ -340,7 +351,7 @@ class MecanumDriveWithRR(
                         params.headingVelGain,
                     )
                     .compute(txWorldTarget, localizer.pose, robotVelRobot)
-//            driveCommandWriter.write(DriveCommandMessage(command))
+            //            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
@@ -355,15 +366,15 @@ class MecanumDriveWithRR(
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
             val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
             val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
-//            mecanumCommandWriter.write(
-//                MecanumCommandMessage(
-//                    voltage,
-//                    leftFrontPower,
-//                    leftBackPower,
-//                    rightBackPower,
-//                    rightFrontPower,
-//                )
-//            )
+            //            mecanumCommandWriter.write(
+            //                MecanumCommandMessage(
+            //                    voltage,
+            //                    leftFrontPower,
+            //                    leftBackPower,
+            //                    rightBackPower,
+            //                    rightFrontPower,
+            //                )
+            //            )
 
             leftFront.power = leftFrontPower
             leftBack.power = leftBackPower
@@ -424,7 +435,7 @@ class MecanumDriveWithRR(
             }
 
             val txWorldTarget = turn[t]
-//            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
+            //            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
 
             val robotVelRobot = updatePoseEstimate()
 
@@ -438,7 +449,7 @@ class MecanumDriveWithRR(
                         params.headingVelGain,
                     )
                     .compute(txWorldTarget, localizer.pose, robotVelRobot)
-//            driveCommandWriter.write(DriveCommandMessage(command))
+            //            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
             val voltage = voltageSensor.voltage
@@ -452,15 +463,15 @@ class MecanumDriveWithRR(
             val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
             val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
             val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
-//            mecanumCommandWriter.write(
-//                MecanumCommandMessage(
-//                    voltage,
-//                    leftFrontPower,
-//                    leftBackPower,
-//                    rightBackPower,
-//                    rightFrontPower,
-//                )
-//            )
+            //            mecanumCommandWriter.write(
+            //                MecanumCommandMessage(
+            //                    voltage,
+            //                    leftFrontPower,
+            //                    leftBackPower,
+            //                    rightBackPower,
+            //                    rightFrontPower,
+            //                )
+            //            )
 
             leftFront.power = feedforward.compute(wheelVels.leftFront) / voltage
             leftBack.power = feedforward.compute(wheelVels.leftBack) / voltage

@@ -68,39 +68,28 @@ abstract class Attachment(val name: String) {
                 private var initialized = false
 
                 override fun run(p: TelemetryPacket): Boolean {
-                    if (!initialized) {
-                        runCatching { init?.invoke() }
-                            .onFailure { e ->
-                                setState(AttachmentState.Fault(e))
-                                runCatching { cleanup?.invoke() }
-                                    .onFailure { e ->
-                                        setState(AttachmentState.Fault(e))
-                                        throw e
-                                    }
-                                throw e
-                            }
-                        setState(AttachmentState.Running)
-                        initialized = true
+                    return try {
+                        if (!initialized) {
+                            init?.invoke()
+                            setState(AttachmentState.Running)
+                            initialized = true
+                        }
+                        val done = loop?.invoke(p) ?: true
+                        if (done) {
+                            cleanup?.invoke()
+                            setState(AttachmentState.Idle)
+                        }
+                        !done
+                    } catch (e: Throwable) {
+                        setState(AttachmentState.Fault(e))
+                        try {
+                            cleanup?.invoke()
+                        } catch (ce: Throwable) {
+                            setState(AttachmentState.Fault(ce))
+                            throw ce
+                        }
+                        throw e
                     }
-
-                    val done =
-                        runCatching { loop?.invoke(p) }
-                            .onFailure { e ->
-                                setState(AttachmentState.Fault(e))
-                                cleanup?.invoke()
-                                throw e
-                            }
-                            .getOrDefault(true)
-
-                    if (done == true) {
-                        setState(AttachmentState.Idle)
-                        runCatching { cleanup?.invoke() }
-                            .onFailure { e ->
-                                setState(AttachmentState.Fault(e))
-                                throw e
-                            }
-                    }
-                    return done == true
                 }
             }
     }
