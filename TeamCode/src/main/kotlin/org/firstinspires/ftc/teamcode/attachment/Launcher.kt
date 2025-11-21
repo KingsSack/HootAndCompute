@@ -39,12 +39,8 @@ class Launcher(private val leftMotor: DcMotor, private val rightMotor: DcMotor) 
         loop { true }
     }
 
-    fun setPower(power: Double): Action = action {
-        init {
-            leftMotor.power = power
-            rightMotor.power = power
-        }
-
-        loop { true }
+    fun setPower(power: Double) {
+        leftMotor.power = power
+        rightMotor.power = power
     }
 }
