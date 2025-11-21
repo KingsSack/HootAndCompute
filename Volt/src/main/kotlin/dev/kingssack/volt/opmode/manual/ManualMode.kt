@@ -167,10 +167,22 @@ abstract class ManualMode<R : Robot>(
         interactionHandlers[InteractionType.RELEASE]?.set(button, block)
     }
 
+    /**
+     * Checks if a button has just been tapped.
+     *
+     * @param button the button
+     * @return true if the button was just tapped, false otherwise
+     */
     protected fun isButtonTapped(button: GamepadButton): Boolean {
         return buttonHandlers[button]?.tapped() ?: false
     }
 
+    /**
+     * Registers an action sequence to be executed when a button is tapped.
+     *
+     * @param button the button
+     * @param block the action sequence to execute
+     */
     protected fun onButtonTapped(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
         interactionHandlers[InteractionType.TAP]?.set(button, block)
     }
