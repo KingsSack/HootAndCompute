@@ -72,5 +72,5 @@ inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.launcher(bl
 
 @VoltBuilderDsl
 inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.storage(block: Storage.() -> Action) {
-    block(robot.storage)
+    +block(robot.storage)
 }
