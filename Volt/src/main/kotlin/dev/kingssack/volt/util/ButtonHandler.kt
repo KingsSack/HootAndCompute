@@ -8,6 +8,8 @@ class ButtonHandler(private val doubleTapThreshold: Double = 300.0) {
     private var lastPressTime = 0.0
     private var lastReleaseTime = 0.0
     private var tapCount = 0
+    private var pressConsumed = false
+    private var releaseConsumed = false
 
     private val runtime: ElapsedTime = ElapsedTime()
 
@@ -17,6 +19,7 @@ class ButtonHandler(private val doubleTapThreshold: Double = 300.0) {
         if (buttonPressed) {
             if (!pressed) {
                 pressed = true
+                pressConsumed = false // Reset press flag for new press action
                 if (currentTime - lastReleaseTime < doubleTapThreshold) {
                     tapCount++
                 } else {
@@ -27,14 +30,27 @@ class ButtonHandler(private val doubleTapThreshold: Double = 300.0) {
         } else {
             if (pressed) {
                 pressed = false
+                releaseConsumed = false // Reset release flag for new release action
                 lastReleaseTime = currentTime
             }
         }
     }
 
     fun released(maxTimeMilliseconds: Double = 300.0): Boolean {
-        if (tapCount == 1 && !pressed && runtime.milliseconds() - lastReleaseTime <= maxTimeMilliseconds) {
-            tapCount = 0 // Reset tap count after detecting a tap
+        if (
+            !pressed &&
+                runtime.milliseconds() - lastReleaseTime <= maxTimeMilliseconds &&
+                !releaseConsumed
+        ) {
+            releaseConsumed = true
+            return true
+        }
+        return false
+    }
+
+    fun tapped(): Boolean {
+        if (pressed && tapCount == 1 && !pressConsumed) {
+            pressConsumed = true
             return true
         }
         return false
