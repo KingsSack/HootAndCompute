@@ -4,7 +4,6 @@ import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.ParallelAction
 import com.acmerobotics.roadrunner.SequentialAction
 import dev.kingssack.volt.robot.Robot
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @DslMarker annotation class VoltBuilderDsl
 
@@ -14,7 +13,6 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * @param R The type of Robot the actions will operate on.
  * @property robot The robot instance the actions will control.
  */
-@OptIn(ExperimentalAtomicApi::class)
 @VoltBuilderDsl
 class VoltActionBuilder<R : Robot>(val robot: R) {
     private val actions = mutableListOf<Action>()
@@ -23,33 +21,16 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
         actions.add(this)
     }
 
-    /**
-     * Defines a block of actions to be run in parallel. The block receives this builder as its
-     * receiver, so all verbs are available.
-     */
     fun parallel(block: VoltActionBuilder<R>.() -> Unit) {
-        val parallelActions = mutableListOf<Action>()
-        val tempBuilder =
-            VoltActionBuilder(robot).apply {
-                fun Action.unaryPlus() {
-                    parallelActions.add(this)
-                }
-            }
-        tempBuilder.block()
-        actions.add(ParallelAction(parallelActions))
+        actions.add(ParallelAction(extractActions(block)))
     }
 
-    /** Defines a sub-sequence of actions. This is useful for organization. */
     fun sequence(block: VoltActionBuilder<R>.() -> Unit) {
-        val sequenceActions = mutableListOf<Action>()
-        val tempBuilder =
-            VoltActionBuilder(robot).apply {
-                fun Action.unaryPlus() {
-                    sequenceActions.add(this)
-                }
-            }
-        tempBuilder.block()
-        actions.add(SequentialAction(sequenceActions))
+        actions.add(SequentialAction(extractActions(block)))
+    }
+
+    private fun extractActions(block: VoltActionBuilder<R>.() -> Unit): List<Action> {
+        return VoltActionBuilder(robot).apply(block).actions
     }
 
     internal fun build(): SequentialAction {
