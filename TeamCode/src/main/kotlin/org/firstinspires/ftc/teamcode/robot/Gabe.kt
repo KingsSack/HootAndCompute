@@ -67,7 +67,7 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
 
 @VoltBuilderDsl
 inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.launcher(block: Launcher.() -> Action) {
-    block(robot.launcher)
+    +block(robot.launcher)
 }
 
 @VoltBuilderDsl
