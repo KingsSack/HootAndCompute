@@ -13,7 +13,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.dokka'
 
 group = 'dev.kingssack'
-version = '0.3.2'
+version = '0.3.3'
 
 android {
     defaultConfig {
