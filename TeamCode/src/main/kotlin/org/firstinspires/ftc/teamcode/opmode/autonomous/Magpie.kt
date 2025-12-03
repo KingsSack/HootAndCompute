@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Config
-@Autonomous(name = "Magpie", group = "Competition")
+@Autonomous(name = "Magpie", group = "Competition", preselectTeleOp = "Seahorse")
 class Magpie :
     AutonomousMode<JonesPP>({ hardwareMap ->
         JonesPP(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
