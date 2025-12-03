@@ -76,6 +76,12 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.1'
 }
 
+dokka {
+    dokkaPublications.html {
+        outputDirectory.set(layout.projectDirectory.dir("../docs/dist/api"))
+    }
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")
