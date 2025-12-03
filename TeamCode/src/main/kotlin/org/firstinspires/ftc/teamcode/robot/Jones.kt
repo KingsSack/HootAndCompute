@@ -37,6 +37,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     /**
      * Get detected AprilTags from HuskyLens.
      *
+     * @param id optional ID to filter detected tags; if null, returns all detected tags
      * @return array of detected AprilTags
      * @see HuskyLens
      * @see HuskyLens.Block

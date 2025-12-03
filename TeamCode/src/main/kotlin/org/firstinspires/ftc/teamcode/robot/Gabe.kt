@@ -4,9 +4,9 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
+import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.core.VoltBuilderDsl
-import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
@@ -35,6 +35,7 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
     /**
      * Get detected AprilTags from HuskyLens.
      *
+     * @param id optional ID to filter detected tags; if null, returns all detected tags
      * @return array of detected AprilTags
      * @see HuskyLens
      * @see HuskyLens.Block
@@ -66,11 +67,15 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
 }
 
 @VoltBuilderDsl
-inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.launcher(block: Launcher.() -> Action) {
+inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.launcher(
+    block: Launcher.() -> Action
+) {
     +block(robot.launcher)
 }
 
 @VoltBuilderDsl
-inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.storage(block: Storage.() -> Action) {
+inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.storage(
+    block: Storage.() -> Action
+) {
     +block(robot.storage)
 }
