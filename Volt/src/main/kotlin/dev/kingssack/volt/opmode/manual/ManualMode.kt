@@ -148,17 +148,17 @@ abstract class ManualMode<R : Robot>(
     }
 
     /**
-     * Checks if a button has just been tapped (released after a short press).
+     * Checks if a button has just been released.
      *
      * @param button the button
-     * @return true if the button was just tapped, false otherwise
+     * @return true if the button was just released, false otherwise
      */
     protected fun isButtonReleased(button: GamepadButton): Boolean {
         return buttonHandlers[button]?.released() ?: false
     }
 
     /**
-     * Registers an action sequence to be executed when a button is tapped.
+     * Registers an action sequence to be executed when a button is released.
      *
      * @param button the button
      * @param block the action sequence to execute
@@ -174,7 +174,7 @@ abstract class ManualMode<R : Robot>(
      * @return true if the button was just tapped, false otherwise
      */
     protected fun isButtonTapped(button: GamepadButton): Boolean {
-        return buttonHandlers[button]?.tapped() ?: false
+        return buttonHandlers[button]?.justPressed() ?: false
     }
 
     /**
