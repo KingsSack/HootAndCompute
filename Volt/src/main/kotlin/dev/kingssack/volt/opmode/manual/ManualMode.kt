@@ -151,7 +151,7 @@ abstract class ManualMode<R : Robot>(
      * Checks if a button has just been released.
      *
      * @param button the button
-     * @return true if the button was just tapped, false otherwise
+     * @return true if the button was just released, false otherwise
      */
     protected fun isButtonReleased(button: GamepadButton): Boolean {
         return buttonHandlers[button]?.released() ?: false
