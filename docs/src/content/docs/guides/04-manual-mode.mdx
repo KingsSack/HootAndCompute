@@ -70,7 +70,7 @@ The `ManualMode` class also provides the following continuous input functions:
 
 1. `whileButtonHeld(button: GamepadButton, block: R.() -> Unit)`: Continuously triggers while the button is held
     down
-2. `onAnalog(input: GamepadAnalogInput, block: R.() -> Unit)`: Continuously triggers with the analog input value
+2. `onAnalog(input: GamepadAnalogInput, block: R.(Float) -> Unit)`: Continuously triggers with the analog input value
 
 Let's map "A" on gamepad one to score, "A" on gamepad two to open the claw, and "B" on gamepad two to close the
     claw.
