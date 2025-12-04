@@ -33,7 +33,13 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    dokka(project(":TeamCode"))
+    dokka(project(":Volt"))
+}
+
 dokka {
+    moduleName.set("HootAndCompute")
     dokkaPublications.html {
         outputDirectory.set(layout.projectDirectory.dir("docs/dist/api"))
     }

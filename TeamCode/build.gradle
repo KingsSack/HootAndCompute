@@ -55,12 +55,6 @@ dependencies {
     implementation "com.acmerobotics.dashboard:dashboard:0.4.17"
 }
 
-dokka {
-    dokkaPublications.html {
-        outputDirectory.set(layout.projectDirectory.dir("../docs/dist/api"))
-    }
-}
-
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")
