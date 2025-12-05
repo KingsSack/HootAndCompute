@@ -55,7 +55,9 @@ dependencies {
     api "org.firstinspires.ftc:RobotCore:$min_sdk_version"
     api "org.firstinspires.ftc:Hardware:$min_sdk_version"
 
-    api "com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version"
+    api("com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
 
     api("com.acmerobotics.roadrunner:core:$min_rr_version") {
         exclude group: "com.acmerobotics.dashboard"
