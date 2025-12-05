@@ -57,8 +57,12 @@ dependencies {
 
     api "com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version"
 
-    api "com.acmerobotics.roadrunner:core:$min_rr_version"
-    api "com.acmerobotics.roadrunner:actions:$min_rr_version"
+    api "com.acmerobotics.roadrunner:core:$min_rr_version" {
+        exclude group: "com.acmerobotics.dashboard"
+    }
+    api "com.acmerobotics.roadrunner:actions:$min_rr_version" {
+        exclude group: "com.acmerobotics.dashboard"
+    }
 
     api("com.acmerobotics.slothboard:dashboard:$min_dash_version")
 
