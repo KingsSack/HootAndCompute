@@ -2,7 +2,7 @@ buildscript {
     ext.min_sdk_version = "11.0.0"
     ext.min_rr_ftc_version = "0.1.23"
     ext.min_rr_version = "1.0.1"
-    ext.min_dash_version = "0.4.17"
+    ext.min_dash_version = "0.2.4+0.4.17"
     ext.min_pp_version = "2.0.4"
     ext.min_pp_telemetry_version = "1.0.0"
     ext.min_fullpanels_version = "1.0.2"
@@ -48,18 +48,25 @@ repositories {
     maven { url = 'https://maven.brott.dev/' }
     maven { url = 'https://maven.pedropathing.com' }
     maven { url = "https://mymaven.bylazar.com/releases" }
+    maven { url = 'https://repo.dairy.foundation/releases' }
 }
 
 dependencies {
     api "org.firstinspires.ftc:RobotCore:$min_sdk_version"
     api "org.firstinspires.ftc:Hardware:$min_sdk_version"
 
-    api "com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version"
+    api("com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
 
-    api "com.acmerobotics.roadrunner:core:$min_rr_version"
-    api "com.acmerobotics.roadrunner:actions:$min_rr_version"
+    api("com.acmerobotics.roadrunner:core:$min_rr_version") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
+    api("com.acmerobotics.roadrunner:actions:$min_rr_version") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
 
-    api "com.acmerobotics.dashboard:dashboard:$min_dash_version"
+    api("com.acmerobotics.slothboard:dashboard:$min_dash_version")
 
     api "com.pedropathing:ftc:$min_pp_version"
     api "com.pedropathing:telemetry:$min_pp_telemetry_version"
