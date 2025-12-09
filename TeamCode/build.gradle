@@ -8,6 +8,17 @@
 // please think carefully as to whether such customizations are really necessary
 // before doing so.
 
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.2.4"
+    }
+}
 
 // Custom definitions may go here
 
@@ -16,6 +27,19 @@ apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.dokka'
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.2.4"
+    }
+}
 
 android {
     compileSdk 36
@@ -43,16 +67,23 @@ repositories {
     maven {
         url = 'https://maven.pedropathing.com/'
     }
+    maven {
+        url = "https://repo.dairy.foundation/releases"
+    }
 }
-
 dependencies {
+    implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
     implementation project(':FtcRobotController')
     implementation project(':Volt')
 
-    implementation "com.acmerobotics.roadrunner:ftc:0.1.23"
+    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+    implementation("com.acmerobotics.roadrunner:ftc:0.1.23") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
     implementation "com.acmerobotics.roadrunner:core:1.0.1"
-    implementation "com.acmerobotics.roadrunner:actions:1.0.1"
-    implementation "com.acmerobotics.dashboard:dashboard:0.4.17"
+    implementation("com.acmerobotics.roadrunner:actions:1.0.1") {
+        exclude group: "com.acmerobotics.dashboard"
+    }
 }
 
 kotlin {
