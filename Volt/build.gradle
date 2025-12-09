@@ -83,6 +83,12 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.1'
 }
 
+dokka {
+    dokkaPublications.html {
+        moduleVersion.set(version.toString())
+    }
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")

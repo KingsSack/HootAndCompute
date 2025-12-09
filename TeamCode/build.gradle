@@ -86,12 +86,6 @@ dependencies {
     }
 }
 
-dokka {
-    dokkaPublications.html {
-        outputDirectory.set(layout.projectDirectory.dir("../docs/dist/api"))
-    }
-}
-
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")

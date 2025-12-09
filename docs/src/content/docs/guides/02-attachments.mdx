@@ -183,7 +183,7 @@ class Claw(private val claw: Servo) : Attachment("Claw") {
         // No cleanup required
     }
 
-    fun open(): Action = action {
+    fun close(): Action = action {
         init {
             requireReady()
         }
@@ -325,7 +325,7 @@ class Claw(private val claw: Servo) : Attachment("Claw") {
         }
     }
 
-    fun open(): Action = action {
+    fun close(): Action = action {
         init { requireReady() }
 
         loop {

@@ -7,6 +7,7 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.teamcode.attachment.Launcher
 
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
@@ -27,7 +28,11 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val lidarRight by distanceSensor(lidarRightName)
     private val huskyLens by huskyLens(huskyLensName)
 
+    private val leftLauncherMotor by motor("fll")
+    private val rightLauncherMotor by motor("flr")
+
     // Attachments
+    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor) }
 
     init {
         // Set huskylens mode
@@ -37,6 +42,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     /**
      * Get detected AprilTags from HuskyLens.
      *
+     * @param id optional ID to filter detected tags; if null, returns all detected tags
      * @return array of detected AprilTags
      * @see HuskyLens
      * @see HuskyLens.Block

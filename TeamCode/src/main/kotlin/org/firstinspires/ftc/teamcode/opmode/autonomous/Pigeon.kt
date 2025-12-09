@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.robot.launcher
 import org.firstinspires.ftc.teamcode.robot.storage
 import org.firstinspires.ftc.teamcode.util.toRadians
 
-@Autonomous(name = "Pigeon", group = "Competition")
+@Autonomous(name = "Pigeon", group = "Competition", preselectTeleOp = "Manatee")
 class Pigeon :
     AutonomousMode<GabeRR>({ hardwareMap ->
         GabeRR(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0))
