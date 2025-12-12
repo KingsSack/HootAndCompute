@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.InstantAction
-import com.acmerobotics.roadrunner.SequentialAction
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
@@ -51,5 +50,5 @@ abstract class Finch(alliance: AllianceColor) :
 @Autonomous(name = "Finch Blue", group = "Competition", preselectTeleOp = "Manatee")
 class FinchBlue : Finch(AllianceColor.BLUE)
 
-@Autonomous(name = "Finch Blue", group = "Competition", preselectTeleOp = "Manatee")
+@Autonomous(name = "Finch Red", group = "Competition", preselectTeleOp = "Manatee")
 class FinchRed : Finch(AllianceColor.RED)
