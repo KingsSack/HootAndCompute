@@ -624,8 +624,11 @@ class MecanumDriveWithRR(
         updatePoseEstimate()
 
         super.update()
-        telemetry.addData("x", localizer.pose.position.x)
-        telemetry.addData("y", localizer.pose.position.y)
-        telemetry.addData("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()))
+        with(telemetry) {
+            addData("x", localizer.pose.position.x)
+            addData("y", localizer.pose.position.y)
+            addData("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()))
+            addLine()
+        }
     }
 }
