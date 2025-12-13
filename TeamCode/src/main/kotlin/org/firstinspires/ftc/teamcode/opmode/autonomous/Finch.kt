@@ -36,7 +36,7 @@ abstract class Finch(alliance: AllianceColor) :
         repeat(3) {
             storage {
                 +release()
-                +InstantAction { sleep(1000) }
+                +InstantAction { sleep(500) }
                 +close()
                 +InstantAction { sleep(5000) }
             }
