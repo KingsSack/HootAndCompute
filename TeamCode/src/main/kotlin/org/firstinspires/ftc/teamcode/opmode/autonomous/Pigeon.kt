@@ -1,29 +1,15 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
-import com.acmerobotics.roadrunner.Pose2d
-import com.acmerobotics.roadrunner.Vector2d
+import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
-import org.firstinspires.ftc.teamcode.robot.GabeRR
-import org.firstinspires.ftc.teamcode.robot.launcher
-import org.firstinspires.ftc.teamcode.robot.storage
-import org.firstinspires.ftc.teamcode.util.toRadians
+import org.firstinspires.ftc.teamcode.robot.GabePP
+import org.firstinspires.ftc.teamcode.util.AllianceColor
+import org.firstinspires.ftc.teamcode.util.PathConstants
 
 @Autonomous(name = "Pigeon", group = "Competition", preselectTeleOp = "Manatee")
-class Pigeon :
-    AutonomousMode<GabeRR>({ hardwareMap ->
-        GabeRR(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0))
-    }) {
-    override fun sequence() = execute {
-        +robot.drivetrain.trajectory {
-            strafeTo(Vector2d(0.0, 0.0))
-            strafeToLinearHeading(Vector2d(48.0, 0.0), 0.0.toRadians())
-        }
+class Pigeon : AutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, Pose(57.0, 9.0, 0.0)) }) {
+    private val paths by lazy { PathConstants(robot.drivetrain.follower, AllianceColor.BLUE) }
 
-        sequence {
-            launcher { enable() }
-            storage { release() }
-            launcher { disable() }
-        }
-    }
+    override fun sequence() = execute { +robot.drivetrain.pathTo(paths.pathOffWallLaunchLine) }
 }

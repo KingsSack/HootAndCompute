@@ -8,9 +8,30 @@ import com.pedropathing.paths.PathChain
 class PathConstants(follower: Follower, alliance: AllianceColor) {
     private fun Pose.maybeFlip(alliance: AllianceColor): Pose =
         when (alliance) {
-            AllianceColor.BLUE -> this.mirror()
-            AllianceColor.RED -> this
+            AllianceColor.BLUE -> this
+            AllianceColor.RED -> this.mirror()
         }
+
+    val pathOffWallLaunchLine: PathChain =
+        follower
+            .pathBuilder()
+            .addPath(BezierLine(Pose(57.0, 9.0), Pose(37.0, 9.0)))
+            .setLinearHeadingInterpolation(90.0.toRadians(), 90.0.toRadians())
+            .build()
+
+    val pathOffGoalLaunchLine: PathChain =
+        follower
+            .pathBuilder()
+            .addPath(BezierLine(Pose(26.0, 133.0).maybeFlip(alliance), Pose(36.0, 125.0).maybeFlip(alliance)))
+            .setLinearHeadingInterpolation(323.0.toRadians(), 323.0.toRadians())
+            .build()
+
+    val pathOffRampLaunchLine: PathChain =
+        follower
+            .pathBuilder()
+            .addPath(BezierLine(Pose(15.0, 112.0).maybeFlip(alliance), Pose(15.0, 105.0).maybeFlip(alliance)))
+            .setLinearHeadingInterpolation(0.0.toRadians(), 0.0.toRadians())
+            .build()
 
     val pathToLoadingZone: PathChain =
         follower
