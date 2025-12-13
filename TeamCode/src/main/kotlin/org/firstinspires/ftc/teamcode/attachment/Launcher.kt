@@ -4,6 +4,8 @@ import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.kingssack.volt.attachment.Attachment
+import dev.kingssack.volt.attachment.AttachmentState
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * [Launcher] is an [Attachment] that controls a dual motor flywheel launcher.
@@ -40,7 +42,18 @@ class Launcher(private val leftMotor: DcMotor, private val rightMotor: DcMotor) 
     }
 
     fun setPower(power: Double) {
+        if (power != 0.0) setState(AttachmentState.Running) else setState(AttachmentState.Idle)
+
         leftMotor.power = power
         rightMotor.power = power
+    }
+
+    context(telemetry: Telemetry)
+    override fun update() {
+        super.update()
+        with(telemetry) {
+            addData("Left Motor Power", leftMotor.power)
+            addData("Right Motor Power", rightMotor.power)
+        }
     }
 }

@@ -53,12 +53,9 @@ class MecanumDriveWithPP(
     }
 
     fun pathTo(pathChain: PathChain): Action = Action {
-        follower.followPath(pathChain)
-
+        follower.followPath(pathChain, true)
         follower.update()
-        val finished = !follower.isBusy
-
-        !finished
+        follower.isBusy
     }
 
     context(telemetry: Telemetry)
@@ -66,9 +63,11 @@ class MecanumDriveWithPP(
         follower.update()
 
         super.update()
-        telemetry.addData("x", follower.pose.x)
-        telemetry.addData("y", follower.pose.y)
-        telemetry.addData("heading", follower.pose.heading)
-        telemetry.addLine()
+        with(telemetry) {
+            addData("x", follower.pose.x)
+            addData("y", follower.pose.y)
+            addData("heading (deg)", Math.toDegrees(follower.pose.heading))
+            addLine()
+        }
     }
 }
