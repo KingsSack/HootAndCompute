@@ -57,7 +57,7 @@ class PathConstants(follower: Follower, alliance: AllianceColor) {
     val pathToLaunchZoneB: PathChain =
         follower
             .pathBuilder()
-            .addPath(BezierLine(Pose(56.0, 8.0).maybeFlip(alliance), Pose(53.0, 91.0).maybeFlip(alliance)))
-            .setLinearHeadingInterpolation(90.0.toRadians(), 135.0.toRadians())
+            .addPath(BezierLine(Pose(56.0, 8.0).maybeFlip(alliance), Pose(56.0, 87.0).maybeFlip(alliance)))
+            .setLinearHeadingInterpolation(90.0.toRadians(), 136.0.toRadians())
             .build()
 }
