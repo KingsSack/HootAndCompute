@@ -15,7 +15,7 @@ class PathConstants(follower: Follower, alliance: AllianceColor) {
     val pathOffWallLaunchLine: PathChain =
         follower
             .pathBuilder()
-            .addPath(BezierLine(Pose(57.0, 9.0), Pose(37.0, 9.0)))
+            .addPath(BezierLine(Pose(57.0, 9.0).maybeFlip(alliance), Pose(37.0, 9.0).maybeFlip(alliance)))
             .setLinearHeadingInterpolation(90.0.toRadians(), 90.0.toRadians())
             .build()
 
