@@ -22,6 +22,7 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
     RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     // Hardware
     private val huskyLens by huskyLens("lens")
+    private val distanceSensor by distanceSensor("l")
 
     private val leftLauncherMotor by motor("fll")
     private val rightLauncherMotor by motor("flr")
