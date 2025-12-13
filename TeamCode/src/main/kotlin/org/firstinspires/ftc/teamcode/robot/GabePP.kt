@@ -12,6 +12,8 @@ import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.core.VoltActionBuilder
+import dev.kingssack.volt.core.VoltBuilderDsl
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
@@ -69,4 +71,11 @@ class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
         drivetrain.update()
         super.update()
     }
+}
+
+@VoltBuilderDsl
+inline fun VoltActionBuilder<GabePP>.drivetrain(
+    block: MecanumDriveWithPP.() -> Unit
+) {
+    block(robot.drivetrain)
 }
