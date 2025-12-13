@@ -19,6 +19,8 @@ enum class GamepadButton(val get: (Gamepad, Gamepad) -> Boolean) {
     BACK1({ g1, _ -> g1.back }),
     START1({ g1, _ -> g1.start }),
     GUIDE1({ g1, _ -> g1.guide }),
+    TOUCHPAD_FINGER_ONE1({ g1, _ -> g1.touchpad_finger_1 }),
+    TOUCHPAD_FINGER_TWO1({ g1, _ -> g1.touchpad_finger_2 }),
     A2({ _, g2 -> g2.a }),
     B2({ _, g2 -> g2.b }),
     X2({ _, g2 -> g2.x }),
@@ -34,6 +36,8 @@ enum class GamepadButton(val get: (Gamepad, Gamepad) -> Boolean) {
     BACK2({ _, g2 -> g2.back }),
     START2({ _, g2 -> g2.start }),
     GUIDE2({ _, g2 -> g2.guide }),
+    TOUCHPAD_FINGER_ONE2({ _, g2 -> g2.touchpad_finger_1 }),
+    TOUCHPAD_FINGER_TWO2({ _, g2 -> g2.touchpad_finger_2 }),
 }
 
 /** Represents analog inputs on a gamepad. Includes inputs from both gamepad1 and gamepad2. */
@@ -44,10 +48,18 @@ enum class GamepadAnalogInput(val get: (Gamepad, Gamepad) -> Float) {
     RIGHT_STICK_Y1({ g1, _ -> g1.right_stick_y }),
     LEFT_TRIGGER1({ g1, _ -> g1.left_trigger }),
     RIGHT_TRIGGER1({ g1, _ -> g1.right_trigger }),
+    TOUCHPAD_FINGER_ONE_X1({ g1, _ -> g1.touchpad_finger_1_x }),
+    TOUCHPAD_FINGER_ONE_Y1({ g1, _ -> g1.touchpad_finger_1_y }),
+    TOUCHPAD_FINGER_TWO_X1({ g1, _ -> g1.touchpad_finger_2_x }),
+    TOUCHPAD_FINGER_TWO_Y1({ g1, _ -> g1.touchpad_finger_2_y }),
     LEFT_STICK_X2({ _, g2 -> g2.left_stick_x }),
     LEFT_STICK_Y2({ _, g2 -> g2.left_stick_y }),
     RIGHT_STICK_X2({ _, g2 -> g2.right_stick_x }),
     RIGHT_STICK_Y2({ _, g2 -> g2.right_stick_y }),
     LEFT_TRIGGER2({ _, g2 -> g2.left_trigger }),
     RIGHT_TRIGGER2({ _, g2 -> g2.right_trigger }),
+    TOUCHPAD_FINGER_ONE_X2({ _, g2 -> g2.touchpad_finger_1_x }),
+    TOUCHPAD_FINGER_ONE_Y2({ _, g2 -> g2.touchpad_finger_1_y }),
+    TOUCHPAD_FINGER_TWO_X2({ _, g2 -> g2.touchpad_finger_2_x }),
+    TOUCHPAD_FINGER_TWO_Y2({ _, g2 -> g2.touchpad_finger_2_y }),
 }

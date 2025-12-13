@@ -73,14 +73,26 @@ abstract class SimpleManualModeWithSpeedModes<
     var rx = 0.0
 
     init {
-        onButtonReleased(GamepadButton.Y1) { +InstantAction { currentSpeedMode = SpeedMode.TURBO } }
+        onButtonReleased(GamepadButton.Y1) {
+            +InstantAction { currentSpeedMode = SpeedMode.TURBO }
+            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.TURBO]!!, speedModes[SpeedMode.TURBO]!!, 300) }
+            +InstantAction { gamepad1.setLedColor(255.0, 0.0, 0.0, 300) }
+        }
         onButtonReleased(GamepadButton.B1) {
             +InstantAction { currentSpeedMode = SpeedMode.NORMAL }
+            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.NORMAL]!!, speedModes[SpeedMode.NORMAL]!!, 300) }
+            +InstantAction { gamepad1.setLedColor(0.0, 0.0, 255.0, 300) }
         }
         onButtonReleased(GamepadButton.A1) {
             +InstantAction { currentSpeedMode = SpeedMode.PRECISE }
+            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.PRECISE]!!, speedModes[SpeedMode.PRECISE]!!, 300) }
+            +InstantAction { gamepad1.setLedColor(0.0, 255.0, 0.0, 300) }
         }
-        onButtonReleased(GamepadButton.X1) { +InstantAction { currentSpeedMode = SpeedMode.SLOW } }
+        onButtonReleased(GamepadButton.X1) {
+            +InstantAction { currentSpeedMode = SpeedMode.SLOW }
+            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300) }
+            +InstantAction { gamepad1.setLedColor(255.0, 255.0, 0.0, 300) }
+        }
 
         onAnalog(GamepadAnalogInput.LEFT_STICK_X1) { value -> x = -value.toDouble() }
         onAnalog(GamepadAnalogInput.LEFT_STICK_Y1) { value -> y = -value.toDouble() }
