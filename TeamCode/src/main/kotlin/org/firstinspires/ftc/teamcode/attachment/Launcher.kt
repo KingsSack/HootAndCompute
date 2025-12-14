@@ -11,8 +11,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 /**
  * [Launcher] is an [Attachment] that controls a dual motor flywheel launcher.
  *
- * @param leftMotor the left [DcMotor] of the [Launcher]
- * @param rightMotor the right [DcMotor] of the [Launcher]
+ * @param leftMotor the left [DcMotorEx] of the [Launcher]
+ * @param rightMotor the right [DcMotorEx] of the [Launcher]
  */
 class Launcher(private val leftMotor: DcMotorEx, private val rightMotor: DcMotorEx) :
     Attachment("Launcher") {
