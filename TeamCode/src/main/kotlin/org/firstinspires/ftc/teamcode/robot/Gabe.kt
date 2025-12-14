@@ -10,6 +10,7 @@ import dev.kingssack.volt.core.VoltBuilderDsl
 import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
 
@@ -25,8 +26,8 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
     private val huskyLens by huskyLens("lens")
     private val distanceSensor by distanceSensor("l")
 
-    private val leftLauncherMotor by motor("fll")
-    private val rightLauncherMotor by motor("flr")
+    private val leftLauncherMotor by motorEx("fll")
+    private val rightLauncherMotor by motorEx("flr")
 
     private val storageServo by servo("ss")
 
@@ -65,6 +66,14 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
         telemetry.addData("Filtered count", result.size)
 
         return result
+    }
+
+    context(telemetry: Telemetry)
+    override fun update() {
+        with(telemetry) {
+            addData("Distance Sensor (in)", distanceSensor.getDistance(DistanceUnit.INCH))
+        }
+        super.update()
     }
 }
 

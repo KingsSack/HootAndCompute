@@ -2,9 +2,10 @@ package org.firstinspires.ftc.teamcode.attachment
 
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import dev.kingssack.volt.attachment.Attachment
-import dev.kingssack.volt.attachment.AttachmentState
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
@@ -13,47 +14,66 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param leftMotor the left [DcMotor] of the [Launcher]
  * @param rightMotor the right [DcMotor] of the [Launcher]
  */
-class Launcher(private val leftMotor: DcMotor, private val rightMotor: DcMotor) :
+class Launcher(private val leftMotor: DcMotorEx, private val rightMotor: DcMotorEx) :
     Attachment("Launcher") {
+    companion object {
+        private const val P = 0.0
+        private const val I = 0.0
+        private const val D = 0.0
+        private const val F = 1.0
+
+        private const val MAX_VELOCITY = 6000.0
+        private const val TARGET_VELOCITY = 5000.0
+    }
+
+    private val coefficients = PIDFCoefficients(P, I, D, F)
+
+    private var currentVelocity = 0.0
+
     init {
         leftMotor.direction = DcMotorSimple.Direction.FORWARD
         rightMotor.direction = DcMotorSimple.Direction.REVERSE
 
-        leftMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rightMotor.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        listOf(leftMotor, rightMotor).forEach {
+            it.mode = DcMotor.RunMode.RUN_USING_ENCODER
+            it.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, coefficients)
+        }
     }
 
     fun enable(): Action = action {
-        init {
-            leftMotor.power = 1.0
-            rightMotor.power = 1.0
-        }
-
+        init { setVelocity(TARGET_VELOCITY) }
         loop { true }
     }
 
     fun disable(): Action = action {
-        init {
-            leftMotor.power = 0.0
-            rightMotor.power = 0.0
-        }
-
+        init { setVelocity(0.0) }
         loop { true }
     }
 
-    fun setPower(power: Double) {
-        if (power != 0.0) setState(AttachmentState.Running) else setState(AttachmentState.Idle)
+    fun increaseVelocity(delta: Double): Action = action {
+        init { setVelocity(currentVelocity + delta) }
+        loop { true }
+    }
 
-        leftMotor.power = power
-        rightMotor.power = power
+    fun decreaseVelocity(delta: Double): Action = action {
+        init { setVelocity(currentVelocity - delta) }
+        loop { true }
+    }
+
+    private fun setVelocity(velocity: Double) {
+        require(velocity in 0.0..MAX_VELOCITY)
+        currentVelocity = velocity
     }
 
     context(telemetry: Telemetry)
     override fun update() {
         super.update()
+        listOf(leftMotor, rightMotor).forEach { it.velocity = currentVelocity }
         with(telemetry) {
-            addData("Left Motor Power", leftMotor.power)
-            addData("Right Motor Power", rightMotor.power)
+            addLine("Power ${leftMotor.power} ${rightMotor.power}")
+            addLine(
+                "Velocity ${leftMotor.velocity}/$TARGET_VELOCITY ${rightMotor.velocity}/$TARGET_VELOCITY"
+            )
         }
     }
 }
