@@ -3,199 +3,524 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volt Web Server</title>
+    <title>Volt Flow Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        gray: {
+                            750: '#2d3748',
+                            850: '#1a202c',
+                            900: '#111827',
+                            950: '#0B0F19',
+                        },
+                        accent: {
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { overscroll-behavior: none; }
+        .dot-grid {
+            background-image: radial-gradient(circle, #4b5563 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .glass {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen" x-data="{ activeTab: 'dashboard' }">
-<div class="container mx-auto px-4 py-8">
-    <header class="mb-8">
-        <h1 class="text-4xl font-bold text-blue-600">Volt Web Server</h1>
-        <p class="text-gray-600">A web interface for your FTC robot</p>
-    </header>
+<body class="bg-gray-950 text-white h-screen w-screen overflow-hidden font-sans select-none"
+      x-data="flowEditor()"
+      x-init="initEditor()"
+      @keydown.window="handleKeydown($event)"
+      @wheel.prevent="handleWheel($event)">
 
-    <nav class="mb-8">
-        <ul class="flex border-b">
-            <li class="mr-1">
-                <button
-                        @click="activeTab = 'dashboard'"
-                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'dashboard', 'text-blue-500 hover:text-blue-800': activeTab !== 'dashboard' }"
-                        class="py-2 px-4 font-semibold">
-                    Dashboard
-                </button>
-            </li>
-            <li class="mr-1">
-                <button
-                        @click="activeTab = 'controls'"
-                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'controls', 'text-blue-500 hover:text-blue-800': activeTab !== 'controls' }"
-                        class="py-2 px-4 font-semibold">
-                    Controls
-                </button>
-            </li>
-            <li class="mr-1">
-                <button
-                        @click="activeTab = 'logs'"
-                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'logs', 'text-blue-500 hover:text-blue-800': activeTab !== 'logs' }"
-                        class="py-2 px-4 font-semibold">
-                    Logs
-                </button>
-            </li>
-            <li class="mr-1">
-                <button
-                        @click="activeTab = 'about'"
-                        :class="{ 'bg-white border-l border-t border-r rounded-t text-blue-700': activeTab === 'about', 'text-blue-500 hover:text-blue-800': activeTab !== 'about' }"
-                        class="py-2 px-4 font-semibold">
-                    About
-                </button>
-            </li>
-            <li class="mr-1">
-                <a href="./mode-creator.html" class="py-2 px-4 font-semibold text-blue-500 hover:text-blue-800">
-                    Mode Creator
-                </a>
-            </li>
-        </ul>
-    </nav>
+    <!-- Error Banner -->
+    <div x-show="errorMessage" 
+         class="absolute top-0 left-0 right-0 z-50 bg-red-600/90 text-white p-2 text-center text-sm font-semibold transition-transform"
+         x-transition.duration.300ms>
+        <span x-text="errorMessage"></span>
+        <button @click="errorMessage = null" class="ml-4 underline opacity-75 hover:opacity-100">Dismiss</button>
+    </div>
 
-    <main class="bg-white p-6 rounded-lg shadow-md">
-        <!-- Dashboard Tab -->
-        <div x-show="activeTab === 'dashboard'" class="space-y-6">
-            <h2 class="text-2xl font-bold text-gray-800">Robot Status</h2>
+    <!-- Infinite Canvas Container -->
+    <div class="absolute inset-0 z-0 overflow-hidden cursor-grab active:cursor-grabbing"
+         :class="{'cursor-grabbing': viewport.isPanning}"
+         @mousedown.self="startPan($event)"
+         @mousemove="handleMouseMove($event)"
+         @mouseup="endInteraction($event)"
+         @mouseleave="endInteraction($event)">
+        
+        <!-- The Canvas Content -->
+        <div class="absolute origin-top-left will-change-transform"
+             :style="`transform: translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale});`">
+            
+            <!-- Grid -->
+            <div class="absolute -inset-[10000px] dot-grid opacity-20 pointer-events-none"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 class="text-lg font-semibold text-blue-800">Battery</h3>
-                    <p class="text-3xl font-bold text-blue-600">12.8V</p>
-                    <p class="text-sm text-blue-500">85% Remaining</p>
-                </div>
+            <!-- Connections Layer -->
+            <svg class="absolute top-0 left-0 w-full h-full overflow-visible pointer-events-none z-0">
+                <template x-for="conn in connections" :key="conn.id">
+                     <path :d="getPath(conn)" stroke="#4b5563" stroke-width="2" fill="none" class="opacity-50" />
+                </template>
+                <!-- Dragging Connection -->
+                <path x-show="dragConnection.active" :d="getDragPath()" stroke="#6366f1" stroke-width="2" fill="none" stroke-dasharray="5,5" class="opacity-75" />
+            </svg>
 
-                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <h3 class="text-lg font-semibold text-green-800">Motors</h3>
-                    <p class="text-3xl font-bold text-green-600">Online</p>
-                    <p class="text-sm text-green-500">All systems operational</p>
-                </div>
-
-                <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h3 class="text-lg font-semibold text-purple-800">Sensors</h3>
-                    <p class="text-3xl font-bold text-purple-600">Calibrated</p>
-                    <p class="text-sm text-purple-500">4 active sensors</p>
-                </div>
+            <!-- Ghost Node (Dragging New) -->
+            <div x-show="dragNewNode.active" 
+                 class="absolute glass rounded-xl p-3 w-48 border border-accent-500/50 shadow-2xl z-50 pointer-events-none opacity-80"
+                 :style="`left: ${dragNewNode.x}px; top: ${dragNewNode.y}px`">
+                 <div class="text-xs font-semibold text-accent-200">New Node</div>
             </div>
 
-            <div class="mt-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h3>
-                <ul class="space-y-2">
-                    <li class="p-2 bg-gray-50 rounded">
-                        <span class="text-gray-500 text-sm">10:23 AM</span>
-                        <span class="ml-2">Autonomous mode completed successfully</span>
-                    </li>
-                    <li class="p-2 bg-gray-50 rounded">
-                        <span class="text-gray-500 text-sm">10:21 AM</span>
-                        <span class="ml-2">Robot initialized and ready</span>
-                    </li>
-                    <li class="p-2 bg-gray-50 rounded">
-                        <span class="text-gray-500 text-sm">10:20 AM</span>
-                        <span class="ml-2">Connection established</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Controls Tab -->
-        <div x-show="activeTab === 'controls'" class="space-y-6">
-            <h2 class="text-2xl font-bold text-gray-800">Robot Controls</h2>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
-                    Forward
-                </button>
-                <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
-                    Backward
-                </button>
-                <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
-                    Left
-                </button>
-                <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold">
-                    Right
-                </button>
-            </div>
-
-            <div class="mt-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Arm Control</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-gray-700 mb-2">Arm Height</label>
-                        <input type="range" min="0" max="100" value="50" class="w-full">
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 mb-2">Gripper</label>
-                        <div class="flex space-x-4">
-                            <button class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded font-semibold">
-                                Open
-                            </button>
-                            <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded font-semibold">
-                                Close
-                            </button>
+            <!-- Nodes Layer -->
+            <template x-for="node in nodes" :key="node.id">
+                <div class="absolute glass rounded-xl shadow-2xl transition-shadow group min-w-[200px]"
+                     :style="`left: ${node.x}px; top: ${node.y}px; border-color: ${selectedNode?.id === node.id ? '#6366f1' : 'rgba(255,255,255,0.08)'}`"
+                     @mousedown.stop="startDragNode($event, node)"
+                     @click.stop="selectNode(node)">
+                    
+                    <!-- Header -->
+                    <div class="p-3 border-b border-white/5 flex justify-between items-center bg-white/5 rounded-t-xl cursor-grab active:cursor-grabbing">
+                        <span class="font-medium text-sm" :class="node.type === 'start' ? 'text-emerald-400' : 'text-purple-200'" x-text="node.name"></span>
+                        <div x-show="node.type !== 'start'" @click.stop="deleteNode(node.id)" class="text-gray-500 hover:text-red-400 cursor-pointer p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </div>
                     </div>
+
+                    <!-- Body -->
+                    <div class="p-3">
+                         <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1" x-text="node.description || node.type"></div>
+                         <!-- Dynamic Inputs if any -->
+                    </div>
+
+                    <!-- Ports -->
+                    <!-- Input Port (Target) -->
+                    <div x-show="node.type !== 'start'" 
+                         class="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-gray-600 rounded-full border border-gray-800 hover:bg-accent-500 hover:scale-125 transition-all cursor-crosshair"
+                         @mouseup.stop="completeConnection(node)">
+                    </div>
+
+                    <!-- Output Port (Source) -->
+                    <div class="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-gray-800 hover:scale-125 transition-all cursor-crosshair"
+                         :class="node.type === 'start' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-gray-400 hover:bg-accent-500'"
+                         @mousedown.stop="startDragConnection($event, node)">
+                    </div>
+                </div>
+            </template>
+
+        </div>
+    </div>
+
+    <!-- UI Overlay -->
+    <div class="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-4">
+        
+        <!-- Top Bar -->
+        <div class="pointer-events-auto self-center glass px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl">
+            <div class="flex flex-col">
+                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Current Flow</span>
+                <input type="text" x-model="flowName" class="bg-transparent border-none p-0 text-sm font-semibold text-white focus:ring-0 w-32 placeholder-gray-600 outline-none" placeholder="Untitled Flow">
+            </div>
+            <div class="h-6 w-px bg-white/10"></div>
+            <div class="bg-black/30 p-1 rounded-lg flex gap-1">
+                <button @click="setMode('auto')" :class="mode === 'auto' ? 'bg-accent-600' : 'text-gray-400 hover:text-white'" class="px-3 py-1 rounded text-xs font-semibold transition-all">Auto</button>
+                <button @click="setMode('manual')" :class="mode === 'manual' ? 'bg-emerald-600' : 'text-gray-400 hover:text-white'" class="px-3 py-1 rounded text-xs font-semibold transition-all">TeleOp</button>
+            </div>
+        </div>
+
+        <!-- Left Sidebar: Actions / Nodes -->
+        <div class="pointer-events-auto absolute top-24 left-6 bottom-6 w-64 glass rounded-xl flex flex-col shadow-xl overflow-hidden">
+            <div class="p-3 border-b border-white/10 bg-white/5">
+                <div class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Add Node</div>
+                <input type="text" x-model="searchQuery" placeholder="Search actions..." class="w-full bg-gray-900/50 border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-accent-500 outline-none">
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                <template x-for="action in filteredActions" :key="action.id">
+                    <div class="p-2 rounded bg-gray-800/40 border border-white/5 hover:border-accent-500/50 cursor-grab active:cursor-grabbing group transition-all"
+                         @mousedown.stop="startDragNewNode($event, action)">
+                        <div class="text-xs font-medium text-gray-200 group-hover:text-accent-300" x-text="action.name.split('.').pop()"></div>
+                        <div class="text-[10px] text-gray-500 truncate" x-text="action.name.split('.')[0]"></div>
+                    </div>
+                </template>
+                <div x-show="filteredActions.length === 0" class="text-center py-4 text-xs text-gray-600">No actions found</div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar: Properties & Code -->
+        <div class="pointer-events-auto absolute top-24 right-6 bottom-6 w-80 glass rounded-xl flex flex-col shadow-xl overflow-hidden">
+            
+            <!-- Code Preview -->
+            <div class="flex-1 flex flex-col min-h-0 border-b border-white/5 bg-gray-900/40">
+                <div class="px-3 py-2 border-b border-white/5 flex justify-between items-center bg-white/5">
+                    <span class="text-xs font-semibold text-accent-200">Generated Code</span>
+                    <button class="text-[10px] text-gray-400 hover:text-white bg-white/5 px-2 py-0.5 rounded" @click="navigator.clipboard.writeText(generatedCode)">Copy</button>
+                </div>
+                <div class="flex-1 overflow-auto p-3 font-mono text-[10px] leading-relaxed text-gray-300 whitespace-pre" x-text="generatedCode"></div>
+            </div>
+
+            <!-- Properties -->
+            <div class="h-1/2 flex flex-col bg-gray-900/80">
+                <div class="px-3 py-2 border-b border-white/5 bg-white/5">
+                    <span class="text-xs font-semibold text-gray-300">Properties</span>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4">
+                    <template x-if="selectedNode">
+                        <div class="space-y-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] text-gray-500 font-bold uppercase">Node Type</label>
+                                <div class="text-xs text-gray-300" x-text="selectedNode.name"></div>
+                            </div>
+                            <!-- Robot Selection (Global but placed here for visibility) -->
+                            <div class="space-y-1" x-show="mode === 'auto' || mode === 'manual'">
+                                <label class="text-[10px] text-gray-500 font-bold uppercase">Robot Class</label>
+                                <select x-model="selectedRobot" class="w-full bg-black/30 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:border-accent-500 outline-none">
+                                    <template x-for="robot in availableRobots" :key="robot">
+                                        <option :value="robot" x-text="robot"></option>
+                                    </template>
+                                    <option value="" disabled selected>Select Robot...</option>
+                                </select>
+                            </div> 
+
+                            <!-- Dynamic Parameters -->
+                            <div class="space-y-3" x-show="selectedNode.parameters && selectedNode.parameters.length > 0">
+                                <div class="h-px bg-white/10 my-2"></div>
+                                <template x-for="(param, idx) in selectedNode.parameters" :key="idx">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] text-gray-400 uppercase" x-text="param.name"></label>
+                                        <input type="text" x-model="param.value" class="w-full bg-black/30 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:border-accent-500 outline-none">
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="!selectedNode">
+                         <div class="flex flex-col items-center justify-center h-full text-gray-600 space-y-2">
+                             <span class="text-xs italic">Select a node to edit properties</span>
+                         </div>
+                    </template>
                 </div>
             </div>
+
         </div>
+    </div>
 
-        <!-- Logs Tab -->
-        <div x-show="activeTab === 'logs'" class="space-y-6">
-            <h2 class="text-2xl font-bold text-gray-800">System Logs</h2>
+    <script>
+        function flowEditor() {
+            return {
+                mode: 'auto',
+                flowName: 'MyNewSequence',
+                searchQuery: '',
+                errorMessage: null,
+                
+                // Data
+                availableRobots: [],
+                availableActions: [],
+                selectedRobot: '',
+                
+                nodes: [
+                    { id: 'start', type: 'start', name: 'Start', x: 100, y: 100, outputs: ['out'], parameters: [] }
+                ],
+                connections: [],
+                
+                // UI State
+                selectedNode: null,
+                viewport: { x: 0, y: 0, scale: 1, isPanning: false, lastX: 0, lastY: 0 },
+                
+                dragNode: { active: false, node: null, offsetX: 0, offsetY: 0 },
+                dragConnection: { active: false, sourceNode: null, mouseX: 0, mouseY: 0 },
+                dragNewNode: { active: false, action: null, x: 0, y: 0 },
 
-            <div class="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto">
-                <div>[10:23:45] INFO: Autonomous mode completed</div>
-                <div>[10:23:40] DEBUG: Moving to position (12, 34)</div>
-                <div>[10:23:35] INFO: Object detected at distance: 25cm</div>
-                <div>[10:23:30] DEBUG: Sensor readings: [0.2, 0.3, 0.1, 0.5]</div>
-                <div>[10:23:25] INFO: Autonomous mode started</div>
-                <div>[10:23:20] DEBUG: Calibrating gyro sensor</div>
-                <div>[10:23:15] INFO: Robot initialized</div>
-                <div>[10:23:10] DEBUG: Loading configuration</div>
-                <div>[10:23:05] INFO: System startup</div>
-            </div>
+                get filteredActions() {
+                    if (!this.searchQuery) return this.availableActions;
+                    return this.availableActions.filter(a => 
+                        a.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+                    );
+                },
 
-            <div class="flex space-x-4">
-                <button class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded font-semibold">
-                    Clear Logs
-                </button>
-                <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-semibold">
-                    Download Logs
-                </button>
-            </div>
-        </div>
+                get generatedCode() {
+                    const sortedNodes = this.getSortedNodes();
+                    let code = "";
+                    
+                    if (this.mode === 'auto') {
+                         code += `package org.firstinspires.ftc.teamcode.opmode.autonomous\n\n`;
+                         code += `import com.qualcomm.robotcore.eventloop.opmode.Autonomous\n`;
+                         code += `import dev.kingssack.volt.opmode.autonomous.AutonomousMode\n\n`;
+                         code += `@Autonomous(name = "${this.flowName}")\n`;
+                         code += `class ${this.flowName.replace(/\s/g, '')} : AutonomousMode<${this.selectedRobot || 'Robot'}>({ h -> ${this.selectedRobot || 'Robot'}(h) }) {\n`;
+                         code += `    override fun sequence() = execute {\n`;
+                         
+                         sortedNodes.forEach(node => {
+                             if (node.type === 'start') return;
+                             const params = node.parameters.map(p => p.value).join(', ');
+                             // Heuristic to call extension functions on attachments
+                             const parts = node.name.split('.');
+                             const attachment = parts[0].toLowerCase();
+                             const method = parts[1];
+                             code += `        ${attachment} { +${method}(${params}) }\n`;
+                         });
 
-        <!-- About Tab -->
-        <div x-show="activeTab === 'about'" class="space-y-6">
-            <h2 class="text-2xl font-bold text-gray-800">About Volt Web Server</h2>
+                         code += `    }\n}`;
+                    } else {
+                        // Manual Mode
+                         code += `package org.firstinspires.ftc.teamcode.opmode.manual\n\n`;
+                         code += `@TeleOp(name = "${this.flowName}")\n`;
+                         code += `class ${this.flowName.replace(/\s/g, '')} : ManualMode<${this.selectedRobot || 'Robot'}>() {\n`;
+                         code += `    init {\n        // Logic here \n    }\n}`;
+                    }
+                    return code;
+                },
 
-            <p class="text-gray-600">
-                Volt Web Server is a simple web interface for your FTC robot. It allows you to monitor your robot's
-                status,
-                control it remotely, and view system logs.
-            </p>
+                async initEditor() {
+                    await this.fetchRobots();
+                    await this.fetchActions();
+                },
 
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h3 class="text-lg font-semibold text-blue-800">Version Information</h3>
-                <ul class="mt-2 space-y-1">
-                    <li><span class="font-semibold">Volt:</span> v0.2.0</li>
-                    <li><span class="font-semibold">Web Server:</span> v1.0.0</li>
-                    <li><span class="font-semibold">Robot Controller:</span> v8.2</li>
-                </ul>
-            </div>
+                async fetchRobots() {
+                    try {
+                        const res = await fetch('/volt/api/robots');
+                        if(!res.ok) throw new Error('Failed to load robots');
+                        this.availableRobots = await res.json();
+                        if (this.availableRobots.length > 0) this.selectedRobot = this.availableRobots[0];
+                    } catch (e) {
+                         this.errorMessage = "API Error: Could not load Robots. Is the Robot Controller running?";
+                         console.error(e);
+                    }
+                },
 
-            <p class="text-gray-600">
-                For more information, visit the <a href="https://github.com/your-repo/volt"
-                                                   class="text-blue-600 hover:underline">GitHub repository</a>.
-            </p>
-        </div>
-    </main>
-</div>
+                async fetchActions() {
+                    try {
+                         const res = await fetch('/volt/api/actions');
+                         if(!res.ok) throw new Error('Failed to load actions');
+                         this.availableActions = await res.json();
+                         // Mock actions if empty for demo
+                         if (this.availableActions.length === 0) {
+                             this.availableActions = [
+                                 { id: '1', name: 'Launcher.enable', description: 'Enable Launcher', parameters: [] },
+                                 { id: '2', name: 'Launcher.disable', description: 'Disable Launcher', parameters: [] },
+                                 { id: '3', name: 'Storage.release', description: 'Release Item', parameters: [] },
+                                 { id: '4', name: 'Drivetrain.pathTo', description: 'Drive to Pose', parameters: [{name: 'x', value: 0}, {name: 'y', value: 0}] },
+                                 { id: '5', name: 'Drivetrain.wait', description: 'Wait seconds', parameters: [{name: 'seconds', value: 1.0}] },
+                             ]
+                         }
+                    } catch (e) {
+                        this.errorMessage = "API Error: Could not load Actions.";
+                    }
+                },
 
-<footer class="mt-8 text-center text-gray-500 text-sm">
-    <p>© 2025 KingsSack. All rights reserved.</p>
-</footer>
+                setMode(m) {
+                    this.mode = m;
+                    // Reset canvas for demo purposes or switch context
+                    this.nodes = [{ id: 'start', type: 'start', name: 'Start', x: 100, y: 100, outputs: ['out'], parameters: [] }];
+                    this.connections = [];
+                },
+
+                // Canvas Interaction
+                startPan(e) {
+                    if (e.button === 0) {
+                        this.viewport.isPanning = true;
+                        this.viewport.lastX = e.clientX;
+                        this.viewport.lastY = e.clientY;
+                    }
+                },
+                handleMouseMove(e) {
+                    const clientX = e.clientX;
+                    const clientY = e.clientY;
+
+                    // Panning
+                    if (this.viewport.isPanning) {
+                        this.viewport.x += clientX - this.viewport.lastX;
+                        this.viewport.y += clientY - this.viewport.lastY;
+                        this.viewport.lastX = clientX;
+                        this.viewport.lastY = clientY;
+                    }
+
+                    // Drag Node
+                    if (this.dragNode.active) {
+                        const scale = this.viewport.scale;
+                        this.dragNode.node.x = (clientX - this.viewport.x) / scale - this.dragNode.offsetX;
+                        this.dragNode.node.y = (clientY - this.viewport.y) / scale - this.dragNode.offsetY;
+                    }
+
+                    // Drag New Node (Visual)
+                    if (this.dragNewNode.active) {
+                        // Transform client coordinates to canvas space for the ghost
+                        const scale = this.viewport.scale;
+                        this.dragNewNode.x = (clientX - this.viewport.x) / scale;
+                        this.dragNewNode.y = (clientY - this.viewport.y) / scale;
+                    }
+
+                    // Drag Connection
+                    if (this.dragConnection.active) {
+                        this.dragConnection.mouseX = (clientX - this.viewport.x) / this.viewport.scale;
+                        this.dragConnection.mouseY = (clientY - this.viewport.y) / this.viewport.scale;
+                    }
+                },
+                handleWheel(e) {
+                    const zoomSensitivity = 0.001;
+                    const delta = -e.deltaY * zoomSensitivity;
+                    const newScale = Math.min(Math.max(0.1, this.viewport.scale + delta), 4);
+                    this.viewport.scale = newScale;
+                },
+                endInteraction(e) {
+                    this.viewport.isPanning = false;
+                    this.dragNode.active = false;
+                    this.dragNode.node = null;
+                    this.dragConnection.active = false;
+                    
+                    if (this.dragNewNode.active && e) {
+                        // Drop new node logic
+                         const x = (e.clientX - this.viewport.x) / this.viewport.scale;
+                         const y = (e.clientY - this.viewport.y) / this.viewport.scale;
+                         this.addNode(this.dragNewNode.action, x, y);
+                    }
+                    this.dragNewNode.active = false;
+                },
+
+                // Node Management
+                startDragNode(e, node) {
+                    this.dragNode.active = true;
+                    this.dragNode.node = node;
+                    this.selectNode(node);
+                    // Calculate offset from node top-left
+                    const rect = e.target.closest('.group').getBoundingClientRect();
+                    const scale = this.viewport.scale;
+                    this.dragNode.offsetX = (e.clientX - rect.left) / scale;
+                    this.dragNode.offsetY = (e.clientY - rect.top) / scale;
+                },
+                startDragNewNode(e, action) {
+                    this.dragNewNode.active = true;
+                    this.dragNewNode.action = action;
+                    // Logic to visually show dragging item could be added here
+                },
+                addNode(action, x, y) {
+                    const id = Date.now().toString();
+                    // Deep copy parameters
+                    const params = action.parameters.map(p => ({...p}));
+                    this.nodes.push({
+                        id,
+                        type: 'action',
+                        name: action.name,
+                        description: action.description,
+                        x,
+                        y,
+                        parameters: params,
+                        inputs: ['in'],
+                        outputs: ['out']
+                    });
+                },
+                selectNode(node) {
+                    this.selectedNode = node;
+                },
+                deleteNode(id) {
+                    this.nodes = this.nodes.filter(n => n.id !== id);
+                    this.connections = this.connections.filter(c => c.from !== id && c.to !== id);
+                    if (this.selectedNode?.id === id) this.selectedNode = null;
+                },
+                handleKeydown(e) {
+                    if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedNode && this.selectedNode.type !== 'start') {
+                        // Don't delete if editing input
+                        if (e.target.tagName !== 'INPUT') {
+                            this.deleteNode(this.selectedNode.id);
+                        }
+                    }
+                },
+
+                // Connection Logic
+                startDragConnection(e, node) {
+                    this.dragConnection.active = true;
+                    this.dragConnection.sourceNode = node;
+                    // Initial mouse position
+                    this.dragConnection.mouseX = (e.clientX - this.viewport.x) / this.viewport.scale;
+                    this.dragConnection.mouseY = (e.clientY - this.viewport.y) / this.viewport.scale;
+                },
+                completeConnection(targetNode) {
+                    if (this.dragConnection.active && this.dragConnection.sourceNode.id !== targetNode.id) {
+                        // Check if connection already exists
+                        const exists = this.connections.find(c => c.from === this.dragConnection.sourceNode.id && c.to === targetNode.id);
+                        if (!exists) {
+                            this.connections.push({
+                                id: Date.now().toString(),
+                                from: this.dragConnection.sourceNode.id,
+                                to: targetNode.id
+                            });
+                        }
+                    }
+                    this.dragConnection.active = false;
+                },
+                
+                // Geometry
+                getPath(conn) {
+                    const fromNode = this.nodes.find(n => n.id === conn.from);
+                    const toNode = this.nodes.find(n => n.id === conn.to);
+                    if (!fromNode || !toNode) return '';
+                    return this.calculateBezier(fromNode, toNode);
+                },
+                getDragPath() {
+                     if (!this.dragConnection.active) return '';
+                     const fromNode = this.dragConnection.sourceNode;
+                     const targetX = this.dragConnection.mouseX;
+                     const targetY = this.dragConnection.mouseY;
+                     
+                     // Approximate port positions (Node width ~200, ports at vertical middle)
+                     const startX = fromNode.x + 200; // Right side
+                     const startY = fromNode.y + 40;  // Approx middle
+                     
+                     return `M ${startX} ${startY} C ${startX + 50} ${startY}, ${targetX - 50} ${targetY}, ${targetX} ${targetY}`;
+                },
+                calculateBezier(n1, n2) {
+                    // Start from right of n1, end at left of n2
+                    const startX = n1.x + 200; // Adjusted for approximate width
+                    const startY = n1.type === 'start' ? n1.y + 24 : n1.y + 40; // Approx port Y
+                    const endX = n2.x;
+                    const endY = n2.y + 40;
+
+                    const activeScale = Math.abs(endX - startX) * 0.5;
+                    return `M ${startX} ${startY} C ${startX + activeScale} ${startY}, ${endX - activeScale} ${endY}, ${endX} ${endY}`;
+                },
+                
+                // Helper: Sort nodes by flow (Topological sort or just following connections from Start)
+                getSortedNodes() {
+                    const visited = new Set();
+                    const sorted = [];
+                    const queue = [this.nodes.find(n => n.type === 'start')];
+                    
+                    while (queue.length > 0) {
+                        const current = queue.shift();
+                        if (!current || visited.has(current.id)) continue;
+                        visited.add(current.id);
+                        sorted.push(current);
+                        
+                        // Find connected nodes
+                        const outgoing = this.connections
+                            .filter(c => c.from === current.id)
+                            .map(c => this.nodes.find(n => n.id === c.to))
+                            .filter(Boolean);
+                        
+                        queue.push(...outgoing);
+                    }
+                    return sorted;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

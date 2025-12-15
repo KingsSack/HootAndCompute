@@ -3,11 +3,11 @@ package dev.kingssack.volt
 import android.content.Context
 import android.util.Log
 import com.qualcomm.robotcore.util.WebHandlerManager
-//import dev.kingssack.volt.web.ModeCreatorHandler
+import dev.kingssack.volt.web.ModeCreatorHandler
 import dev.kingssack.volt.web.StaticAssetHandler
+import java.io.IOException
 import org.firstinspires.ftc.ftccommon.external.WebHandlerRegistrar
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
-import java.io.IOException
 
 class Volt {
     companion object {
@@ -44,8 +44,8 @@ class Volt {
                 manager.register("/volt", StaticAssetHandler(assetManager, "public/index.html"))
 
                 // Register the mode creator handler
-//                Log.d(TAG, "Registering handler for /volt/api/*")
-//                manager.register("/volt/api", ModeCreatorHandler())
+                Log.d(TAG, "Registering handler for /volt/api/*")
+                manager.register("/volt/api", ModeCreatorHandler())
 
                 Log.d(TAG, "Web server handlers attached successfully")
             } catch (e: IOException) {
@@ -56,9 +56,9 @@ class Volt {
         }
 
         private fun addAssetHandlers(
-            manager: WebHandlerManager,
-            assetManager: android.content.res.AssetManager,
-            path: String
+                manager: WebHandlerManager,
+                assetManager: android.content.res.AssetManager,
+                path: String
         ) {
             Log.d(TAG, "Adding asset handlers for directory: $path")
             val files = assetManager.list(path)
