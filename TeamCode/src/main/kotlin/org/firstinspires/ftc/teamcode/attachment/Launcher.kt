@@ -61,7 +61,7 @@ class Launcher(private val leftMotor: DcMotorEx, private val rightMotor: DcMotor
     }
 
     private fun setVelocity(velocity: Double) {
-        require(velocity in 0.0..MAX_VELOCITY)
+        require(velocity in 0.0..MAX_VELOCITY) { "Velocity must be between 0.0 and $MAX_VELOCITY, got $velocity" }
         currentVelocity = velocity
     }
 
