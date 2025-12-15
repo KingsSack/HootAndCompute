@@ -14,7 +14,7 @@ abstract class Pigeon(
     initialPose: Pose,
     private val startingPosition: StartingPosition,
 ) : AutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, initialPose) }) {
-    private val paths by lazy { PathConstants(robot.drivetrain.follower, AllianceColor.BLUE) }
+    private val paths by lazy { PathConstants(robot.drivetrain.follower, alliance) }
 
     private lateinit var pathOffLaunchLine: PathChain
 
