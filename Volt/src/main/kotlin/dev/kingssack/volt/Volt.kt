@@ -46,6 +46,10 @@ class Volt {
                 // Register the mode creator handler
                 Log.d(TAG, "Registering handler for /volt/api/*")
                 manager.register("/volt/api", ModeCreatorHandler())
+                manager.register(
+                        "/volt/api/metadata",
+                        dev.kingssack.volt.web.VoltWebServer.createMetadataHandler()
+                )
 
                 Log.d(TAG, "Web server handlers attached successfully")
             } catch (e: IOException) {

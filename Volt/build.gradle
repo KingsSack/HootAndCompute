@@ -73,6 +73,8 @@ dependencies {
 
     api "com.bylazar:fullpanels:$min_fullpanels_version"
 
+    api "dev.frozenmilk.sinister:Sloth:0.2.4"
+
     implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
         exclude module: "nanohttpd"
     }
@@ -82,7 +84,7 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.1'
 
-    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 dokka {

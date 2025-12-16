@@ -3,12 +3,10 @@ package dev.kingssack.volt.web
 import android.util.Log
 import com.acmerobotics.roadrunner.Action
 import com.google.gson.Gson
-import dev.frozenmilk.sinister.Sloth
 import dev.kingssack.volt.attachment.Attachment
 import dev.kingssack.volt.robot.Robot
 import fi.iki.elonen.NanoHTTPD
 import java.lang.reflect.Modifier
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler
 
 /** Handler for the mode creator API endpoints. */
@@ -192,23 +190,23 @@ class ModeCreatorHandler : WebHandler {
     }
 
     private fun getDefaultValue(type: Class<*>): Any {
-        return when {
-            type == Int::class.java || type == Integer::class.java -> 0
-            type == Double::class.java || type == java.lang.Double::class.java -> 0.0
-            type == Float::class.java || type == java.lang.Float::class.java -> 0.0f
-            type == Boolean::class.java || type == java.lang.Boolean::class.java -> false
-            type == String::class.java -> ""
+        return when (type) {
+            Int::class.java, Integer::class.java -> 0
+            Double::class.java, java.lang.Double::class.java -> 0.0
+            Float::class.java, java.lang.Float::class.java -> 0.0f
+            Boolean::class.java, java.lang.Boolean::class.java -> false
+            String::class.java -> ""
             else -> "null"
         }
     }
 
     private fun getAttachmentClasses(): List<Class<out Attachment>> {
-        val activity = AppUtil.getInstance().activity ?: return emptyList()
-        return Sloth.from(activity).lookFor(Attachment::class.java).collect()
+        // Get attachment classes
+        return emptyList()
     }
 
     private fun getRobotClasses(): List<Class<out Robot>> {
-        val activity = AppUtil.getInstance().activity ?: return emptyList()
-        return Sloth.from(activity).lookFor(Robot::class.java).collect()
+        // Get robot classes
+        return emptyList()
     }
 }

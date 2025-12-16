@@ -8,8 +8,7 @@ import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler
 /**
  * Utility class for interacting with the FTC web server.
  *
- * This class provides methods for getting the URL of the web server
- * and for adding custom handlers.
+ * This class provides methods for getting the URL of the web server and for adding custom handlers.
  */
 class VoltWebServer {
     companion object {
@@ -49,10 +48,23 @@ class VoltWebServer {
         @JvmStatic
         fun createSimpleHandler(contentType: String, content: String): WebHandler {
             return WebHandler {
+                NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, contentType, content)
+            }
+        }
+
+        /** Create a handler that serves the Volt metadata (Robots and Actions). */
+        @JvmStatic
+        fun createMetadataHandler(): WebHandler {
+            return WebHandler {
+                val metadata = dev.kingssack.volt.service.MetadataService.getAllMetadata()
+                val gson = com.google.gson.Gson()
+                val json =
+                        gson.toJson(mapOf("robots" to metadata.first, "actions" to metadata.second))
+
                 NanoHTTPD.newFixedLengthResponse(
-                    NanoHTTPD.Response.Status.OK,
-                    contentType,
-                    content
+                        NanoHTTPD.Response.Status.OK,
+                        "application/json",
+                        json
                 )
             }
         }
