@@ -2,9 +2,12 @@ package org.firstinspires.ftc.teamcode.samples;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+import org.jetbrains.annotations.NotNull;
 
-public class SampleAuto extends AutonomousMode<SampleRobot> {
+// an actual opmode would not have abstract
+abstract public class SampleAuto extends AutonomousMode<SampleRobot> {
     public SampleAuto() {
         super(SampleRobot::new);
     }
@@ -23,5 +26,10 @@ public class SampleAuto extends AutonomousMode<SampleRobot> {
             builder.unaryPlus(sampleAction());
             return kotlin.Unit.INSTANCE;
         });
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return "sample opmode name";
     }
 }
