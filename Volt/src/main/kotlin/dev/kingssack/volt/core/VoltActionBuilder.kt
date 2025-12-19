@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.ParallelAction
 import com.acmerobotics.roadrunner.SequentialAction
 import dev.kingssack.volt.robot.Robot
+import java.lang.System.nanoTime
 
 @DslMarker annotation class VoltBuilderDsl
 
@@ -19,6 +20,16 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
 
     operator fun Action.unaryPlus() {
         actions.add(this)
+    }
+
+    fun wait(dt: Double) {
+        val beginNs = nanoTime()
+        actions.add(
+            Action {
+                val elapsedNs = nanoTime() - beginNs
+                return@Action (elapsedNs / 1e9) < dt
+            }
+        )
     }
 
     fun parallel(block: VoltActionBuilder<R>.() -> Unit) {

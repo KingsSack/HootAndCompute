@@ -8,6 +8,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.CRServo
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.LED
@@ -63,6 +64,14 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @return a Lazy that gets the motor from the hardware map
      */
     protected fun motor(name: String): Lazy<DcMotor> = lazy { hardwareMap.dcMotor.get(name) }
+
+    /**
+     * Helper function to create a motorEx property delegate.
+     *
+     * @param name the name of the motorEx
+     * @return a Lazy that gets the motorEx from the hardware map
+     */
+    protected fun motorEx(name: String): Lazy<DcMotorEx> = lazy { hardwareMap.get(DcMotorEx::class.java, name) }
 
     /**
      * Helper function to create a servo property delegate.
