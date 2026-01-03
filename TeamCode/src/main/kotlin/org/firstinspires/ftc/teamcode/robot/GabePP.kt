@@ -74,8 +74,6 @@ class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
 }
 
 @VoltBuilderDsl
-inline fun VoltActionBuilder<GabePP>.drivetrain(
-    block: MecanumDriveWithPP.() -> Unit
-) {
+inline fun VoltActionBuilder<GabePP>.drivetrain(block: MecanumDriveWithPP.() -> Unit) {
     block(robot.drivetrain)
 }
