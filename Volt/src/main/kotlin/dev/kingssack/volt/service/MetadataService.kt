@@ -1,5 +1,7 @@
 package dev.kingssack.volt.service
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import dalvik.system.DexFile
 import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.model.ActionMetadata
@@ -12,7 +14,7 @@ import kotlin.reflect.jvm.kotlinFunction
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
 object MetadataService {
-
+    @RequiresApi(Build.VERSION_CODES.O)
     fun getAllMetadata(): Pair<List<RobotMetadata>, List<ActionMetadata>> {
         val context = AppUtil.getDefContext() ?: return Pair(emptyList(), emptyList())
 
@@ -26,36 +28,32 @@ object MetadataService {
             while (entries.hasMoreElements()) {
                 val className = entries.nextElement()
                 // Scan TeamCode and specific Volt packages if needed
-                if (className.startsWith("org.firstinspires.ftc.teamcode") ||
-                                className.startsWith("dev.kingssack.volt")
+                if (
+                    className.startsWith("org.firstinspires.ftc.teamcode") ||
+                        className.startsWith("dev.kingssack.volt")
                 ) {
 
                     try {
                         // Skip some obviously non-relevant classes to speed up
                         if (className.contains("$"))
-                                continue // Skip inner classes for now unless necessary
+                            continue // Skip inner classes for now unless necessary
 
                         val clazz = Class.forName(className, false, context.classLoader)
 
                         // Check for Robot
-                        if (Robot::class.java.isAssignableFrom(clazz) &&
-                                        !java.lang.reflect.Modifier.isAbstract(clazz.modifiers)
+                        if (
+                            Robot::class.java.isAssignableFrom(clazz) &&
+                                !java.lang.reflect.Modifier.isAbstract(clazz.modifiers)
                         ) {
                             robots.add(
-                                    RobotMetadata(
-                                            simpleName = clazz.simpleName,
-                                            qualifiedName = clazz.name
-                                    )
+                                RobotMetadata(
+                                    simpleName = clazz.simpleName,
+                                    qualifiedName = clazz.name,
+                                )
                             )
                         }
 
-                        // Check for Actions in any class (usually in Robot or sub-attachments, but
-                        // let's scan all)
-                        // Actually, actions are usually extension methods or methods on the
-                        // Robot/Attachment.
-                        // The user said "All Actions from the TeamCode module labeled with
-                        // @VoltAction"
-
+                        // Check for Actions
                         clazz.methods.forEach { method -> processMethod(method, clazz, actions) }
                     } catch (e: Throwable) {
                         // Ignore load errors (NoClassDefFoundError etc)
@@ -69,29 +67,27 @@ object MetadataService {
         return Pair(robots, actions)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun processMethod(
-            method: Method,
-            clazz: Class<*>,
-            actions: MutableList<ActionMetadata>
+        method: Method,
+        clazz: Class<*>,
+        actions: MutableList<ActionMetadata>,
     ) {
         val annotation = method.getAnnotation(VoltAction::class.java) ?: return
 
         val kFunction = method.kotlinFunction
 
         val parameters =
-                kFunction?.valueParameters?.map { param ->
-                    ParameterMetadata(
-                            name = param.name ?: "arg",
-                            type =
-                                    param.type
-                                            .toString()
-                                            .substringAfterLast("."), // Simple type name
-                            defaultValue = null // Hard to get default value without instance
-                    )
+            kFunction?.valueParameters?.map { param ->
+                ParameterMetadata(
+                    name = param.name ?: "arg",
+                    type = param.type.toString().substringAfterLast("."), // Simple type name
+                    defaultValue = null, // Hard to get the default value without an instance
+                )
+            }
+                ?: method.parameters.map { param ->
+                    ParameterMetadata(name = param.name, type = param.type.simpleName)
                 }
-                        ?: method.parameters.map { param ->
-                            ParameterMetadata(name = param.name, type = param.type.simpleName)
-                        }
 
         // Determine robot type (receiver type if extension, or declaring class)
         // If it's an extension function, the first parameter is the receiver.
@@ -104,13 +100,13 @@ object MetadataService {
         val robotType = clazz.simpleName
 
         actions.add(
-                ActionMetadata(
-                        id = "${clazz.simpleName}.${method.name}",
-                        name = if (annotation.name.isNotEmpty()) annotation.name else method.name,
-                        description = annotation.description,
-                        parameters = parameters,
-                        robotType = robotType
-                )
+            ActionMetadata(
+                id = "${clazz.simpleName}.${method.name}",
+                name = annotation.name.ifEmpty { method.name },
+                description = annotation.description,
+                parameters = parameters,
+                robotType = robotType,
+            )
         )
     }
 }
