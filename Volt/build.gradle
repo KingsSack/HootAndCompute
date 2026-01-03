@@ -54,7 +54,7 @@ repositories {
 dependencies {
     api "org.firstinspires.ftc:RobotCore:$min_sdk_version"
     api "org.firstinspires.ftc:Hardware:$min_sdk_version"
-
+    implementation("dev.frozenmilk.dairy:Core:2.2.4")
     api("com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version") {
         exclude group: "com.acmerobotics.dashboard"
     }
@@ -76,7 +76,6 @@ dependencies {
     implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
         exclude module: "nanohttpd"
     }
-    implementation("dev.frozenmilk:Sinister:2.2.0")
     implementation "org.jetbrains.kotlin:kotlin-reflect:2.2.21"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
 

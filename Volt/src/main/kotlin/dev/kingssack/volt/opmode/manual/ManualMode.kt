@@ -3,8 +3,8 @@ package dev.kingssack.volt.opmode.manual
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager
 import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
@@ -29,8 +29,8 @@ abstract class ManualMode<R : Robot>(
 ) : VoltOpMode<R>(robotFactory) {
     abstract val name: String
     open val group : String = OpModeMeta.DefaultGroup
-    override fun register(opModeManager: AnnotatedOpModeManager) {
-        opModeManager.register(OpModeMeta.Builder().setName(name).setGroup(group).setFlavor(OpModeMeta.Flavor.TELEOP).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), javaClass.getDeclaredConstructor().newInstance())
+    override fun register(registrationHelper: RegistrationHelper) {
+        registrationHelper.register(OpModeMeta.Builder().setName(name).setGroup(group).setFlavor(OpModeMeta.Flavor.TELEOP).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), javaClass.getDeclaredConstructor().newInstance())
     }
     /**
      * Configuration object for manual control.
