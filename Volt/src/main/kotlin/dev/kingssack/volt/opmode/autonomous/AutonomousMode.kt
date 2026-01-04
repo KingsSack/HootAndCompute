@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.kingssack.volt.core.VoltActionBuilder
@@ -23,9 +22,9 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
     abstract val name: String
-    open val group : String = OpModeMeta.DefaultGroup
-    open val autoTransition : String? = null
-    override fun register(registrationHelper:RegistrationHelper) {
+    open val group: String = OpModeMeta.DefaultGroup
+    open val autoTransition: String? = null
+    override fun register(registrationHelper: RegistrationHelper) {
         registrationHelper.register(OpModeMeta.Builder().setName(name).setGroup(group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), javaClass.getDeclaredConstructor().newInstance())
     }
     override fun begin() {

@@ -34,9 +34,10 @@ abstract class VoltOpMode<R : Robot>(robotFactory: (HardwareMap) -> R) : LinearO
         override val loadAdjacencyRule = INDEPENDENT
         override val unloadAdjacencyRule = INDEPENDENT
         override val targets = NarrowSearch()
-        override fun scan(loader: ClassLoader, cls: Class<*>, registrationHelper:RegistrationHelper) {
+        override fun scan(loader: ClassLoader, cls: Class<*>, registrationHelper: RegistrationHelper) {
             if (VoltOpMode::class.java.isAssignableFrom(cls) && !Modifier.isAbstract(cls.modifiers))
-                cls.getDeclaredMethod("register", RegistrationHelper::class.java)(registrationHelper)
+                (cls as Class<VoltOpMode<*>>).getDeclaredConstructor().newInstance().register(registrationHelper)
+            // due to type erasure, casting is necessary here
         }
     }
 }

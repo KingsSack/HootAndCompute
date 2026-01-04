@@ -8,7 +8,7 @@ import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.robot.GabeRR
 
 @Suppress("unused")
-class Manatee() :
+class Manatee :
     SimpleManualModeWithSpeedModes<MecanumDriveWithRR, GabeRR>({ hardwareMap ->
         GabeRR(hardwareMap)
     }) {

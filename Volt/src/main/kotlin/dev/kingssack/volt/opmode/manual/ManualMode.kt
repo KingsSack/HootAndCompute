@@ -28,7 +28,7 @@ abstract class ManualMode<R : Robot>(
     private val params: ManualParams = ManualParams(),
 ) : VoltOpMode<R>(robotFactory) {
     abstract val name: String
-    open val group : String = OpModeMeta.DefaultGroup
+    open val group: String = OpModeMeta.DefaultGroup
     override fun register(registrationHelper: RegistrationHelper) {
         registrationHelper.register(OpModeMeta.Builder().setName(name).setGroup(group).setFlavor(OpModeMeta.Flavor.TELEOP).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), javaClass.getDeclaredConstructor().newInstance())
     }

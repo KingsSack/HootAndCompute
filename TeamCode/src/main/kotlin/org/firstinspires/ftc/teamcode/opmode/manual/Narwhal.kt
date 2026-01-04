@@ -5,7 +5,7 @@ import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import org.firstinspires.ftc.teamcode.robot.GabePP
 
 @Suppress("unused")
-class Narwhal() :
+class Narwhal :
     SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ hardwareMap ->
         GabePP(hardwareMap)
     }) {

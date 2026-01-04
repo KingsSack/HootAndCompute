@@ -7,7 +7,7 @@ import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import org.firstinspires.ftc.teamcode.util.PathConstants
 
 @Suppress("unused")
-class Pigeon() : AutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, Pose(57.0, 9.0, 90.0)) }) {
+class Pigeon : AutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, Pose(57.0, 9.0, 90.0)) }) {
     override val name = "Pigeon"
     override val group = "Competition"
     override val autoTransition = "Manatee"

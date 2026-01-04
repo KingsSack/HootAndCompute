@@ -1,6 +1,5 @@
 package dev.kingssack.volt.opmode.autonomous
 
-import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.kingssack.volt.robot.Robot
@@ -8,7 +7,7 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 abstract class DualAutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) : AutonomousMode<R>(robotFactory) {
 
-    override fun register(registrationHelper:RegistrationHelper) {
+    override fun register(registrationHelper: RegistrationHelper) {
         val red : DualAutonomousMode<R> = javaClass.getDeclaredConstructor().newInstance()
         val blue : DualAutonomousMode<R> = javaClass.getDeclaredConstructor().newInstance()
         red.color = AllianceColor.RED
@@ -25,7 +24,7 @@ abstract class DualAutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
      * @param blue what to return if you are on the blue alliance
      * */
     @Suppress("unused")
-    fun <a> sw(red: a, blue: a) : a {
+    fun <T> sw(red: T, blue: T) : T {
         return if (color == AllianceColor.RED) {red} else {blue}
     }
 }

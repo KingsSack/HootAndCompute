@@ -7,14 +7,13 @@ import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.robot.drivetrain
 import org.firstinspires.ftc.teamcode.robot.launcher
 import org.firstinspires.ftc.teamcode.robot.storage
-import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
 import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Config
 @Suppress("unused")
-class Finch() :
+class Finch :
     DualAutonomousMode<GabePP>({ hardwareMap ->
         GabePP(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
     }) {

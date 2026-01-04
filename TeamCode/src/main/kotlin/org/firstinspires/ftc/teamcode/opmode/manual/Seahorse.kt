@@ -7,7 +7,7 @@ import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.robot.JonesPP
 
 @Suppress("unused")
-class Seahorse() :
+class Seahorse :
     SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>({ hardwareMap ->
         JonesPP(hardwareMap)
     }) {
