@@ -6,10 +6,16 @@ import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 abstract class DualAutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) : AutonomousMode<R>(robotFactory) {
-
+    private fun construct(color: AllianceColor) : DualAutonomousMode<R> {
+        return try {
+            javaClass.getDeclaredConstructor(AllianceColor::class.java).newInstance(color)
+        } catch (e: NoSuchMethodException) {
+            javaClass.getDeclaredConstructor().newInstance()
+        }
+    }
     override fun register(registrationHelper: RegistrationHelper) {
-        val red : DualAutonomousMode<R> = javaClass.getDeclaredConstructor().newInstance()
-        val blue : DualAutonomousMode<R> = javaClass.getDeclaredConstructor().newInstance()
+        val red : DualAutonomousMode<R> = construct(AllianceColor.RED)
+        val blue : DualAutonomousMode<R> = construct(AllianceColor.BLUE)
         red.color = AllianceColor.RED
         blue.color = AllianceColor.BLUE
         registrationHelper.register(OpModeMeta.Builder().setName("$name Red").setGroup(group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), red)

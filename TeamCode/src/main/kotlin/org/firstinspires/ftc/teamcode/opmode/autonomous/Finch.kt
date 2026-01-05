@@ -3,8 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.robot.drivetrain
 import org.firstinspires.ftc.teamcode.robot.launcher
@@ -17,9 +16,10 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 @Suppress("unused")
 @Config
 abstract class Finch(
+    color: AllianceColor,
     initialPose: Pose,
     private val startingPosition: StartingPosition,
-) : DualAutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, sw(initialPose, initialPose.mirror()) }) {
+) : DualAutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, if (color == AllianceColor.BLUE) initialPose else initialPose.mirror()) }) {
     
     override val name = "Finch " + if (startingPosition == StartingPosition.WALL) "wall" else "goal"
     override val autoTransition = "Manatee"
@@ -56,8 +56,12 @@ abstract class Finch(
     }
 }
 
-class FinchWall :
-    Finch(Pose(56.0, 9.0, 90.0.toRadians()), StartingPosition.WALL)
+@Suppress("unused")
+class FinchWall(
+    color: AllianceColor
+) : Finch(color, Pose(56.0, 9.0, 90.0.toRadians()), StartingPosition.WALL)
 
-class FinchGoal :
-    Finch(Pose(26.0, 133.0, 142.0.toRadians()), StartingPosition.GOAL)
+@Suppress("unused")
+class FinchGoal(
+    color: AllianceColor
+) : Finch(color, Pose(26.0, 133.0, 142.0.toRadians()), StartingPosition.GOAL)
