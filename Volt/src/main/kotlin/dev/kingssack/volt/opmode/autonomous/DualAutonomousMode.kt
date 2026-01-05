@@ -1,11 +1,10 @@
 package dev.kingssack.volt.opmode.autonomous
 
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
-abstract class DualAutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) : AutonomousMode<R>(robotFactory) {
+abstract class DualAutonomousMode<R : Robot> : AutonomousMode<R>() {
     private fun construct(color: AllianceColor) : DualAutonomousMode<R> {
         return try {
             javaClass.getDeclaredConstructor(AllianceColor::class.java).newInstance(color)

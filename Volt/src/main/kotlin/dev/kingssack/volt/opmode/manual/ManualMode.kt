@@ -3,7 +3,6 @@ package dev.kingssack.volt.opmode.manual
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
@@ -24,9 +23,8 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
  * @property robot the robot instance
  */
 abstract class ManualMode<R : Robot>(
-    robotFactory: (HardwareMap) -> R,
     private val params: ManualParams = ManualParams(),
-) : VoltOpMode<R>(robotFactory) {
+) : VoltOpMode<R>() {
     abstract val name: String
     open val group: String = OpModeMeta.DefaultGroup
     override fun register(registrationHelper: RegistrationHelper) {

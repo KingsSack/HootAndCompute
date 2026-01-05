@@ -8,10 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 // an actual opmode would not have abstract
 abstract public class SampleAuto extends AutonomousMode<SampleRobot> {
-    public SampleAuto() {
-        super(SampleRobot::new);
-    }
-
     Action sampleAction() {
         return new SequentialAction(
                 super.getRobot().motor.goTo(0.5, 50),
@@ -29,7 +25,12 @@ abstract public class SampleAuto extends AutonomousMode<SampleRobot> {
     }
 
     @Override
-    public @NotNull String getName() {
+    public String getName() {
         return "sample opmode name";
+    }
+
+    @Override
+    public SampleRobot getRobot(HardwareMap hardwareMap) {
+        return new SampleRobot(hardwareMap);
     }
 }

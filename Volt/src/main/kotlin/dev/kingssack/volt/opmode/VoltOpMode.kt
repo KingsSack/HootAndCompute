@@ -11,8 +11,9 @@ import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import java.lang.reflect.Modifier
 
-abstract class VoltOpMode<R : Robot>(robotFactory: (HardwareMap) -> R) : LinearOpMode() {
-    protected val robot: R by lazy { robotFactory(hardwareMap) }
+abstract class VoltOpMode<R : Robot> : LinearOpMode() {
+    protected val robot: R by lazy { getRobot(hardwareMap) }
+    abstract fun getRobot(hardwareMap: HardwareMap) :  R
 
     /** Optional initialization code. */
     open fun initialize() {

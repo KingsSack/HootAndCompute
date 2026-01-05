@@ -1,18 +1,21 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.qualcomm.robotcore.hardware.Gamepad
+import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.robot.GabePP
 
 @Suppress("unused")
-class Manatee :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ hardwareMap ->
-        GabePP(hardwareMap)
-    }) {
+class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
+
     override val name =  "Manatee"
     override val group = "Competition"
+    override fun getRobot(hardwareMap: HardwareMap): GabePP {
+        return GabePP(hardwareMap)
+    }
+
     init {
         // Launcher
         onButtonTapped(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.enable() }
