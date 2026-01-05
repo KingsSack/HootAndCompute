@@ -17,10 +17,5 @@ class Seahorse :
         // Launcher
         onButtonTapped(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.enable() }
         onButtonReleased(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.disable() }
-        onAnalog(GamepadAnalogInput.RIGHT_TRIGGER2) { value ->
-            if (!isButtonPressed(GamepadButton.RIGHT_BUMPER2)) {
-                robot.launcher.setPower(value.toDouble())
-            }
-        }
     }
 }

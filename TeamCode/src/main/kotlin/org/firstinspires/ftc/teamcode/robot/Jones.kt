@@ -28,11 +28,11 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val lidarRight by distanceSensor(lidarRightName)
     private val huskyLens by huskyLens(huskyLensName)
 
-    private val leftLauncherMotor by motor("fll")
-    private val rightLauncherMotor by motor("flr")
+    private val leftLauncherMotor by motorEx("fll")
+    private val rightLauncherMotor by motorEx("flr")
 
     // Attachments
-    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor) }
+    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor, lidarLeft) }
 
     init {
         // Set huskylens mode

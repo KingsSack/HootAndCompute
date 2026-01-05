@@ -27,7 +27,7 @@ class Magpie :
 
     override fun sequence() = execute {
         val tags = context (telemetry) { robot.getDetectedAprilTags() }
-        +robot.drivetrain.pathTo(paths.pathToLaunchZoneB)
+        +robot.drivetrain.pathTo(paths.pathToLaunchZoneFromWall)
         when (tags[0].id) {
             21 -> telemetry.addData("Pattern", "GPP")
             22 -> telemetry.addData("Pattern", "PGP")

@@ -53,7 +53,7 @@ class MecanumDriveWithPP(
     }
 
     fun pathTo(pathChain: PathChain): Action = Action {
-        follower.followPath(pathChain, true)
+        if (!follower.isBusy) follower.followPath(pathChain, true)
         follower.update()
         follower.isBusy
     }
@@ -67,7 +67,6 @@ class MecanumDriveWithPP(
             addData("x", follower.pose.x)
             addData("y", follower.pose.y)
             addData("heading (deg)", Math.toDegrees(follower.pose.heading))
-            addLine()
         }
     }
 }
