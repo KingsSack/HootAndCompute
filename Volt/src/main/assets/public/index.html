@@ -1,883 +1,336 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Volt Flow Editor</title>
-        <script src="js/tailwind.min.js"></script>
-        <script defer src="js/alpine.min.js"></script>
-        <link href="fonts/outfit.css" rel="stylesheet" />
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: {
-                            sans: ["Outfit", "sans-serif"],
-                        },
-                        colors: {
-                            gray: {
-                                750: "#2d3748",
-                                850: "#1a202c",
-                                900: "#111827",
-                                950: "#0B0F19",
-                            },
-                            accent: {
-                                400: "#818cf8",
-                                500: "#6366f1",
-                                600: "#4f46e5",
-                            },
-                        },
-                    },
-                },
-            };
-        </script>
-        <style>
-            body {
-                overscroll-behavior: none;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volt Flow Editor</title>
+    <!-- Local vendor files for offline support -->
+    <link rel="stylesheet" href="vendor/tailwind.css">
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="vendor/alpine.min.js"></script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    <script>
+        // Register Service Worker for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[SW] Registered:', reg.scope))
+                    .catch(err => console.log('[SW] Registration failed:', err));
+            });
+        }
+    </script>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans overflow-hidden h-screen flex flex-col" x-data="app()">
 
-            .dot-grid {
-                background-image: radial-gradient(
-                    circle,
-                    #4b5563 1px,
-                    transparent 1px
-                );
-                background-size: 24px 24px;
-            }
-
-            .glass {
-                background: rgba(17, 24, 39, 0.85);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-            }
-        </style>
-    </head>
-    <body
-        class="bg-gray-950 text-white h-screen w-screen overflow-hidden font-sans select-none"
-        x-data="flowEditor()"
-        x-init="initEditor()"
-        @keydown.window="handleKeydown($event)"
-        @wheel.prevent="handleWheel($event)"
-    >
-        <!-- Error Banner -->
-        <div
-            x-show="errorMessage"
-            class="absolute top-0 left-0 right-0 z-50 bg-red-600/90 text-white p-2 text-center text-sm font-semibold transition-transform"
-            x-transition.duration.300ms
-        >
-            <span x-text="errorMessage"></span>
-            <button
-                @click="errorMessage = null"
-                class="ml-4 underline opacity-75 hover:opacity-100"
-            >
-                Dismiss
-            </button>
+    <!-- Top Bar -->
+    <header class="h-16 border-b border-gray-800 bg-gray-900/50 backdrop-blur-md flex items-center justify-between px-6 z-50">
+        <div class="flex items-center space-x-4">
+            <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight" x-text="currentOpMode?.name || 'Volt Flow Editor'"></h1>
+                <p class="text-xs text-gray-400" x-text="currentOpMode?.type || 'Select or create an OpMode'"></p>
+            </div>
         </div>
 
-        <!-- Infinite Canvas Container -->
-        <div
-            class="absolute inset-0 z-0 overflow-hidden cursor-grab active:cursor-grabbing"
-            :class="{'cursor-grabbing': viewport.isPanning}"
-            @mousedown.self="startPan($event)"
-            @mousemove="handleMouseMove($event)"
-            @mouseup="endInteraction($event)"
-            @mouseleave="endInteraction($event)"
-        >
-            <!-- The Canvas Content -->
-            <div
-                class="absolute origin-top-left will-change-transform"
-                :style="`transform: translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale});`"
-            >
-                <!-- Grid -->
-                <div
-                    class="absolute -inset-[10000px] dot-grid opacity-20 pointer-events-none"
-                ></div>
+        <div class="flex items-center space-x-3">
+            <button @click="saveOpMode()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium transition-all">Save</button>
+            <button @click="deployOpMode()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4.5 3.5v13L16 10l-11.5-6.5z"/></svg>
+                Deploy
+            </button>
+        </div>
+    </header>
 
-                <!-- Connections Layer -->
-                <svg
-                    class="absolute top-0 left-0 w-full h-full overflow-visible pointer-events-none z-10"
-                >
-                    <template x-for="conn in connections" :key="conn.id">
-                        <path
-                            d="getPath(conn)"
-                            stroke="#4b5563"
-                            stroke-width="2"
-                            fill="none"
-                            class="opacity-75 cursor-pointer hover:stroke-accent-400 transition-colors"
-                            @mousedown.stop="startDragConnection($event, nodes.find(n => n.id === conn.from))"
-                            :data-connection-id="conn.id"
-                        />
-                    </template>
-                    <!-- Dragging Connection -->
-                    <path
-                        x-show="dragConnection.active && !editingConnection"
-                        d="getDragPath()"
-                        stroke="#6366f1"
-                        stroke-width="2"
-                        fill="none"
-                        stroke-dasharray="5,5"
-                        class="opacity-75"
-                    />
-                    <!-- Editing Connection -->
-                    <path
-                        x-show="dragConnection.active && editingConnection"
-                        d="getDragPath()"
-                        stroke="#6366f1"
-                        stroke-width="2"
-                        fill="none"
-                        class="opacity-75"
-                    />
+    <main class="flex-1 flex overflow-hidden relative">
+        <!-- Sidebar -->
+        <aside class="w-72 bg-gray-900 border-r border-gray-800 flex flex-col z-40 transition-all duration-300" :class="{ '-ml-72': !sidebarOpen }">
+            <div class="p-4 border-b border-gray-800">
+                <div class="relative">
+                    <input type="text" x-model="nodeSearch" placeholder="Search nodes..." class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none select-text">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                <!-- Loading State -->
+                <div x-show="actionsLoading" class="flex items-center justify-center py-8">
+                    <svg class="animate-spin h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="ml-2 text-sm text-gray-400">Loading actions...</span>
+                </div>
+                
+                <!-- Node Types Sections -->
+                <template x-for="category in allCategories" :key="category.name">
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-2" x-text="category.name"></h3>
+                        <div class="space-y-2">
+                            <template x-for="node in filterNodes(category.nodes)" :key="node.type + node.label">
+                                <div draggable="true" 
+                                     @dragstart="onDragStart($event, node)"
+                                     class="flex items-center p-3 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-xl cursor-grab active:cursor-grabbing transition-colors group select-none">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3" :class="node.colorClass">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-html="node.icon"></svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" x-text="node.label"></p>
+                                        <p class="text-[10px] text-gray-500 truncate" x-text="node.description"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Empty state for filtered results -->
+                        <div x-show="filterNodes(category.nodes).length === 0 && nodeSearch" class="text-xs text-gray-600 text-center py-4 italic">
+                            No matching nodes
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </aside>
+
+        <!-- Sidebar Toggle -->
+        <button @click="sidebarOpen = !sidebarOpen" class="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-gray-900 border border-l-0 border-gray-800 p-1 rounded-r-lg hover:bg-gray-800 transition-colors shadow-xl">
+            <svg class="w-5 h-5 text-gray-400 transition-transform duration-300" :class="{ 'rotate-180': !sidebarOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+
+        <!-- Canvas Area -->
+        <div class="flex-1 relative bg-gray-950 overflow-hidden cursor-crosshair select-none" 
+             x-ref="canvasContainer"
+             @mousedown="onCanvasMouseDown"
+             @mousemove="onCanvasMouseMove"
+             @mouseup="onCanvasMouseUp"
+             @wheel="onCanvasWheel"
+             @dragover.prevent
+             @drop="onDrop">
+            
+            <!-- Infinite Grid Background -->
+            <div class="absolute inset-0 pointer-events-none" :style="gridStyle"></div>
+
+            <!-- Canvas Container (Panned and Zoomed) -->
+            <div class="absolute inset-0 pointer-events-none origin-top-left" 
+                 :class="{ 'connection-active': activeConnection }"
+                 :style="canvasStyle">
+                
+                <!-- Connections SVG Layer -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orientation="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="rgba(99, 102, 241, 0.5)" />
+                        </marker>
+                    </defs>
+                    <g x-html="renderConnections()"></g>
+                    <!-- Active connection being dragged -->
+                    <path x-show="activeConnection" :d="activeConnectionPath" stroke="rgba(99, 102, 241, 0.5)" stroke-width="3" fill="none" stroke-dasharray="5,5" class="animate-dash" vector-effect="non-scaling-stroke" />
                 </svg>
 
-                <!-- Ghost Node (Dragging New) -->
-                <div
-                    x-show="dragNewNode.active"
-                    class="absolute glass rounded-xl p-3 w-48 border border-accent-500/50 shadow-2xl z-50 pointer-events-none opacity-80"
-                    :style="`left: ${dragNewNode.x}px; top: ${dragNewNode.y}px`"
-                >
-                    <div class="text-xs font-semibold text-accent-200">
-                        New Node
-                    </div>
-                </div>
-
-                <!-- Nodes Layer -->
+                <!-- Nodes -->
                 <template x-for="node in nodes" :key="node.id">
-                    <div
-                        class="absolute glass rounded-xl shadow-2xl transition-all group min-w-[200px]"
-                        :class="{'ring-2 ring-accent-500 ring-offset-2 ring-offset-[#111827]': selectedNode?.id === node.id}"
-                        :style="`left: ${node.x}px; top: ${node.y}px; width: ${node.type==='start'?100:200}px`"
-                        @mousedown.stop="startDragNode($event, node)"
-                        @click.stop="selectNode(node)"
-                    >
-                        <!-- Header -->
-                        <div
-                            class="p-3 border-b border-white/5 flex justify-between items-center bg-white/5 rounded-t-xl cursor-grab active:cursor-grabbing"
-                        >
-                            <span
-                                class="font-medium text-sm"
-                                :class="node.type === 'start' ? 'text-emerald-400' : 'text-purple-200'"
-                                x-text="node.name"
-                            ></span>
-                            <div
-                                x-show="node.type !== 'start'"
-                                @click.stop="deleteNode(node.id)"
-                                class="text-gray-500 hover:text-red-400 cursor-pointer p-1"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                    <div class="absolute pointer-events-auto bg-gray-900/80 backdrop-blur-xl border-2 rounded-2xl shadow-2xl min-w-[220px] transition-all duration-200 hover:shadow-indigo-500/10 select-none"
+                         :class="[node.selected ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-gray-800 hover:border-gray-700', node.dragging ? 'z-50 scale-[1.02]' : 'z-30']"
+                         :style="`left: ${node.x}px; top: ${node.y}px;`"
+                         @mousedown.stop="onNodeMouseDown($event, node)">
+                        
+                        <!-- Node Header -->
+                        <div class="p-3.5 border-b border-gray-800/50 flex items-center bg-gray-800/20">
+                            <div class="w-7 h-7 rounded-lg flex items-center justify-center mr-3 shadow-inner" :class="node.colorClass">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-html="node.icon"></svg>
                             </div>
+                            <span class="text-sm font-bold truncate flex-1 tracking-tight" x-text="node.label"></span>
+                            <button @click.stop="deleteNode(node.id)" class="text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
                         </div>
 
-                        <!-- Body -->
-                        <div class="p-3 space-y-2">
-                            <div
-                                class="text-[10px] text-gray-500 uppercase tracking-widest mb-1"
-                                x-text="node.description || node.type"
-                            ></div>
-                            <!-- Dynamic Inputs -->
-                            <template
-                                x-for="(param, idx) in node.parameters"
-                                :key="idx"
-                            >
-                                <div class="space-y-1">
-                                    <label
-                                        class="text-[10px] text-gray-400 uppercase font-mono"
-                                        x-text="param.name"
-                                    ></label>
-                                    <input
-                                        type="text"
-                                        x-model="param.value"
-                                        @mousedown.stop
-                                        @keydown.stop
-                                        class="w-full bg-black/30 border border-gray-700/50 rounded px-1.5 py-0.5 text-[10px] text-white focus:border-accent-500 outline-none font-mono"
-                                    />
+                        <!-- Node Inputs/Outputs Ports -->
+                        <!-- Relative positioning for ports to be at edges -->
+                        <div class="absolute inset-0 pointer-events-none">
+                            <!-- Input Port (Left Center) -->
+                            <template x-if="node.type !== 'start'">
+                                <div class="absolute -left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center pointer-events-auto group cursor-crosshair"
+                                     @mousedown.stop="onPortMouseDown($event, node.id, 'input')">
+                                    <div class="w-4 h-4 bg-gray-800 border-2 border-indigo-500 rounded-full group-hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
+                                         :id="`port-in-${node.id}`"></div>
+                                </div>
+                            </template>
+                            
+                            <!-- Output Port (Right Center) -->
+                            <template x-if="node.type !== 'end'">
+                                <div class="absolute -right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center pointer-events-auto group cursor-crosshair"
+                                     @mousedown.stop="onPortMouseDown($event, node.id, 'output')">
+                                    <div class="w-4 h-4 bg-gray-800 border-2 border-indigo-500 rounded-full group-hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
+                                         :id="`port-out-${node.id}`"></div>
                                 </div>
                             </template>
                         </div>
 
-                        <!-- Ports -->
-                        <!-- Input Port (Target) -->
-                        <div
-                            x-show="node.type !== 'start'"
-                            :id="'port-in-' + node.id"
-                            class="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-gray-600 rounded-full border border-gray-800 hover:bg-accent-500 hover:scale-125 transition-all cursor-crosshair"
-                            @mouseup.stop="completeConnection(node)"
-                        ></div>
-
-                        <!-- Output Port (Source) -->
-                        <div
-                            class="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-gray-800 hover:scale-125 transition-all cursor-crosshair"
-                            :id="'port-out-' + node.id"
-                            :class="node.type === 'start' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-gray-400 hover:bg-accent-500'"
-                            @mousedown.stop="startDragConnection($event, node)"
-                        ></div>
+                        <!-- Node Content (Parameters) -->
+                        <div class="p-4 space-y-4">
+                            <template x-for="(val, key) in node.data.parameters" :key="key">
+                                <div class="space-y-1.5" @mousedown.stop>
+                                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest pl-1" x-text="key"></label>
+                                    <input type="text" x-model="node.data.parameters[key]" 
+                                           class="w-full bg-gray-950/50 border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-indigo-100 font-mono focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all placeholder-gray-700 select-text">
+                                </div>
+                            </template>
+                            <template x-if="Object.keys(node.data.parameters || {}).length === 0">
+                                <div class="text-[10px] text-gray-600 italic text-center py-2">No configuration required</div>
+                            </template>
+                        </div>
                     </div>
                 </template>
             </div>
+
+            <!-- Canvas Controls -->
+            <div class="absolute bottom-6 right-6 flex flex-col space-y-2 z-50">
+                <div class="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl p-1 flex flex-col overflow-hidden">
+                    <button @click="zoomIn()" class="p-2 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                    <div class="h-px bg-gray-800"></div>
+                    <button @click="zoomOut()" class="p-2 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                    </button>
+                    <div class="h-px bg-gray-800"></div>
+                    <button @click="resetView()" class="p-2 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors" title="Fit to screen">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    </button>
+                </div>
+                <div class="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl px-3 py-1 text-[10px] font-mono text-gray-500">
+                    <span x-text="Math.round(viewport.zoom * 100) + '%'"></span>
+                </div>
+            </div>
         </div>
+    </main>
 
-        <!-- UI Overlay -->
-        <div
-            class="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-4"
-        >
-            <!-- Top Bar -->
-            <div
-                class="pointer-events-auto self-center glass px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl"
-            >
-                <div class="flex flex-col">
-                    <span
-                        class="text-[10px] uppercase tracking-wider text-gray-400 font-bold"
-                        >Current Flow</span
-                    >
-                    <input
-                        type="text"
-                        x-model="flowName"
-                        class="bg-transparent border-none p-0 text-sm font-semibold text-white focus:ring-0 w-32 placeholder-gray-600 outline-none"
-                        placeholder="Untitled Flow"
-                    />
+    <!-- Project List Modal (Initial State) -->
+    <div x-show="showOpModeModal" class="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm" x-cloak x-transition>
+        <div class="bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="p-8 border-b border-gray-800 flex justify-between items-center bg-indigo-600/10">
+                <div>
+                    <h2 class="text-2xl font-bold">Select OpMode</h2>
+                    <p class="text-sm text-gray-400 mt-1">Choose an existing flow or create a new one.</p>
                 </div>
-                <div class="h-6 w-px bg-white/10"></div>
-                <div class="bg-black/30 p-1 rounded-lg flex gap-1">
-                    <button
-                        @click="setMode('auto')"
-                        :class="mode === 'auto' ? 'bg-accent-600' : 'text-gray-400 hover:text-white'"
-                        class="px-3 py-1 rounded text-xs font-semibold transition-all"
-                    >
-                        Auto
-                    </button>
-                    <button
-                        @click="setMode('manual')"
-                        :class="mode === 'manual' ? 'bg-emerald-600' : 'text-gray-400 hover:text-white'"
-                        class="px-3 py-1 rounded text-xs font-semibold transition-all"
-                    >
-                        TeleOp
+                <div class="flex space-x-2">
+                    <button @click="openCreateModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-bold shadow-xl shadow-indigo-500/20 transition-all flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        New OpMode
                     </button>
                 </div>
             </div>
-
-            <!-- Left Sidebar: Actions / Nodes -->
-            <div
-                class="pointer-events-auto absolute top-24 left-6 bottom-6 w-64 glass rounded-xl flex flex-col shadow-xl overflow-hidden"
-            >
-                <div class="p-3 border-b border-white/10 bg-white/5">
-                    <div
-                        class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2"
-                    >
-                        Add Node
-                    </div>
-                    <input
-                        type="text"
-                        x-model="searchQuery"
-                        placeholder="Search actions..."
-                        class="w-full bg-gray-900/50 border border-gray-700 rounded px-2 py-1.5 text-xs text-white focus:border-accent-500 outline-none"
-                    />
-                </div>
-                <div class="flex-1 overflow-y-auto p-2 space-y-2">
-                    <template
-                        x-for="action in filteredActions"
-                        :key="action.id"
-                    >
-                        <div
-                            class="p-2 rounded bg-gray-800/40 border border-white/5 hover:border-accent-500/50 cursor-grab active:cursor-grabbing group transition-all"
-                            @mousedown.stop="startDragNewNode($event, action)"
-                        >
-                            <div
-                                class="text-xs font-medium text-gray-200 group-hover:text-accent-300"
-                                x-text="action.name.split('.').pop()"
-                            ></div>
-                            <div
-                                class="text-[10px] text-gray-500 truncate"
-                                x-text="action.name.split('.')[0]"
-                            ></div>
+            
+            <div class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-4">
+                <template x-for="mode in opModes" :key="mode.id">
+                    <button @click="selectOpMode(mode)" 
+                            class="flex flex-col p-5 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 hover:border-indigo-500/50 rounded-2xl text-left transition-all group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg class="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
                         </div>
-                    </template>
-                    <div
-                        x-show="filteredActions.length === 0"
-                        class="text-center py-4 text-xs text-gray-600"
-                    >
-                        No actions found
-                    </div>
-                </div>
+                        <div class="w-10 h-10 rounded-xl bg-gray-700 flex items-center justify-center mb-3 group-hover:bg-indigo-600 transition-colors">
+                            <svg class="w-6 h-6 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        </div>
+                        <h3 class="font-bold text-lg mb-1" x-text="mode.name"></h3>
+                        <span class="text-xs text-gray-500" x-text="mode.type"></span>
+                    </button>
+                </template>
             </div>
+        </div>
+    </div>
 
-            <!-- Right Sidebar: Properties & Code -->
-            <div
-                class="pointer-events-auto absolute top-24 right-6 bottom-6 w-80 glass rounded-xl flex flex-col shadow-xl overflow-hidden"
-            >
-                <!-- Code Preview -->
-                <div
-                    class="flex-1 flex flex-col min-h-0 border-b border-white/5 bg-gray-900/40"
-                >
-                    <div
-                        class="px-3 py-2 border-b border-white/5 flex justify-between items-center bg-white/5"
-                    >
-                        <span class="text-xs font-semibold text-accent-200"
-                            >Generated Code</span
-                        >
-                        <button
-                            class="text-[10px] text-gray-400 hover:text-white bg-white/5 px-2 py-0.5 rounded"
-                            @click="navigator.clipboard.writeText(generatedCode)"
-                        >
-                            Copy
+    <!-- Create OpMode Modal -->
+    <div x-show="showCreateModal" class="fixed inset-0 z-110 flex items-center justify-center bg-black/80 backdrop-blur-sm" x-cloak x-transition>
+        <div class="bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" @click.away="closeCreateModal()">
+            <div class="p-6 border-b border-gray-800 bg-linear-to-r from-indigo-600/20 to-purple-600/20">
+                <h2 class="text-xl font-bold">Create New OpMode</h2>
+                <p class="text-sm text-gray-400 mt-1">Configure your new operation mode</p>
+            </div>
+            
+            <div class="p-6 space-y-5">
+                <!-- OpMode Name -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">OpMode Name</label>
+                    <input type="text" 
+                           x-model="newOpModeName" 
+                           placeholder="e.g., Red Alliance Auto"
+                           @keydown.enter="createNewOpMode()"
+                           class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all">
+                </div>
+                
+                <!-- OpMode Type -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Type</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="newOpModeType = 'AutonomousMode'" 
+                                class="p-4 rounded-xl border-2 transition-all text-left"
+                                :class="newOpModeType === 'AutonomousMode' ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-700 hover:border-gray-600'">
+                            <div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center mb-2">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            </div>
+                            <p class="font-bold text-sm">Autonomous</p>
+                            <p class="text-[10px] text-gray-500">Self-driving sequence</p>
+                        </button>
+                        <button @click="newOpModeType = 'ManualMode'" 
+                                class="p-4 rounded-xl border-2 transition-all text-left"
+                                :class="newOpModeType === 'ManualMode' ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-700 hover:border-gray-600'">
+                            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center mb-2">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                            </div>
+                            <p class="font-bold text-sm">TeleOp</p>
+                            <p class="text-[10px] text-gray-500">Driver-controlled</p>
                         </button>
                     </div>
-                    <div
-                        class="flex-1 overflow-auto p-3 font-mono text-[10px] leading-relaxed text-gray-300 whitespace-pre"
-                        x-text="generatedCode"
-                    ></div>
                 </div>
-
-                <!-- Flow Properties -->
-                <div class="h-1/2 flex flex-col bg-gray-900/80">
-                    <div class="px-3 py-2 border-b border-white/5 bg-white/5">
-                        <span class="text-xs font-semibold text-gray-300"
-                            >Flow Properties</span
-                        >
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-4">
-                        <div class="space-y-4">
-                            <!-- Robot Selection -->
-                            <div
-                                class="space-y-1"
-                                x-show="mode === 'auto' || mode === 'manual'"
-                            >
-                                <label
-                                    class="text-[10px] text-gray-500 font-bold uppercase"
-                                    >Robot Class</label
-                                >
-                                <select
-                                    x-model="selectedRobot"
-                                    class="w-full bg-black/30 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:border-accent-500 outline-none"
-                                >
-                                    <template
-                                        x-for="robot in availableRobots"
-                                        :key="robot"
-                                    >
-                                        <option
-                                            :value="robot"
-                                            x-text="robot"
-                                        ></option>
-                                    </template>
-                                    <option value="" disabled selected>
-                                        Select Robot...
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                
+                <!-- Robot Selection -->
+                <div class="space-y-2" x-show="availableRobots.length > 0">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Robot</label>
+                    <select x-model="selectedRobot" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all">
+                        <template x-for="robot in availableRobots" :key="robot">
+                            <option :value="robot" x-text="robot"></option>
+                        </template>
+                    </select>
                 </div>
             </div>
+            
+            <div class="p-6 border-t border-gray-800 flex justify-end space-x-3 bg-gray-900/50">
+                <button @click="closeCreateModal()" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm font-medium transition-all">
+                    Cancel
+                </button>
+                <button @click="createNewOpMode()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all">
+                    Create OpMode
+                </button>
+            </div>
         </div>
+    </div>
 
-        <script>
-            function flowEditor() {
-                return {
-                    mode: "auto",
-                    flowName: "MyNewSequence",
-                    searchQuery: "",
-                    errorMessage: null,
+    <!-- Notification system -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-200 space-y-2 pointer-events-none">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div x-show="toast.show" 
+                 x-transition:enter="transition ease-out duration-300 transform translate-y-full"
+                 x-transition:enter-start="opacity-0 lg:translate-y-full"
+                 x-transition:enter-end="opacity-100 lg:translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="bg-gray-900 border border-gray-800 px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 pointer-events-auto min-w-[300px]">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="toast.type === 'success' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'">
+                    <svg x-show="toast.type === 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <svg x-show="toast.type === 'error'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+                <p class="text-sm font-medium" x-text="toast.message"></p>
+            </div>
+        </template>
+    </div>
 
-                    availableRobots: [],
-                    availableActions: [],
-                    selectedRobot: "",
-
-                    nodes: [
-                        {
-                            id: "start",
-                            type: "start",
-                            name: "Start",
-                            x: 100,
-                            y: 100,
-                            outputs: ["out"],
-                            parameters: [],
-                        },
-                    ],
-                    connections: [],
-
-                    selectedNode: null,
-                    viewport: {
-                        x: 0,
-                        y: 0,
-                        scale: 1,
-                        isPanning: false,
-                        lastX: 0,
-                        lastY: 0,
-                    },
-
-                    dragNode: {
-                        active: false,
-                        node: null,
-                        offsetX: 0,
-                        offsetY: 0,
-                    },
-                    dragConnection: {
-                        active: false,
-                        sourceNode: null,
-                        mouseX: 0,
-                        mouseY: 0,
-                    },
-                    dragNewNode: { active: false, action: null, x: 0, y: 0 },
-                    editingConnection: null,
-
-                    // Cache for port positions to avoid thrashing, though for this scale direct read is fine
-                    // We will rely on Alpine's reactivity to re-render the SVG when nodes move.
-
-                    get filteredActions() {
-                        if (!this.searchQuery) return this.availableActions;
-                        return this.availableActions.filter((a) =>
-                            a.name
-                                .toLowerCase()
-                                .includes(this.searchQuery.toLowerCase()),
-                        );
-                    },
-
-                    get generatedCode() {
-                        const sortedNodes = this.getSortedNodes();
-                        let code = "";
-
-                        if (this.mode === "auto") {
-                            code += `package org.firstinspires.ftc.teamcode.opmode.autonomous\n\n`;
-                            code += `import com.qualcomm.robotcore.eventloop.opmode.Autonomous\n`;
-                            code += `import dev.kingssack.volt.opmode.autonomous.AutonomousMode\n\n`;
-                            code += `@Autonomous(name = "${this.flowName}")\n`;
-                            code += `class ${this.flowName.replace(/\s/g, "")} : AutonomousMode<${this.selectedRobot || "Robot"}>({ h -> ${this.selectedRobot || "Robot"}(h) }) {\n`;
-                            code += `    override fun sequence() = execute {\n`;
-
-                            sortedNodes.forEach((node) => {
-                                if (node.type === "start") return;
-                                const params = node.parameters
-                                    .map((p) => p.value)
-                                    .join(", ");
-                                const parts = node.name.split(".");
-                                const attachment = parts[0].toLowerCase();
-                                const method = parts[1];
-                                code += `        ${attachment} { +${method}(${params}) }\n`;
-                            });
-
-                            code += `    }\n}`;
-                        } else {
-                            code += `package org.firstinspires.ftc.teamcode.opmode.manual\n\n`;
-                            code += `@TeleOp(name = "${this.flowName}")\n`;
-                            code += `class ${this.flowName.replace(/\s/g, "")} : ManualMode<${this.selectedRobot || "Robot"}>() {\n`;
-                            code += `    init {\n        // Logic here \n    }\n}`;
-                        }
-                        return code;
-                    },
-
-                    async fetchMetadata() {
-                        try {
-                            const res = await fetch("/volt/api/metadata");
-                            if (!res.ok)
-                                throw new Error("Failed to load metadata");
-                            const data = await res.json();
-                            this.availableRobots = data.robots.map(
-                                (r) => r.simpleName,
-                            );
-                            this.availableActions = data.actions;
-
-                            if (this.availableRobots.length > 0)
-                                this.selectedRobot = this.availableRobots[0];
-                        } catch (e) {
-                            // Fallback for dev
-                            this.errorMessage = "API Error: " + e.message;
-                            if (this.availableActions.length === 0) {
-                                this.availableRobots = [
-                                    "Robot",
-                                    "RobotWithDrivetrain",
-                                    "RobotWithMecanumDrive",
-                                ];
-                                this.availableActions = [
-                                    {
-                                        id: "1",
-                                        name: "Launcher.enable",
-                                        description: "Enable Launcher",
-                                        parameters: [],
-                                    },
-                                    {
-                                        id: "2",
-                                        name: "Drivetrain.pathTo",
-                                        description: "Drive to Pose",
-                                        parameters: [
-                                            { name: "x", type: "Double" },
-                                            { name: "y", type: "Double" },
-                                        ],
-                                    },
-                                ];
-                            }
-                        }
-                    },
-
-                    async initEditor() {
-                        await this.fetchMetadata();
-                    },
-
-                    setMode(m) {
-                        this.mode = m;
-                        this.nodes = [
-                            {
-                                id: "start",
-                                type: "start",
-                                name: "Start",
-                                x: 100,
-                                y: 100,
-                                outputs: ["out"],
-                                parameters: [],
-                            },
-                        ];
-                        this.connections = [];
-                    },
-
-                    // Canvas Interaction
-                    startPan(e) {
-                        if (e.button === 0) {
-                            this.viewport.isPanning = true;
-                            this.viewport.lastX = e.clientX;
-                            this.viewport.lastY = e.clientY;
-                        }
-                    },
-                    handleMouseMove(e) {
-                        const clientX = e.clientX;
-                        const clientY = e.clientY;
-
-                        if (this.viewport.isPanning) {
-                            this.viewport.x += clientX - this.viewport.lastX;
-                            this.viewport.y += clientY - this.viewport.lastY;
-                            this.viewport.lastX = clientX;
-                            this.viewport.lastY = clientY;
-                        }
-
-                        if (this.dragNode.active) {
-                            const scale = this.viewport.scale;
-                            this.dragNode.node.x =
-                                (clientX - this.viewport.x) / scale -
-                                this.dragNode.offsetX;
-                            this.dragNode.node.y =
-                                (clientY - this.viewport.y) / scale -
-                                this.dragNode.offsetY;
-                        }
-
-                        if (this.dragNewNode.active) {
-                            const scale = this.viewport.scale;
-                            this.dragNewNode.x =
-                                (clientX - this.viewport.x) / scale;
-                            this.dragNewNode.y =
-                                (clientY - this.viewport.y) / scale;
-                        }
-
-                        if (this.dragConnection.active) {
-                            // Store raw client coordinates for drag to avoid coordinate space confusion during render
-                            this.dragConnection.clientX = clientX;
-                            this.dragConnection.clientY = clientY;
-
-                            // If editing a connection, update its control points based on mouse position
-                            if (this.editingConnection) {
-                                const startPos = this.getNodePortPos(
-                                    this.dragConnection.sourceNode.id,
-                                    "out",
-                                );
-                                const endX =
-                                    (clientX - this.viewport.x) /
-                                    this.viewport.scale;
-                                const endY =
-                                    (clientY - this.viewport.y) /
-                                    this.viewport.scale;
-
-                                // Store the current mouse position as a temporary control point
-                                if (!this.editingConnection.controlPoints) {
-                                    this.editingConnection.controlPoints = [];
-                                }
-                            }
-                        }
-                    },
-                    handleWheel(e) {
-                        const zoomSensitivity = 0.001;
-                        const delta = -e.deltaY * zoomSensitivity;
-                        const newScale = Math.min(
-                            Math.max(0.1, this.viewport.scale + delta),
-                            4,
-                        );
-                        this.viewport.scale = newScale;
-                    },
-                    endInteraction(e) {
-                        this.viewport.isPanning = false;
-                        this.dragNode.active = false;
-                        this.dragNode.node = null;
-
-                        if (this.editingConnection && e) {
-                            // If we're editing a connection and the mouse is over a port, update it
-                            const targetPort =
-                                e.target.closest('[id^="port-in-"]');
-                            if (targetPort) {
-                                const targetNodeId = targetPort.id
-                                    .split("-")
-                                    .pop();
-                                const targetNode = this.nodes.find(
-                                    (n) => n.id === targetNodeId,
-                                );
-                                if (
-                                    targetNode &&
-                                    targetNode.id !==
-                                        this.dragConnection.sourceNode.id
-                                ) {
-                                    this.editingConnection.to = targetNode.id;
-                                }
-                            } else {
-                                // If not over a port, cancel the edit
-                                this.editingConnection = null;
-                            }
-                        }
-
-                        if (this.dragNewNode.active && e) {
-                            const x =
-                                (e.clientX - this.viewport.x) /
-                                this.viewport.scale;
-                            const y =
-                                (e.clientY - this.viewport.y) /
-                                this.viewport.scale;
-                            this.addNode(this.dragNewNode.action, x, y);
-                        }
-
-                        this.dragConnection.active = false;
-                        this.editingConnection = null;
-                        this.dragNewNode.active = false;
-                    },
-
-                    // Node Management
-                    startDragNode(e, node) {
-                        this.dragNode.active = true;
-                        this.dragNode.node = node;
-                        this.selectNode(node);
-                        const rect = e.target
-                            .closest(".group")
-                            .getBoundingClientRect();
-                        const scale = this.viewport.scale;
-                        this.dragNode.offsetX = (e.clientX - rect.left) / scale;
-                        this.dragNode.offsetY = (e.clientY - rect.top) / scale;
-                    },
-                    startDragNewNode(e, action) {
-                        this.dragNewNode.active = true;
-                        this.dragNewNode.action = action;
-                    },
-                    addNode(action, x, y) {
-                        const id =
-                            Date.now().toString() +
-                            Math.random().toString(36).substr(2, 5);
-                        const params = action.parameters.map((p) => ({ ...p }));
-                        this.nodes.push({
-                            id,
-                            type: "action",
-                            name: action.name,
-                            description: action.description,
-                            x,
-                            y,
-                            parameters: params,
-                            inputs: ["in"],
-                            outputs: ["out"],
-                        });
-                    },
-                    selectNode(node) {
-                        this.selectedNode = node;
-                    },
-                    deleteConnection(id) {
-                        this.connections = this.connections.filter(
-                            (c) => c.id !== id,
-                        );
-                        if (this.editingConnection?.id === id) {
-                            this.editingConnection = null;
-                        }
-                    },
-                    handleKeydown(e) {
-                        if (e.key === "Delete" || e.key === "Backspace") {
-                            if (e.target.tagName !== "INPUT") {
-                                if (this.editingConnection) {
-                                    this.deleteConnection(
-                                        this.editingConnection.id,
-                                    );
-                                } else if (
-                                    this.selectedNode &&
-                                    this.selectedNode.type !== "start"
-                                ) {
-                                    this.deleteNode(this.selectedNode.id);
-                                }
-                            }
-                        }
-                    },
-
-                    // Connection Logic
-                    startDragConnection(e, node) {
-                        // Check if clicking on an existing connection
-                        const connElement = e.target.closest("path");
-                        if (connElement && !this.dragConnection.active) {
-                            // Find which connection was clicked
-                            const connId =
-                                connElement.getAttribute("data-connection-id");
-                            const conn = this.connections.find(
-                                (c) => c.id === connId,
-                            );
-                            if (conn) {
-                                this.editingConnection = conn;
-                                this.dragConnection.active = true;
-                                this.dragConnection.sourceNode = node;
-                                this.dragConnection.clientX = e.clientX;
-                                this.dragConnection.clientY = e.clientY;
-                                return;
-                            }
-                        }
-
-                        // Normal connection drag
-                        this.dragConnection.active = true;
-                        this.dragConnection.sourceNode = node;
-                        this.dragConnection.clientX = e.clientX;
-                        this.dragConnection.clientY = e.clientY;
-                    },
-                    completeConnection(targetNode) {
-                        if (this.editingConnection) {
-                            // Update existing connection
-                            this.editingConnection.to = targetNode.id;
-                            this.editingConnection = null;
-                        } else if (
-                            this.dragConnection.active &&
-                            this.dragConnection.sourceNode.id !== targetNode.id
-                        ) {
-                            const exists = this.connections.find(
-                                (c) =>
-                                    c.from ===
-                                        this.dragConnection.sourceNode.id &&
-                                    c.to === targetNode.id,
-                            );
-                            if (!exists) {
-                                this.connections.push({
-                                    id: Date.now().toString(),
-                                    from: this.dragConnection.sourceNode.id,
-                                    to: targetNode.id,
-                                });
-                            }
-                        }
-                        this.dragConnection.active = false;
-                    },
-
-                    // Geometry
-                    // PURE DATA CALCULATION: robust and fast.
-                    // We assume standard node dimensions for simplicity and performance.
-                    // This ensures the lines update instantly with the data (node.x/y).
-                    getNodePortPos(nodeId, type) {
-                        const node = this.nodes.find((n) => n.id === nodeId);
-                        if (!node) return null;
-
-                        // Constants based on our CSS
-                        const nodeWidth = node.type === "start" ? 100 : 200; // From min-w-[200px] or start width
-                        const headerHeight = 44;
-
-                        let x, y;
-
-                        if (type === "in") {
-                            x = node.x - 1.5; // Left edge with small offset for port circle
-                            y = node.y + headerHeight / 2; // Vertical center of header
-                        } else {
-                            x = node.x + nodeWidth + 1.5; // Right edge with small offset
-                            y = node.y + headerHeight / 2;
-                        }
-
-                        return { x, y };
-                    },
-
-                    getPath(conn) {
-                        const startPos = this.getNodePortPos(conn.from, "out");
-                        const endPos = this.getNodePortPos(conn.to, "in");
-                        if (!startPos || !endPos) return "";
-
-                        // If connection has custom control points (being edited), use them
-                        if (
-                            conn.controlPoints &&
-                            conn.controlPoints.length >= 2
-                        ) {
-                            const cp1 = conn.controlPoints[0];
-                            const cp2 = conn.controlPoints[1];
-                            return `M ${startPos.x} ${startPos.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${endPos.x} ${endPos.y}`;
-                        }
-
-                        return this.generateSpline(
-                            startPos.x,
-                            startPos.y,
-                            endPos.x,
-                            endPos.y,
-                        );
-                    },
-
-                    getDragPath() {
-                        if (!this.dragConnection.active) return "";
-
-                        const startPos = this.getNodePortPos(
-                            this.dragConnection.sourceNode.id,
-                            "out",
-                        );
-                        if (!startPos) return "";
-
-                        // Mouse is in screen space, convert to canvas space for the end point
-                        const endX =
-                            (this.dragConnection.clientX - this.viewport.x) /
-                            this.viewport.scale;
-                        const endY =
-                            (this.dragConnection.clientY - this.viewport.y) /
-                            this.viewport.scale;
-
-                        return this.generateSpline(
-                            startPos.x,
-                            startPos.y,
-                            endX,
-                            endY,
-                        );
-                    },
-
-                    generateSpline(x1, y1, x2, y2) {
-                        const dist = Math.abs(x2 - x1);
-                        const controlOffset = Math.max(dist * 0.3, 40);
-                        const cp1x = x1 + controlOffset;
-                        const cp1y = y1 + (dist > 100 ? 20 : 0);
-                        const cp2x = x2 - controlOffset;
-                        const cp2y = y2 + (dist > 100 ? 20 : 0);
-                        return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
-                    },
-
-                    getSortedNodes() {
-                        const visited = new Set();
-                        const sorted = [];
-                        const queue = [
-                            this.nodes.find((n) => n.type === "start"),
-                        ];
-
-                        while (queue.length > 0) {
-                            const current = queue.shift();
-                            if (!current || visited.has(current.id)) continue;
-                            visited.add(current.id);
-                            sorted.push(current);
-
-                            const outgoing = this.connections
-                                .filter((c) => c.from === current.id)
-                                .map((c) =>
-                                    this.nodes.find((n) => n.id === c.to),
-                                )
-                                .filter(Boolean);
-
-                            queue.push(...outgoing);
-                        }
-                        return sorted;
-                    },
-                };
-            }
-        </script>
-    </body>
+    <script src="app.js"></script>
+</body>
 </html>
