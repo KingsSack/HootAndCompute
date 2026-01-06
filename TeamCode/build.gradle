@@ -76,7 +76,7 @@ dependencies {
     implementation project(':FtcRobotController')
     implementation project(':Volt')
 
-    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+    implementation("dev.frozenmilk.dairy:Core:2.2.4")
     implementation("com.acmerobotics.roadrunner:ftc:0.1.23") {
         exclude group: "com.acmerobotics.dashboard"
     }

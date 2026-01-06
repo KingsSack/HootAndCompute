@@ -4,7 +4,6 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
-import org.jetbrains.annotations.NotNull;
 
 // an actual opmode would not have abstract
 abstract public class SampleAuto extends AutonomousMode<SampleRobot> {
