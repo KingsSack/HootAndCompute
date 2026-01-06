@@ -1,7 +1,9 @@
 package dev.kingssack.volt.web
 
 import android.util.Log
+import com.google.gson.Gson
 import com.qualcomm.robotcore.util.WebHandlerManager
+import dev.kingssack.volt.service.MetadataService
 import fi.iki.elonen.NanoHTTPD
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler
 
@@ -17,7 +19,7 @@ class VoltWebServer {
         /**
          * Get the base URL for the Volt web server.
          *
-         * @return The base URL for the Volt web server (e.g., "http://192.168.43.1:8080/volt")
+         * @return The base URL for the Volt web server
          */
         @JvmStatic
         fun getBaseUrl(): String {
@@ -29,7 +31,7 @@ class VoltWebServer {
          * Register a custom handler for a specific path.
          *
          * @param manager The WebHandlerManager to register the handler with
-         * @param path The path to register the handler for (e.g., "/custom")
+         * @param path The path to register the handler for
          * @param handler The handler to register
          */
         @JvmStatic
@@ -56,15 +58,15 @@ class VoltWebServer {
         @JvmStatic
         fun createMetadataHandler(): WebHandler {
             return WebHandler {
-                val metadata = dev.kingssack.volt.service.MetadataService.getAllMetadata()
-                val gson = com.google.gson.Gson()
+                val metadata = MetadataService.getAllMetadata()
+                val gson = Gson()
                 val json =
-                        gson.toJson(mapOf("robots" to metadata.first, "actions" to metadata.second))
+                    gson.toJson(mapOf("robots" to metadata.first, "actions" to metadata.second))
 
                 NanoHTTPD.newFixedLengthResponse(
-                        NanoHTTPD.Response.Status.OK,
-                        "application/json",
-                        json
+                    NanoHTTPD.Response.Status.OK,
+                    "application/json",
+                    json,
                 )
             }
         }

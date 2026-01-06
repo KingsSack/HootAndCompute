@@ -10,7 +10,7 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
  * @param hardwareMap The hardware map of the robot.
  * @property drivetrain The mecanum drivetrain of the robot.
  */
-abstract class RobotWithMecanumDrivetrain<T : MecanumDrivetrain>(
+open class RobotWithMecanumDrivetrain<T : MecanumDrivetrain>(
     hardwareMap: HardwareMap,
     drivetrain: T,
 ) : RobotWithDrivetrain<T>(hardwareMap, drivetrain)

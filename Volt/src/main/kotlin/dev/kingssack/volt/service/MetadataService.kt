@@ -1,79 +1,63 @@
 package dev.kingssack.volt.service
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import dalvik.system.DexFile
+import dev.frozenmilk.sinister.Scanner
+import dev.frozenmilk.sinister.Scanner.Companion.INDEPENDENT
+import dev.frozenmilk.sinister.targeting.NarrowSearch
+import dev.frozenmilk.sinister.targeting.SearchTarget
 import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.model.ActionMetadata
 import dev.kingssack.volt.model.ParameterMetadata
 import dev.kingssack.volt.model.RobotMetadata
 import dev.kingssack.volt.robot.Robot
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.kotlinFunction
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
 object MetadataService {
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun getAllMetadata(): Pair<List<RobotMetadata>, List<ActionMetadata>> {
-        val context = AppUtil.getDefContext() ?: return Pair(emptyList(), emptyList())
+    private val robots = mutableListOf<RobotMetadata>()
+    private val actions = mutableListOf<ActionMetadata>()
 
-        val robots = mutableListOf<RobotMetadata>()
-        val actions = mutableListOf<ActionMetadata>()
+    fun getAllMetadata(): Pair<List<RobotMetadata>, List<ActionMetadata>> = Pair(robots, actions)
 
-        try {
-            val dexFile = DexFile(context.packageCodePath)
-            val entries = dexFile.entries()
+    @Suppress("unused")
+    private object Scan : Scanner {
+        override val loadAdjacencyRule = INDEPENDENT
+        override val unloadAdjacencyRule = INDEPENDENT
+        override val targets: SearchTarget = NarrowSearch()
 
-            while (entries.hasMoreElements()) {
-                val className = entries.nextElement()
-                // Scan TeamCode and specific Volt packages if needed
-                if (
-                    className.startsWith("org.firstinspires.ftc.teamcode") ||
-                        className.startsWith("dev.kingssack.volt")
-                ) {
-
-                    try {
-                        // Skip some obviously non-relevant classes to speed up
-                        if (className.contains("$"))
-                            continue // Skip inner classes for now unless necessary
-
-                        val clazz = Class.forName(className, false, context.classLoader)
-
-                        // Check for Robot
-                        if (
-                            Robot::class.java.isAssignableFrom(clazz) &&
-                                !java.lang.reflect.Modifier.isAbstract(clazz.modifiers)
-                        ) {
-                            robots.add(
-                                RobotMetadata(
-                                    simpleName = clazz.simpleName,
-                                    qualifiedName = clazz.name,
-                                )
-                            )
-                        }
-
-                        // Check for Actions
-                        clazz.methods.forEach { method -> processMethod(method, clazz, actions) }
-                    } catch (e: Throwable) {
-                        // Ignore load errors (NoClassDefFoundError etc)
-                    }
+        override fun scan(
+            loader: ClassLoader,
+            cls: Class<*>,
+        ) {
+            if (
+                Robot::class.java.isAssignableFrom(cls) &&
+                    !Modifier.isAbstract(cls.modifiers) &&
+                    !cls.isInterface
+            ) {
+                if (robots.none { it.qualifiedName == cls.name }) {
+                    robots.add(RobotMetadata(simpleName = cls.simpleName, qualifiedName = cls.name))
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+
+            cls.declaredMethods.forEach { method ->
+                if (method.isAnnotationPresent(VoltAction::class.java)) {
+                    processMethod(method, cls)
+                }
+            }
         }
 
-        return Pair(robots, actions)
+        override fun unload(loader: ClassLoader, cls: Class<*>) {
+            
+        }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun processMethod(
-        method: Method,
-        clazz: Class<*>,
-        actions: MutableList<ActionMetadata>,
-    ) {
+    private fun processMethod(method: Method, clazz: Class<*>) {
         val annotation = method.getAnnotation(VoltAction::class.java) ?: return
+
+        // Prevent duplicates
+        val actionId = "${clazz.simpleName}.${method.name}"
+        if (actions.any { it.id == actionId }) return
 
         val kFunction = method.kotlinFunction
 
@@ -81,27 +65,19 @@ object MetadataService {
             kFunction?.valueParameters?.map { param ->
                 ParameterMetadata(
                     name = param.name ?: "arg",
-                    type = param.type.toString().substringAfterLast("."), // Simple type name
-                    defaultValue = null, // Hard to get the default value without an instance
+                    type = param.type.toString().substringAfterLast("."),
+                    defaultValue = null,
                 )
             }
                 ?: method.parameters.map { param ->
                     ParameterMetadata(name = param.name, type = param.type.simpleName)
                 }
 
-        // Determine robot type (receiver type if extension, or declaring class)
-        // If it's an extension function, the first parameter is the receiver.
-        // But kotlin-reflect handles extension receivers differently.
-
-        // For simplicity, let's assume actions are defined within a Robot subclass or Attachment
-        // OR are extension functions on a Robot/Attachment.
-
-        // Let's use the declaring class as the simpler approach for now.
         val robotType = clazz.simpleName
 
         actions.add(
             ActionMetadata(
-                id = "${clazz.simpleName}.${method.name}",
+                id = actionId,
                 name = annotation.name.ifEmpty { method.name },
                 description = annotation.description,
                 parameters = parameters,

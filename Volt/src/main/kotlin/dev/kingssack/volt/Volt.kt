@@ -3,12 +3,14 @@ package dev.kingssack.volt
 import android.content.Context
 import android.util.Log
 import com.qualcomm.robotcore.util.WebHandlerManager
-import dev.kingssack.volt.web.ModeCreatorHandler
+import dev.kingssack.volt.web.FlowEditorApiHandler
 import dev.kingssack.volt.web.StaticAssetHandler
+import dev.kingssack.volt.web.VoltWebServer
 import java.io.IOException
 import org.firstinspires.ftc.ftccommon.external.WebHandlerRegistrar
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
+@Suppress("unused")
 class Volt {
     companion object {
         private const val TAG = "VoltWebServer"
@@ -29,7 +31,7 @@ class Volt {
                     val path = "public/$file"
                     Log.d(TAG, "Processing file: $path")
 
-                    if (assetManager.list(path)?.isNotEmpty() == true) {
+                    if (isAssetDirectory(assetManager, path)) {
                         // Handle subdirectories
                         Log.d(TAG, "$path is a directory, adding handlers recursively")
                         addAssetHandlers(manager, assetManager, path)
@@ -43,13 +45,10 @@ class Volt {
                 Log.d(TAG, "Registering handler for /volt (index.html)")
                 manager.register("/volt", StaticAssetHandler(assetManager, "public/index.html"))
 
-                // Register the mode creator handler
+                // Register the flow editor API handler
                 Log.d(TAG, "Registering handler for /volt/api/*")
-                manager.register("/volt/api", ModeCreatorHandler())
-                manager.register(
-                        "/volt/api/metadata",
-                        dev.kingssack.volt.web.VoltWebServer.createMetadataHandler()
-                )
+                manager.register("/volt/api/*", FlowEditorApiHandler())
+                manager.register("/volt/api/metadata", VoltWebServer.createMetadataHandler())
 
                 Log.d(TAG, "Web server handlers attached successfully")
             } catch (e: IOException) {
@@ -60,9 +59,9 @@ class Volt {
         }
 
         private fun addAssetHandlers(
-                manager: WebHandlerManager,
-                assetManager: android.content.res.AssetManager,
-                path: String
+            manager: WebHandlerManager,
+            assetManager: android.content.res.AssetManager,
+            path: String,
         ) {
             Log.d(TAG, "Adding asset handlers for directory: $path")
             val files = assetManager.list(path)
@@ -73,7 +72,7 @@ class Volt {
                 val webPath = fullPath.replace("public/", "")
                 Log.d(TAG, "Processing file in directory: $fullPath, web path: $webPath")
 
-                if (assetManager.list(fullPath)?.isNotEmpty() == true) {
+                if (isAssetDirectory(assetManager, fullPath)) {
                     Log.d(TAG, "$fullPath is a subdirectory, adding handlers recursively")
                     addAssetHandlers(manager, assetManager, fullPath)
                 } else {
@@ -82,6 +81,30 @@ class Volt {
                 }
             }
             Log.d(TAG, "Finished adding asset handlers for directory: $path")
+        }
+
+        /**
+         * Reliably check if an asset path is a directory.
+         *
+         * This method tries to open the path as a file first. If it succeeds, it's a file. If it
+         * fails with an IOException, we check if it has contents (making it a directory).
+         *
+         * This is more reliable than just checking assetManager.list() because list() can return
+         * unexpected results for files on some Android versions.
+         */
+        private fun isAssetDirectory(
+            assetManager: android.content.res.AssetManager,
+            path: String,
+        ): Boolean {
+            return try {
+                // Try to open as a file - if successful, it's a file, not a directory
+                assetManager.open(path).close()
+                false
+            } catch (e: IOException) {
+                // If we can't open it as a file, check if it has contents (directory)
+                val contents = assetManager.list(path)
+                !contents.isNullOrEmpty()
+            }
         }
     }
 }
