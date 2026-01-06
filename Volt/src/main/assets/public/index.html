@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Volt Flow Editor</title>
     <!-- Local vendor files for offline support -->
-    <link rel="stylesheet" href="vendor/tailwind.css">
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="vendor/alpine.min.js"></script>
+    <link rel="stylesheet" href="./vendor/tailwind.css">
+    <link rel="stylesheet" href="./styles.css">
+    <script defer src="./vendor/alpine.min.js"></script>
     <!-- PWA manifest -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <style>
         [x-cloak] { display: none !important; }
@@ -18,7 +18,7 @@
         // Register Service Worker for offline support
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('[SW] Registered:', reg.scope))
                     .catch(err => console.log('[SW] Registration failed:', err));
             });
@@ -331,6 +331,6 @@
         </template>
     </div>
 
-    <script src="app.js"></script>
+    <script src="./app.js"></script>
 </body>
 </html>
