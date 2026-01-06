@@ -28,6 +28,17 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         @JvmField var lidarLeftName: String = "lidarl"
         @JvmField var lidarRightName: String = "lidarr"
         @JvmField var huskyLensName: String = "lens"
+
+        @JvmField var launcherLeftP: Double = 40.0
+        @JvmField var launcherLeftI: Double = 0.0
+        @JvmField var launcherLeftD: Double = 0.0
+        @JvmField var launcherLeftF: Double = 13.29
+        @JvmField var launcherRightP: Double = 40.0
+        @JvmField var launcherRightI: Double = 0.0
+        @JvmField var launcherRightD: Double = 0.0
+        @JvmField var launcherRightF: Double = 12.11
+        @JvmField var launcherMaxVelocity: Double = 6000.0
+        @JvmField var launcherTargetVelocity: Double = 1500.0
     }
 
     // Hardware
@@ -39,7 +50,17 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val rightLauncherMotor by motorEx("flr")
 
     // Attachments
-    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor, lidarLeft) }
+    val launcher by attachment {
+        Launcher(
+            leftLauncherMotor,
+            rightLauncherMotor,
+            lidarLeft,
+            PIDFCoefficients(launcherLeftP, launcherLeftI, launcherLeftD, launcherLeftF),
+            PIDFCoefficients(launcherRightP, launcherRightI, launcherRightD, launcherRightF),
+            launcherMaxVelocity,
+            launcherTargetVelocity,
+        )
+    }
 
     init {
         // Set huskylens mode
@@ -103,7 +124,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     }
 
     /**
-     * Get distance to an obstacle from distance sensor.
+     * Get distance to an obstacle from the distance sensor.
      *
      * @return distance to an obstacle
      * @see DistanceSensor
