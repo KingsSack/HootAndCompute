@@ -47,7 +47,7 @@ class Seahorse :
 
     context(telemetry: Telemetry)
     override fun tick() {
-        super.tick()
         telemetry.addData("Alliance Color", allianceColor)
+        super.tick()
     }
 }
