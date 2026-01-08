@@ -48,11 +48,14 @@ class Manatee :
 
     var allianceColor = AllianceColor.BLUE
 
-    context(telemetry: Telemetry)
     override fun initialize() {
         super.initialize()
         robot.drivetrain.startTeleOpDrive()
-        
+    }
+
+    context(telemetry: Telemetry)
+    override fun tick() {
         telemetry.addData("Alliance Color", allianceColor)
+        super.tick()
     }
 }
