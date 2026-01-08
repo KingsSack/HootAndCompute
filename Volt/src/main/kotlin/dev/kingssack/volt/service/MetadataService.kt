@@ -48,7 +48,8 @@ object MetadataService {
         }
 
         override fun unload(loader: ClassLoader, cls: Class<*>) {
-            
+            robots.clear()
+            actions.clear()
         }
     }
 
