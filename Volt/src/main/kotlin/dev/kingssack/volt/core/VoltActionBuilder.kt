@@ -23,9 +23,12 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
     }
 
     fun wait(dt: Double) {
-        val beginNs = nanoTime()
+        var beginNs: Long = -1
         actions.add(
             Action {
+                if (beginNs == -1L) {
+                    beginNs = nanoTime()
+                }
                 val elapsedNs = nanoTime() - beginNs
                 return@Action (elapsedNs / 1e9) < dt
             }

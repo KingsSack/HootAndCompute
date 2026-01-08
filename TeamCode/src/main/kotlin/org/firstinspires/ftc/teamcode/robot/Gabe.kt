@@ -1,16 +1,13 @@
 package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.core.VoltBuilderDsl
-import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
 
@@ -32,7 +29,7 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
     private val storageServo by servo("ss")
 
     // Attachments
-    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor) }
+    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor, distanceSensor) }
     val storage by attachment { Storage(storageServo) }
 
     /**
@@ -66,14 +63,6 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
         telemetry.addData("Filtered count", result.size)
 
         return result
-    }
-
-    context(telemetry: Telemetry)
-    override fun update() {
-        with(telemetry) {
-            addData("Distance Sensor (in)", distanceSensor.getDistance(DistanceUnit.INCH))
-        }
-        super.update()
     }
 }
 

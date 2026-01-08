@@ -29,7 +29,7 @@ class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
         MecanumDriveWithPP(
             hardwareMap,
             FollowerConstants()
-                .mass(8.5)
+                .mass(9.15)
                 .forwardZeroPowerAcceleration(-70.0)
                 .lateralZeroPowerAcceleration(-130.0)
                 .translationalPIDFCoefficients(PIDFCoefficients(0.2, 0.0, 0.0, 0.01))
@@ -74,8 +74,6 @@ class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
 }
 
 @VoltBuilderDsl
-inline fun VoltActionBuilder<GabePP>.drivetrain(
-    block: MecanumDriveWithPP.() -> Unit
-) {
+inline fun VoltActionBuilder<GabePP>.drivetrain(block: MecanumDriveWithPP.() -> Unit) {
     block(robot.drivetrain)
 }
