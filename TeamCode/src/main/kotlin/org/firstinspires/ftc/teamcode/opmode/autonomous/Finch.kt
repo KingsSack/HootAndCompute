@@ -3,25 +3,29 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.robot.drivetrain
 import org.firstinspires.ftc.teamcode.robot.launcher
 import org.firstinspires.ftc.teamcode.robot.storage
-import org.firstinspires.ftc.teamcode.util.AllianceColor
+import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
 import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.StartingPosition
 import org.firstinspires.ftc.teamcode.util.toRadians
 
+@Suppress("unused")
 @Config
 abstract class Finch(
-    alliance: AllianceColor,
-    initialPose: Pose,
+    val initialPose: Pose,
     private val startingPosition: StartingPosition,
-) : AutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, initialPose) }) {
-    private val paths by lazy { PathConstants(robot.drivetrain.follower, alliance) }
-
+) : DualAutonomousMode<GabePP>() {
+    
+    override val name = "Finch " + if (startingPosition == StartingPosition.WALL) "wall" else "goal"
+    override val autoTransition = "Manatee"
+    override fun getRobot(hardwareMap: HardwareMap): GabePP {
+        return GabePP(hardwareMap, sw(initialPose, initialPose.mirror()))
+    }
+    private val paths by lazy { PathConstants(robot.drivetrain.follower, color) }
     private lateinit var pathToLaunchZone: PathChain
 
     override fun initialize() {
@@ -54,18 +58,8 @@ abstract class Finch(
     }
 }
 
-@Autonomous(name = "Finch Wall Blue", group = "Competition", preselectTeleOp = "Manatee")
-class FinchWallBlue :
-    Finch(AllianceColor.BLUE, Pose(56.0, 9.0, 90.0.toRadians()), StartingPosition.WALL)
+@Suppress("unused")
+class FinchWall : Finch(Pose(56.0, 9.0, 90.0.toRadians()), StartingPosition.WALL)
 
-@Autonomous(name = "Finch Wall Red", group = "Competition", preselectTeleOp = "Manatee")
-class FinchWallRed :
-    Finch(AllianceColor.RED, Pose(56.0, 9.0, 90.0.toRadians()).mirror(), StartingPosition.WALL)
-
-@Autonomous(name = "Finch Goal Blue", group = "Competition", preselectTeleOp = "Manatee")
-class FinchGoalBlue :
-    Finch(AllianceColor.BLUE, Pose(26.0, 133.0, 142.0.toRadians()), StartingPosition.GOAL)
-
-@Autonomous(name = "Finch Goal Red", group = "Competition", preselectTeleOp = "Manatee")
-class FinchGoalRed :
-    Finch(AllianceColor.RED, Pose(26.0, 133.0, 142.0.toRadians()).mirror(), StartingPosition.GOAL)
+@Suppress("unused")
+class FinchGoal : Finch(Pose(26.0, 133.0, 142.0.toRadians()), StartingPosition.GOAL)
