@@ -63,18 +63,14 @@ class Classifier(
     }
 
     private fun findNextSector(): NormalizedColorSensor? {
-        val emptySector = findArtifactSector(SectorState.EMPTY)
-        var nextSector: NormalizedColorSensor? = null
-        if (sectorOne != emptySector) {
-            nextSector = sectorOne
-        } else if (sectorTwo != emptySector) {
-            nextSector = sectorTwo
-        } else if (sectorThree != emptySector) {
-            nextSector = sectorThree
-        } else {
-            nextSector = null
+        if (getSectorState(sectorOne) != SectorState.EMPTY) {
+            return sectorOne
+        } else if (getSectorState(sectorTwo) != SectorState.EMPTY) {
+            return sectorTwo
+        } else if (getSectorState(sectorThree) != SectorState.EMPTY) {
+            return sectorThree
         }
-        return nextSector
+        return null
     }
 
     private fun findArtifactSector(state: SectorState): NormalizedColorSensor? {
