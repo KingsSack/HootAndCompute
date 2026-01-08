@@ -327,7 +327,7 @@ Transforms flow graph into executable Kotlin OpMode code.
 1. Parse flow graph into execution tree
 2. Generate OpMode class extending appropriate base
 3. Convert nodes to Volt DSL commands
-4. Handle control flow (loops, conditionals, parallel)
+4. Handle control flow (loops, conditionals, etc)
 5. Add error handling and telemetry
 6. Format code and add documentation comments
 
