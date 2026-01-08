@@ -3,21 +3,19 @@ package dev.kingssack.volt
 import android.content.Context
 import android.util.Log
 import com.qualcomm.robotcore.util.WebHandlerManager
+import dev.frozenmilk.sinister.sdk.apphooks.WebHandlerRegistrar
 import dev.kingssack.volt.web.FlowEditorApiHandler
 import dev.kingssack.volt.web.StaticAssetHandler
 import dev.kingssack.volt.web.VoltWebServer
 import java.io.IOException
-import org.firstinspires.ftc.ftccommon.external.WebHandlerRegistrar
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
 @Suppress("unused")
 class Volt {
-    companion object {
+    object AppHook : WebHandlerRegistrar {
         private const val TAG = "VoltWebServer"
 
-        @JvmStatic
-        @WebHandlerRegistrar
-        fun attachWebServer(context: Context?, manager: WebHandlerManager) {
+        override fun webHandlerRegistrar(context: Context, webHandlerManager: WebHandlerManager) {
             Log.d(TAG, "Attaching web server handlers")
             val activity = AppUtil.getInstance().activity ?: return
             val assetManager = activity.assets
@@ -34,21 +32,21 @@ class Volt {
                     if (isAssetDirectory(assetManager, path)) {
                         // Handle subdirectories
                         Log.d(TAG, "$path is a directory, adding handlers recursively")
-                        addAssetHandlers(manager, assetManager, path)
+                        addAssetHandlers(webHandlerManager, assetManager, path)
                     } else {
                         // Register individual files
                         Log.d(TAG, "Registering handler for /volt/$file")
-                        manager.register("/volt/$file", StaticAssetHandler(assetManager, path))
+                        webHandlerManager.register("/volt/$file", StaticAssetHandler(assetManager, path))
                     }
                 }
                 // Register index.html as the root
                 Log.d(TAG, "Registering handler for /volt (index.html)")
-                manager.register("/volt", StaticAssetHandler(assetManager, "public/index.html"))
+                webHandlerManager.register("/volt", StaticAssetHandler(assetManager, "public/index.html"))
 
                 // Register the flow editor API handler
                 Log.d(TAG, "Registering handler for /volt/api/*")
-                manager.register("/volt/api/*", FlowEditorApiHandler())
-                manager.register("/volt/api/metadata", VoltWebServer.createMetadataHandler())
+                webHandlerManager.register("/volt/api/*", FlowEditorApiHandler())
+                webHandlerManager.register("/volt/api/metadata", VoltWebServer.createMetadataHandler())
 
                 Log.d(TAG, "Web server handlers attached successfully")
             } catch (e: IOException) {
