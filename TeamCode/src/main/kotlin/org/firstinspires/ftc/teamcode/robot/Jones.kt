@@ -78,7 +78,9 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
 
         return result
     }
+    
     var detectedAprilTag : Boolean = false
+
     context(telemetry: Telemetry)
     fun pointTowardsAprilTag(allianceColor: AllianceColor): Action {
         val tagId : Int = if (allianceColor == AllianceColor.RED) {24} else {20}
