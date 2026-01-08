@@ -100,6 +100,8 @@ class Classifier(
                     else -> CAROUSEL_POSITION_1
                 }
             }
+
+            gate.position = GATE_OPEN
         }
 
         loop {
