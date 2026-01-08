@@ -64,6 +64,27 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
 
         return result
     }
+    var detectedAprilTag : Boolean = false
+    context(telemetry: Telemetry)
+    fun pointTowardsAprilTag(allianceColor: AllianceColor): Action {
+        val tagId : Int = if (allianceColor == AllianceColor.RED) {24} else {20}
+        val driveVel = 1.0
+        return Action {
+            val detectedTag: HuskyLens.Block? = getDetectedAprilTags(tagId).firstOrNull()
+            val shouldStop = abs((detectedTag?.x ?: 160) - 160) < 5
+            if (shouldStop) {
+                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
+                detectedAprilTag = detectedTag == null
+            } else {
+                if (detectedTag!!.x < 160) {
+                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), driveVel))
+                } else {
+                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -driveVel))
+                }
+            }
+            shouldStop
+        }
+    }
 }
 
 @VoltBuilderDsl
