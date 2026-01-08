@@ -19,6 +19,13 @@ function app() {
         draggedNode: null,
         toasts: [],
 
+        get activeConnectionPath() {
+            if (!this.activeConnection) return '';
+            const start = this.activeConnection.fromPos;
+            const end = this.activeConnection.to;
+            return this.calculateBezier(start, end);
+        },
+
         // Create OpMode modal state
         newOpModeName: '',
         newOpModeType: 'AutonomousMode',
@@ -179,7 +186,6 @@ function app() {
 
             if (this.activeConnection) {
                 this.activeConnection.to = this.screenToCanvas(e.clientX, e.clientY);
-                this.updateActiveConnectionPath();
             }
         },
 
@@ -272,6 +278,8 @@ function app() {
                 colorClass: template ? template.colorClass : 'bg-gray-600',
                 x: x,
                 y: y,
+                width: 220,
+                height: 120,
                 data: {
                     parameters: template ? { ...template.parameters } : {}
                 },
@@ -320,7 +328,6 @@ function app() {
                 fromPos: portPos,
                 to: portPos
             };
-            this.updateActiveConnectionPath();
         },
 
         onCanvasMouseUp(e) {
@@ -363,75 +370,34 @@ function app() {
             });
         },
 
-        renderConnections() {
-            let html = '';
-            this.connections.forEach(conn => {
-                const start = this.getPointForPort(conn.fromId, 'output');
-                const end = this.getPointForPort(conn.toId, 'input');
-                if (start && end) {
-                    html += `
-                        <path d="${this.calculateBezier(start, end)}" 
-                              stroke="rgba(99, 102, 241, 0.4)" 
-                              stroke-width="3" 
-                              fill="none" 
-                              marker-end="url(#arrowhead)" 
-                              vector-effect="non-scaling-stroke"
-                              class="transition-all hover:stroke-indigo-400 cursor-pointer" />
-                    `;
-                }
-            });
-            return html;
-        },
-
-        updateActiveConnectionPath() {
-            if (!this.activeConnection) return;
-            const start = this.activeConnection.fromPos;
-            const end = this.activeConnection.to;
-            this.activeConnectionPath = this.calculateBezier(start, end);
+        getConnectionPath(conn) {
+            const start = this.getPointForPort(conn.fromId, 'output');
+            const end = this.getPointForPort(conn.toId, 'input');
+            if (start && end) {
+                return this.calculateBezier(start, end);
+            }
+            return '';
         },
 
         calculateBezier(start, end) {
             const dx = Math.abs(end.x - start.x) * 0.5;
-            // Add a minimum curvature
             const curvature = Math.max(dx, 50);
             return `M ${start.x} ${start.y} C ${start.x + curvature} ${start.y}, ${end.x - curvature} ${end.y}, ${end.x} ${end.y}`;
         },
 
         getPointForPort(nodeId, type) {
             const node = this.nodes.find(n => n.id === nodeId);
-            if (!node) return null;
+            if (!node) return { x: 0, y: 0 };
 
-            // Try to get actual port element position from DOM
-            const portId = type === 'output' ? `port-out-${nodeId}` : `port-in-${nodeId}`;
-            const portEl = document.getElementById(portId);
-            const container = this.$refs.canvasContainer;
-
-            if (portEl && container) {
-                const portRect = portEl.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
-
-                // Get center of port element in screen space, relative to container
-                const screenX = portRect.left + portRect.width / 2 - containerRect.left;
-                const screenY = portRect.top + portRect.height / 2 - containerRect.top;
-
-                // Convert to canvas/world space
-                return {
-                    x: (screenX - this.viewport.x) / this.viewport.zoom,
-                    y: (screenY - this.viewport.y) / this.viewport.zoom
-                };
-            }
-
-            // Fallback to estimated position if DOM element not found
-            const width = 220;
-            const paramCount = Object.keys(node.data.parameters || {}).length;
-            const headerHeight = 56;
-            const padding = 32;
-            const paramHeight = paramCount * 48;
-            const height = headerHeight + padding + paramHeight;
+            // Re-calculate based on node position and tracked dimensions
+            // Input is on left (node.x), Output is on right (node.x + node.width)
+            // Both are vertically centered (node.y + node.height / 2)
+            const w = node.width || 220;
+            const h = node.height || 120;
 
             return {
-                x: type === 'output' ? node.x + width : node.x,
-                y: node.y + (height / 2)
+                x: type === 'output' ? node.x + w : node.x,
+                y: node.y + h / 2
             };
         },
 

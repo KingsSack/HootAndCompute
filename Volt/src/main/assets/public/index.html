@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Volt Flow Editor</title>
     <!-- Local vendor files for offline support -->
-    <link rel="stylesheet" href="./vendor/tailwind.css">
-    <link rel="stylesheet" href="./styles.css">
-    <script defer src="./vendor/alpine.min.js"></script>
+    <link rel="stylesheet" href="volt/vendor/tailwind.css">
+    <link rel="stylesheet" href="volt/styles.css">
+    <script defer src="volt/vendor/alpine.min.js"></script>
     <!-- PWA manifest -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="volt/manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <style>
         [x-cloak] { display: none !important; }
@@ -18,7 +18,7 @@
         // Register Service Worker for offline support
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('volt/sw.js')
                     .then(reg => console.log('[SW] Registered:', reg.scope))
                     .catch(err => console.log('[SW] Registration failed:', err));
             });
@@ -119,24 +119,51 @@
             <div class="absolute inset-0 pointer-events-none origin-top-left" 
                  :class="{ 'connection-active': activeConnection }"
                  :style="canvasStyle">
-                
-                <!-- Connections SVG Layer -->
+
+                <!-- Connections Layer -->
+                <div class="absolute inset-0 pointer-events-none overflow-visible">
+                    <template x-for="conn in connections" :key="`${currentOpMode?.id}-${conn.fromId}-${conn.toId}`">
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                            <path :d="getConnectionPath(conn)" 
+                                  stroke="rgba(99, 102, 241, 0.6)" 
+                                  stroke-width="3"
+                                  fill="none" 
+                                  vector-effect="non-scaling-stroke"
+                                  class="transition-all hover:stroke-indigo-400" />
+                        </svg>
+                    </template>
+                </div>
+
+                <!-- Active Connections Layer -->
                 <svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orientation="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="rgba(99, 102, 241, 0.5)" />
-                        </marker>
-                    </defs>
-                    <g x-html="renderConnections()"></g>
-                    <!-- Active connection being dragged -->
-                    <path x-show="activeConnection" :d="activeConnectionPath" stroke="rgba(99, 102, 241, 0.5)" stroke-width="3" fill="none" stroke-dasharray="5,5" class="animate-dash" vector-effect="non-scaling-stroke" />
+                    <path x-show="activeConnection" 
+                          :d="activeConnectionPath" 
+                          stroke="rgba(99, 102, 241, 0.5)" 
+                          stroke-width="3" 
+                          fill="none" 
+                          stroke-dasharray="5,5" 
+                          class="animate-dash" 
+                          vector-effect="non-scaling-stroke" />
                 </svg>
 
                 <!-- Nodes -->
                 <template x-for="node in nodes" :key="node.id">
-                    <div class="absolute pointer-events-auto bg-gray-900/80 backdrop-blur-xl border-2 rounded-2xl shadow-2xl min-w-[220px] transition-all duration-200 hover:shadow-indigo-500/10 select-none"
-                         :class="[node.selected ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-gray-800 hover:border-gray-700', node.dragging ? 'z-50 scale-[1.02]' : 'z-30']"
-                         :style="`left: ${node.x}px; top: ${node.y}px;`"
+                    <div class="absolute pointer-events-auto bg-gray-900/80 backdrop-blur-xl border-2 rounded-2xl shadow-2xl min-w-[220px] hover:shadow-indigo-500/10 select-none"
+                         :class="[
+                            node.selected ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-gray-800 hover:border-gray-700', 
+                            node.dragging ? 'z-50 scale-[1.02]' : 'z-30'
+                         ]"
+                         :style="`left: ${node.x}px; top: ${node.y}px; transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, ring 0.2s;`"
+                         x-init="
+                            node.width = $el.offsetWidth;
+                            node.height = $el.offsetHeight;
+                            new ResizeObserver(entries => {
+                                for (let entry of entries) {
+                                    node.width = entry.target.offsetWidth;
+                                    node.height = entry.target.offsetHeight;
+                                }
+                            }).observe($el);
+                         "
                          @mousedown.stop="onNodeMouseDown($event, node)">
                         
                         <!-- Node Header -->
@@ -331,6 +358,6 @@
         </template>
     </div>
 
-    <script src="./app.js"></script>
+    <script src="volt/app.js"></script>
 </body>
 </html>
