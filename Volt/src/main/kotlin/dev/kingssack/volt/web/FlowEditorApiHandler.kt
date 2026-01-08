@@ -229,53 +229,83 @@ class FlowEditorApiHandler : WebHandler {
     // MARK: - Robot Discovery
 
     /** Handle GET /api/robots */
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun handleGetRobots(): NanoHTTPD.Response {
-        val (robots, _) = MetadataService.getAllMetadata()
-        return createJsonResponse(gson.toJson(robots))
+        return try {
+            val (robots, _) = MetadataService.getAllMetadata()
+            createJsonResponse(gson.toJson(robots))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting robots", e)
+            createErrorResponse(
+                "Error getting robots: ${e.message}",
+                NanoHTTPD.Response.Status.INTERNAL_ERROR,
+            )
+        }
     }
 
     /** Handle GET /api/robots/:name */
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun handleGetRobot(uri: String): NanoHTTPD.Response {
-        val robotName = uri.substringAfterLast("/")
-        val (robots, _) = MetadataService.getAllMetadata()
+        return try {
+            val robotName = uri.substringAfterLast("/")
+            val (robots, _) = MetadataService.getAllMetadata()
 
-        val robot =
-            robots.find { it.simpleName == robotName }
-                ?: return createErrorResponse(
-                    "Robot not found",
-                    NanoHTTPD.Response.Status.NOT_FOUND,
-                )
+            val robot =
+                robots.find { it.simpleName == robotName }
+                    ?: return createErrorResponse(
+                        "Robot not found",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
 
-        // For now, just return the basic metadata
-        // In a full implementation, we'd return detailed hardware configuration
-        return createJsonResponse(
-            gson.toJson(mapOf("name" to robot.simpleName, "qualifiedName" to robot.qualifiedName))
-        )
+            // For now, just return the basic metadata
+            // In a full implementation, we'd return detailed hardware configuration
+            createJsonResponse(
+                gson.toJson(mapOf("name" to robot.simpleName, "qualifiedName" to robot.qualifiedName))
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting robot", e)
+            createErrorResponse(
+                "Error getting robot: ${e.message}",
+                NanoHTTPD.Response.Status.INTERNAL_ERROR,
+            )
+        }
     }
 
     /** Handle GET /api/actions */
     @Suppress("unused")
     private fun handleGetActions(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
-        val (_, actions) = MetadataService.getAllMetadata()
-        return createJsonResponse(gson.toJson(actions))
+        return try {
+            val (_, actions) = MetadataService.getAllMetadata()
+            createJsonResponse(gson.toJson(actions))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting actions", e)
+            createErrorResponse(
+                "Error getting actions: ${e.message}",
+                NanoHTTPD.Response.Status.INTERNAL_ERROR,
+            )
+        }
     }
 
     /** Handle GET /api/actions/:id */
     private fun handleGetAction(uri: String): NanoHTTPD.Response {
-        val actionId = uri.substringAfterLast("/")
-        val (_, actions) = MetadataService.getAllMetadata()
+        return try {
+            val actionId = uri.substringAfterLast("/")
+            val (_, actions) = MetadataService.getAllMetadata()
 
-        val action =
-            actions.find { it.id == actionId }
-                ?: return createErrorResponse(
-                    "Action not found",
-                    NanoHTTPD.Response.Status.NOT_FOUND,
-                )
+            val action =
+                actions.find { it.id == actionId }
+                    ?: return createErrorResponse(
+                        "Action not found",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
 
-        // Return detailed metadata
-        return createJsonResponse(gson.toJson(action))
+            // Return detailed metadata
+            createJsonResponse(gson.toJson(action))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting action", e)
+            createErrorResponse(
+                "Error getting action: ${e.message}",
+                NanoHTTPD.Response.Status.INTERNAL_ERROR,
+            )
+        }
     }
 
     /** Handle POST /api/validate */
