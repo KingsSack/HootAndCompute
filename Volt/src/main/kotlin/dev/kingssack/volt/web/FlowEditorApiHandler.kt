@@ -7,6 +7,7 @@ import com.google.gson.Gson
 import dev.kingssack.volt.service.MetadataService
 import fi.iki.elonen.NanoHTTPD
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.mapOf
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler
 
@@ -21,8 +22,8 @@ class FlowEditorApiHandler : WebHandler {
         private const val TAG = "FlowEditorApiHandler"
         private val gson = Gson()
 
-        // In-memory cache of OpModes (persisted to files)
-        private val opModes = mutableMapOf<String, OpModeDefinition>()
+        // Thread-safe cache of OpModes (persisted to files)
+        private val opModes = ConcurrentHashMap<String, OpModeDefinition>()
     }
 
     /** Configuration for an OpMode definition */
@@ -393,7 +394,7 @@ class FlowEditorApiHandler : WebHandler {
         val buffer = ByteArray(contentLength)
 
         try {
-            session.inputStream.read(buffer, 0, contentLength)
+            session.inputStream.readNBytes(buffer, 0, contentLength)
             val json = String(buffer)
 
             // For complex types with generic collections
@@ -494,7 +495,6 @@ class FlowEditorApiHandler : WebHandler {
         }
 
         visiting.add(nodeId)
-        visited.add(nodeId)
 
         // Find outgoing connections
         val outgoingConnections = flowGraph.connections.filter { it.sourceNode == nodeId }
@@ -504,6 +504,7 @@ class FlowEditorApiHandler : WebHandler {
         }
 
         visiting.remove(nodeId)
+        visited.add(nodeId)
     }
 
     /** Exception thrown when a cycle is detected */
@@ -557,11 +558,29 @@ class FlowEditorApiHandler : WebHandler {
             builder.appendLine("        telemetry.addData(\"Status\", \"Initializing\")")
             builder.appendLine("        telemetry.update()")
 
-            // In a real implementation, we would traverse the flow graph
-            // and generate appropriate Kotlin code for each node type
+            // Traverse the flow graph starting from the start node, following connections
             builder.appendLine("        // Generated execution sequence")
 
-            flowGraph.nodes.forEach { node ->
+            // Build a map of nodes by ID for quick lookup
+            val nodeMap = flowGraph.nodes.associateBy { it.id }
+
+            // Build a map of outgoing connections for each node
+            val outgoingConnections = flowGraph.connections.groupBy { it.sourceNode }
+
+            // Traverse the graph in execution order using BFS
+            val visited = mutableSetOf<String>()
+            val queue = ArrayDeque<String>()
+            queue.add(startNode.id)
+
+            while (queue.isNotEmpty()) {
+                val currentNodeId = queue.removeFirst()
+
+                if (currentNodeId in visited) continue
+                visited.add(currentNodeId)
+
+                val node = nodeMap[currentNodeId] ?: continue
+
+                // Generate code for this node
                 when (node.type) {
                     "action" -> {
                         if (node.actionClass != null) {
@@ -574,6 +593,13 @@ class FlowEditorApiHandler : WebHandler {
                         builder.appendLine("        // Control flow: ${node.data.label}")
                     }
                     else -> {}
+                }
+
+                // Add connected nodes to the queue (in order of their connections)
+                outgoingConnections[currentNodeId]?.forEach { connection ->
+                    if (connection.targetNode !in visited) {
+                        queue.add(connection.targetNode)
+                    }
                 }
             }
 
