@@ -23,21 +23,21 @@ class PathConstants(follower: Follower, alliance: AllianceColor) {
         follower
             .pathBuilder()
             .addPath(BezierLine(Pose(26.0, 133.0).maybeFlip(alliance), Pose(36.0, 125.0).maybeFlip(alliance)))
-            .setLinearHeadingInterpolation(323.0.toRadians(), 323.0.toRadians())
+            .setLinearHeadingInterpolation(if (alliance == AllianceColor.BLUE) 323.0.toRadians() else 220.0.toRadians(), if (alliance == AllianceColor.BLUE) 323.0.toRadians() else 220.0.toRadians())
             .build()
 
     val pathOffRampLaunchLine: PathChain =
         follower
             .pathBuilder()
             .addPath(BezierLine(Pose(15.0, 112.0).maybeFlip(alliance), Pose(15.0, 105.0).maybeFlip(alliance)))
-            .setLinearHeadingInterpolation(0.0.toRadians(), 0.0.toRadians())
+            .setLinearHeadingInterpolation(if (alliance == AllianceColor.BLUE) 0.0.toRadians() else 180.0.toRadians(), if (alliance == AllianceColor.BLUE) 0.0.toRadians() else 180.0.toRadians())
             .build()
 
     val pathToLaunchZoneFromGoal: PathChain =
         follower
             .pathBuilder()
             .addPath(BezierLine(Pose(26.0, 132.0).maybeFlip(alliance), Pose(64.0, 125.0).maybeFlip(alliance)))
-            .setLinearHeadingInterpolation(142.0.toRadians(), if (alliance == AllianceColor.BLUE) 148.0.toRadians() else 136.0.toRadians())
+            .setLinearHeadingInterpolation(if (alliance == AllianceColor.BLUE) 142.0.toRadians() else 38.0.toRadians(), if (alliance == AllianceColor.BLUE) 148.0.toRadians() else 32.0.toRadians())
             .build()
 
     val pathToLaunchZoneFromWall: PathChain =
