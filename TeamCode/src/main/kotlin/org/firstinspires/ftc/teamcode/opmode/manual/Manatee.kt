@@ -6,6 +6,8 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.robot.GabePP
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 @TeleOp(name = "Manatee", group = "Competition")
 class Manatee :
@@ -28,13 +30,32 @@ class Manatee :
             gamepad2.rumble(0.5, 0.5, 200)
         }
 
+        onButtonDoubleTapped(GamepadButton.LEFT_BUMPER1) {
+            allianceColor =
+                if (allianceColor == AllianceColor.RED) AllianceColor.BLUE else AllianceColor.RED
+            gamepad1.rumble(0.5, 0.5, 300)
+        }
+        context(telemetry) {
+            onButtonTapped(GamepadButton.RIGHT_BUMPER1) {
+                +robot.pointTowardsAprilTag(allianceColor)
+            }
+        }
+
         // Storage
         onButtonTapped(GamepadButton.A2) { +robot.storage.release() }
         onButtonReleased(GamepadButton.A2) { +robot.storage.close() }
     }
 
+    var allianceColor = AllianceColor.BLUE
+
     override fun initialize() {
         super.initialize()
         robot.drivetrain.startTeleOpDrive()
+    }
+
+    context(telemetry: Telemetry)
+    override fun tick() {
+        telemetry.addData("Alliance Color", allianceColor)
+        super.tick()
     }
 }

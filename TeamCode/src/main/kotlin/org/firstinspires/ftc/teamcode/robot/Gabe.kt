@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.PoseVelocity2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
@@ -10,6 +13,8 @@ import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
+import org.firstinspires.ftc.teamcode.util.AllianceColor
+import kotlin.math.abs
 
 /**
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
@@ -63,6 +68,29 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
         telemetry.addData("Filtered count", result.size)
 
         return result
+    }
+
+    var detectedAprilTag : Boolean = false
+
+    context(telemetry: Telemetry)
+    fun pointTowardsAprilTag(allianceColor: AllianceColor): Action {
+        val tagId : Int = if (allianceColor == AllianceColor.RED) {24} else {20}
+        val driveVel = 1.0
+        return Action {
+            val detectedTag: HuskyLens.Block? = getDetectedAprilTags(tagId).firstOrNull()
+            val shouldStop = abs((detectedTag?.x ?: 160) - 160) < 5
+            if (shouldStop) {
+                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
+                detectedAprilTag = detectedTag == null
+            } else {
+                if (detectedTag!!.x < 160) {
+                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), driveVel))
+                } else {
+                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -driveVel))
+                }
+            }
+            shouldStop
+        }
     }
 }
 
