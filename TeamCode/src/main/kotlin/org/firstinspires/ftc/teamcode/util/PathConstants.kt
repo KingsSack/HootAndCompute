@@ -37,7 +37,7 @@ class PathConstants(follower: Follower, alliance: AllianceColor) {
         follower
             .pathBuilder()
             .addPath(BezierLine(Pose(26.0, 132.0).maybeFlip(alliance), Pose(64.0, 125.0).maybeFlip(alliance)))
-            .setLinearHeadingInterpolation(if (alliance == AllianceColor.BLUE) 142.0.toRadians() else 37.0.toRadians(), if (alliance == AllianceColor.BLUE) 148.0.toRadians() else 13.0.toRadians())
+            .setLinearHeadingInterpolation(if (alliance == AllianceColor.BLUE) 142.0.toRadians() else 38.0.toRadians(), if (alliance == AllianceColor.BLUE) 148.0.toRadians() else 32.0.toRadians())
             .build()
 
     val pathToLaunchZoneFromWall: PathChain =
