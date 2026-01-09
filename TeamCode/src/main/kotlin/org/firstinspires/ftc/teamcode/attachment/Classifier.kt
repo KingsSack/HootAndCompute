@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import dev.kingssack.volt.attachment.Attachment
 import dev.kingssack.volt.attachment.ServoAttachment
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.attachment.Classifier.Companion.GATE_CLOSED
 
 /**
  * [Classifier] is a [ServoAttachment] that controls a [gate] used for launching artifacts.
