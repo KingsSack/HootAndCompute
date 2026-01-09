@@ -1,0 +1,158 @@
+:root {
+    --grid-size: 40px;
+    --dot-size: 1.5px;
+    --dot-color: rgba(71, 85, 105, 0.2);
+}
+
+body {
+    background-color: #030712;
+    /* gray-950 */
+    color: #f9fafb;
+    /* gray-50 */
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1f2937;
+    /* gray-800 */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #374151;
+    /* gray-700 */
+}
+
+/* Node Palette Scrollbar */
+aside ::-webkit-scrollbar-thumb {
+    background: #111827;
+    /* gray-900 */
+}
+
+/* Selection */
+::selection {
+    background: rgba(79, 70, 229, 0.3);
+}
+
+/* Animations */
+@keyframes dash {
+    to {
+        stroke-dashoffset: -10;
+    }
+}
+
+.animate-dash {
+    animation: dash 0.5s linear infinite;
+}
+
+/* Port Glow and Hover */
+[id^="port-"] {
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+[id^="port-"]:hover {
+    box-shadow: 0 0 20px 6px rgba(99, 102, 241, 0.7);
+    transform: scale(1.4);
+    background-color: #6366f1;
+    /* indigo-500 */
+}
+
+/* Port drop-target state */
+.port-drop-target [id^="port-"] {
+    box-shadow: 0 0 25px 8px rgba(34, 197, 94, 0.6);
+    background-color: #22c55e;
+    transform: scale(1.5);
+}
+
+/* Connection Path Styling */
+path {
+    transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+path:hover {
+    stroke-width: 5px !important;
+    stroke: #818cf8 !important;
+    /* indigo-400 */
+    filter: drop-shadow(0 0 8px rgba(129, 140, 248, 0.5));
+}
+
+/* Glassmorphism Classes */
+.glass {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Node Transitions */
+.node-enter {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+}
+
+.node-enter-active {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Input Focus Glow */
+input:focus {
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Drop Indicator */
+.drop-target {
+    border-color: #6366f1;
+    background-color: rgba(99, 102, 241, 0.05);
+}
+
+/* Port pulse animation when connection is active */
+@keyframes port-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 8px 2px rgba(99, 102, 241, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 16px 6px rgba(99, 102, 241, 0.7);
+    }
+}
+
+.connection-active [id^="port-"] {
+    animation: port-pulse 1s ease-in-out infinite;
+}
+
+/* Connected node indicator */
+.node-connected {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+}
+
+/* Connection success flash */
+@keyframes connection-flash {
+    0% {
+        stroke: #22c55e;
+        stroke-width: 6px;
+    }
+
+    100% {
+        stroke: rgba(99, 102, 241, 0.4);
+        stroke-width: 3px;
+    }
+}
+
+.connection-new {
+    animation: connection-flash 0.5s ease-out forwards;
+}

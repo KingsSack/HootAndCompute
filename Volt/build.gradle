@@ -73,6 +73,8 @@ dependencies {
 
     api "com.bylazar:fullpanels:$min_fullpanels_version"
 
+    api "dev.frozenmilk.sinister:Sloth:0.2.4"
+
     implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
         exclude module: "nanohttpd"
     }

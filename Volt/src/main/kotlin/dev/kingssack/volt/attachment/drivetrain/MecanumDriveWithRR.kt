@@ -44,6 +44,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.VoltageSensor
+import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.util.Degrees
 import dev.kingssack.volt.util.Drawing
 import dev.kingssack.volt.util.Localizer
@@ -553,6 +554,7 @@ class MecanumDriveWithRR(
      *
      * @return the action
      */
+    @VoltAction(name = "Strafe To", "Strafe the robot to a certain position")
     fun strafeTo(from: Pose2d, to: Vector2d): Action = driveActionBuilder(from).strafeTo(to).build()
 
     /**
@@ -560,6 +562,7 @@ class MecanumDriveWithRR(
      *
      * @return the action
      */
+    @VoltAction(name = "Strafe To Linear Heading", "Strafe the robot to a certain pose")
     fun strafeToLinearHeading(from: Pose2d, to: Pose2d): Action =
         driveActionBuilder(from).strafeToLinearHeading(to.position, to.heading).build()
 
@@ -568,6 +571,7 @@ class MecanumDriveWithRR(
      *
      * @return the action
      */
+    @VoltAction(name = "Turn To Radians", "Turn the robot to a certain heading in radians")
     fun turnTo(from: Pose2d, to: Radians): Action =
         driveActionBuilder(from).turnTo(to.value).build()
 
@@ -576,6 +580,7 @@ class MecanumDriveWithRR(
      *
      * @return the action
      */
+    @VoltAction(name = "Turn To Degrees", "Turn the robot to a certain heading in degrees")
     fun turnTo(from: Pose2d, to: Degrees): Action =
         driveActionBuilder(from).turnTo(to.toRadians().value).build()
 
@@ -585,6 +590,7 @@ class MecanumDriveWithRR(
      * @param from the starting pose
      * @return the action
      */
+    @VoltAction(name = "Turn Radians", "Turn the robot a certain number of radians")
     fun turn(from: Pose2d, radians: Radians): Action =
         driveActionBuilder(from).turn(radians.value).build()
 
@@ -594,17 +600,9 @@ class MecanumDriveWithRR(
      * @param from the starting pose
      * @return the action
      */
+    @VoltAction(name = "Turn Degrees", "Turn the robot a certain number of degrees")
     fun turn(from: Pose2d, degrees: Degrees): Action =
         driveActionBuilder(from).turn(degrees.toRadians().value).build()
-
-    /**
-     * Wait for a certain number of [seconds].
-     *
-     * @param from the starting pose
-     * @return the action
-     */
-    fun wait(from: Pose2d, seconds: Seconds): Action =
-        driveActionBuilder(from).waitSeconds(seconds.value).build()
 
     /**
      * Build a trajectory action.

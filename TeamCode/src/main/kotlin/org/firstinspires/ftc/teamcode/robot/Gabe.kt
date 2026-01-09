@@ -24,6 +24,19 @@ import kotlin.math.abs
 @Config
 abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
     RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
+    companion object {
+        private const val LAUNCHER_LEFT_P = 40.0
+        private const val LAUNCHER_LEFT_I = 0.0
+        private const val LAUNCHER_LEFT_D = 0.0
+        private const val LAUNCHER_LEFT_F = 13.29
+        private const val LAUNCHER_RIGHT_P = 40.0
+        private const val LAUNCHER_RIGHT_I = 0.0
+        private const val LAUNCHER_RIGHT_D = 0.0
+        private const val LAUNCHER_RIGHT_F = 12.11
+        private const val LAUNCHER_MAX_VELOCITY = 6000.0
+        private const val LAUNCHER_TARGET_VELOCITY = 1500.0
+    }
+
     // Hardware
     private val huskyLens by huskyLens("lens")
     private val distanceSensor by distanceSensor("l")
@@ -34,7 +47,22 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
     private val storageServo by servo("ss")
 
     // Attachments
-    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor, distanceSensor) }
+    val launcher by attachment {
+        Launcher(
+            leftLauncherMotor,
+            rightLauncherMotor,
+            distanceSensor,
+            PIDFCoefficients(LAUNCHER_LEFT_P, LAUNCHER_LEFT_I, LAUNCHER_LEFT_D, LAUNCHER_LEFT_F),
+            PIDFCoefficients(
+                LAUNCHER_RIGHT_P,
+                LAUNCHER_RIGHT_I,
+                LAUNCHER_RIGHT_D,
+                LAUNCHER_RIGHT_F,
+            ),
+            LAUNCHER_MAX_VELOCITY,
+            LAUNCHER_TARGET_VELOCITY,
+        )
+    }
     val storage by attachment { Storage(storageServo) }
 
     /**

@@ -10,7 +10,7 @@ import dev.kingssack.volt.attachment.drivetrain.Drivetrain
  * @param hardwareMap The hardware map of the robot.
  * @property drivetrain The drivetrain of the robot.
  */
-abstract class RobotWithDrivetrain<T : Drivetrain>(
+open class RobotWithDrivetrain<T : Drivetrain>(
     hardwareMap: HardwareMap,
     open val drivetrain: T,
 ) : Robot(hardwareMap)

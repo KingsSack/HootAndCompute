@@ -41,13 +41,11 @@ abstract class Finch(
         }
 
         launcher { +enable() }
-        repeat(3) {
-            storage {
-                wait(3.0)
-                +release()
-                wait(0.6)
-                +close()
-            }
+        storage {
+            wait(0.5)
+            +release()
+            wait(10.0)
+            +close()
         }
         wait(4.0)
         launcher { +disable() }

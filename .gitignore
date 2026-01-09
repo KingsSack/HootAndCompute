@@ -43,6 +43,9 @@ captures/
 *.iml
 .idea/
 
+# VSCode
+.vscode/
+
 # For Mac users
 .DS_Store
 
@@ -81,4 +84,8 @@ lint/tmp/
 # lint/reports/
 
 # Kotlin Lnaguage Server
-kls_database.db
+./kls_database.db
+.settings
+
+# Node.js
+node_modules
