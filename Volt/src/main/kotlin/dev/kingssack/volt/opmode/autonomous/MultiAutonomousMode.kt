@@ -16,7 +16,7 @@ abstract class MultiAutonomousMode<R : Robot, E: Enum<E>>(val enumClass: Class<E
         enumClass.enumConstants!!.forEach { value -> {
             val instance : MultiAutonomousMode<R, E> = construct(value)
             instance.type = value
-            registrationHelper.register(OpModeMeta.Builder().setName("$name Blue").setGroup(group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), instance)
+            registrationHelper.register(OpModeMeta.Builder().setName("$name "+value.name).setGroup(group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), instance)
         } }
     }
 
