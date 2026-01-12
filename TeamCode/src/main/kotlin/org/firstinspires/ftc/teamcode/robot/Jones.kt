@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
@@ -13,8 +12,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import kotlin.math.*
 import org.firstinspires.ftc.teamcode.attachment.Launcher
-import org.firstinspires.ftc.teamcode.pp.Constants
-import org.firstinspires.ftc.teamcode.util.AllianceColor
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
