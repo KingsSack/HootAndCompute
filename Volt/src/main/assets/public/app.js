@@ -260,7 +260,7 @@ function app() {
         },
 
         addNodeAt(type, x, y, template = null) {
-            const id = 'node-' + Math.random().toString(36).substr(2, 9);
+            const id = (typeof window !== 'undefined' && window.crypto && typeof window.crypto.randomUUID === 'function');
             const newNode = {
                 id: id,
                 type: type,
@@ -433,12 +433,96 @@ function app() {
             });
         },
 
-        deployOpMode() {
-            this.addToast('Deploying to robot...', 'success');
-            // Mock delay
-            setTimeout(() => {
-                this.addToast('Deployment complete!', 'success');
-            }, 2000);
+        // Generated code modal state
+        showCodeModal: false,
+        generatedCode: '',
+        isGenerating: false,
+
+        async deployOpMode() {
+            if (!this.currentOpMode) {
+                this.addToast('Please select an OpMode first', 'error');
+                return;
+            }
+
+            if (this.nodes.length === 0) {
+                this.addToast('Cannot generate code for an empty flow', 'error');
+                return;
+            }
+
+            this.isGenerating = true;
+            this.addToast('Generating code...', 'success');
+
+            try {
+                // Transform frontend nodes/connections to backend FlowGraph format
+                const flowGraph = this.buildFlowGraph();
+
+                const response = await fetch(`/volt/api/generate?id=${this.currentOpMode.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(flowGraph)
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    this.addToast(`Error: ${result.error}`, 'error');
+                } else if (result.errors) {
+                    this.addToast(`Validation failed: ${result.errors.join(', ')}`, 'error');
+                } else if (result.code) {
+                    this.generatedCode = result.code;
+                    this.showCodeModal = true;
+                    this.addToast('Code generated successfully!', 'success');
+                }
+            } catch (e) {
+                console.error('Error generating code:', e);
+                this.addToast('Failed to generate code (backend may be offline)', 'error');
+            } finally {
+                this.isGenerating = false;
+            }
+        },
+
+        buildFlowGraph() {
+            // Transform frontend nodes to backend Node format
+            const nodes = this.nodes.map(node => ({
+                id: node.id,
+                type: node.type,
+                actionClass: node.type === 'action' ? node.label : null,
+                position: { x: node.x, y: node.y },
+                data: {
+                    label: node.label,
+                    parameters: node.data?.parameters || {}
+                },
+                ports: {
+                    inputs: node.type !== 'start' ? ['input_1'] : [],
+                    outputs: node.type !== 'end' ? ['output_1'] : []
+                }
+            }));
+
+            // Transform frontend connections to backend Connection format
+            const connections = this.connections.map((conn, index) => ({
+                id: `conn_${index}`,
+                sourceNode: conn.fromId,
+                sourcePort: 'output_1',
+                targetNode: conn.toId,
+                targetPort: 'input_1'
+            }));
+
+            return { nodes, connections };
+        },
+
+        closeCodeModal() {
+            this.showCodeModal = false;
+            this.generatedCode = '';
+        },
+
+        copyCode() {
+            navigator.clipboard.writeText(this.generatedCode).then(() => {
+                this.addToast('Code copied to clipboard!', 'success');
+            }).catch(() => {
+                this.addToast('Failed to copy code', 'error');
+            });
         }
     };
 }

@@ -66,7 +66,7 @@ object MetadataService {
             kFunction?.valueParameters?.map { param ->
                 ParameterMetadata(
                     name = param.name ?: "arg",
-                    type = param.type.toString().substringAfterLast("."),
+                    type = param.type.classifier.toString(),
                     defaultValue = null,
                 )
             }
