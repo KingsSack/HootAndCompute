@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.attachment.Attachment
+import kotlin.math.abs
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 
@@ -30,65 +31,170 @@ class Launcher(
     rightPIDFCoefficients: PIDFCoefficients,
     private val maxVelocity: Double,
     private val targetVelocity: Double,
+    private val velocityTolerance: Double = 40.0,
 ) : Attachment("Launcher") {
-    private var currentVelocity = 0.0
+    private var spinUpStartTime: Long = 0
+    private var lastSpinUpTime: Long = 0
+    private var isSpinningUp: Boolean = false
+    private val spinUpTimes = mutableListOf<Long>()
+    private var velocityDeltaSampleCount = 0
+    private var velocityDeltaSum = 0.0
+    private var maxVelocityDelta = Double.NEGATIVE_INFINITY
+    private var minVelocityDelta = Double.POSITIVE_INFINITY
+
+    var currentVelocity = 0.0
+        private set
+
+    val averageSpinUpTime: Double
+        get() = if (spinUpTimes.isEmpty()) 0.0 else spinUpTimes.average()
+
+    val averageVelocityDelta: Double
+        get() =
+            if (velocityDeltaSampleCount == 0) 0.0 else velocityDeltaSum / velocityDeltaSampleCount
+
+    val isAtSpeed: Boolean
+        get() {
+            val leftError = abs(leftMotor.velocity - currentVelocity)
+            val rightError = abs(rightMotor.velocity - currentVelocity)
+            val atSpeed = leftError < velocityTolerance && rightError < velocityTolerance
+
+            if (atSpeed && isSpinningUp) {
+                lastSpinUpTime = System.currentTimeMillis() - spinUpStartTime
+                spinUpTimes.add(lastSpinUpTime)
+                isSpinningUp = false
+            }
+
+            return atSpeed
+        }
+
+    val isStopped: Boolean
+        get() = leftMotor.velocity == 0.0 && rightMotor.velocity == 0.0
+
+    val velocityDelta: Double
+        get() = leftMotor.velocity - rightMotor.velocity
+
+    val isOverheating: Boolean
+        get() = leftMotor.isOverCurrent || rightMotor.isOverCurrent
 
     init {
         leftMotor.direction = DcMotorSimple.Direction.FORWARD
         rightMotor.direction = DcMotorSimple.Direction.REVERSE
 
-        listOf(leftMotor, rightMotor).forEach { it.mode = DcMotor.RunMode.RUN_USING_ENCODER }
+        listOf(leftMotor, rightMotor).forEach {
+            it.mode = DcMotor.RunMode.RUN_USING_ENCODER
+            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        }
 
         leftMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, leftPIDFCoefficients)
         rightMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, rightPIDFCoefficients)
     }
 
     @VoltAction(name = "Enable Launcher", description = "Enables the launcher at target velocity")
-    fun enable(): Action = action {
-        init { setVelocity(targetVelocity) }
-        loop { true }
+    fun enable(target: Double = targetVelocity): Action = action {
+        init { setVelocity(target) }
+        loop {
+            put("Left flywheel velocity", leftMotor.velocity)
+            put("Right flywheel velocity", rightMotor.velocity)
+
+            isAtSpeed
+        }
     }
 
     @VoltAction(name = "Disable Launcher", description = "Disables the launcher")
     fun disable(): Action = action {
         init { setVelocity(0.0) }
-        loop { true }
+        loop {
+            put("Left flywheel velocity", leftMotor.velocity)
+            put("Right flywheel velocity", rightMotor.velocity)
+
+            isStopped
+        }
     }
 
     @VoltAction(
-        name = "Increase Launcher Velocity",
-        description = "Increases the launcher velocity by the specified delta",
+        name = "Change Launcher Velocity",
+        description = "Changes the launcher velocity by the specified delta",
     )
-    fun increaseVelocity(delta: Double): Action = action {
+    fun changeVelocity(delta: Double): Action = action {
         init { setVelocity(currentVelocity + delta) }
-        loop { true }
-    }
+        loop {
+            put("Left flywheel velocity", leftMotor.velocity)
+            put("Right flywheel velocity", rightMotor.velocity)
 
-    @VoltAction(
-        name = "Decrease Launcher Velocity",
-        description = "Decreases the launcher velocity by the specified delta",
-    )
-    fun decreaseVelocity(delta: Double): Action = action {
-        init { setVelocity(currentVelocity - delta) }
-        loop { true }
+            isAtSpeed
+        }
     }
 
     private fun setVelocity(velocity: Double) {
         require(velocity in 0.0..maxVelocity) {
             "Velocity must be between 0.0 and $maxVelocity, got $velocity"
         }
+
+        if (currentVelocity == velocity) return
+
         currentVelocity = velocity
+
+        // Start tracking spin-up time when changing to non-zero velocity
+        if (velocity > 0.0 && !isSpinningUp) {
+            spinUpStartTime = System.currentTimeMillis()
+            isSpinningUp = true
+        }
+
+        listOf(leftMotor, rightMotor).forEach { it.velocity = currentVelocity }
     }
 
     context(telemetry: Telemetry)
-    override fun update() {
-        super.update()
-        listOf(leftMotor, rightMotor).forEach { it.velocity = currentVelocity }
+    override fun update(): Unit =
         with(telemetry) {
-            addData("Motor Power", "${leftMotor.power} ${rightMotor.power}")
-            addData("Motor Velocity", "${leftMotor.velocity} ${rightMotor.velocity}")
-            addData("Target Velocity", "$currentVelocity/$targetVelocity")
+            super.update()
+
+            val currentDelta = velocityDelta
+            velocityDeltaSum += currentDelta
+            velocityDeltaSampleCount++
+
+            if (currentDelta > maxVelocityDelta) {
+                maxVelocityDelta = currentDelta
+            }
+            if (currentDelta < minVelocityDelta) {
+                minVelocityDelta = currentDelta
+            }
+
+            addLine(">>STATUS<<")
+            addData("Status", if (isAtSpeed) "✓ READY" else "⏳ SPINNING UP")
+            addData("Overheating", if (isOverheating) "⚠ OVERHEATING" else "✓ NORMAL")
+            addData(
+                "Power",
+                if (leftMotor.power == 1.0 || rightMotor.power == 1.0) "⚠ MAX" else "✓ OK",
+            )
+
+            addLine()
+            addLine(">>VELOCITIES<<")
+            addData("Target", "%.1f".format(currentVelocity))
+            addData("Left Motor", "%.1f".format(leftMotor.velocity))
+            addData("Right Motor", "%.1f".format(rightMotor.velocity))
+            addData("Delta", "%.2f (avg: %.2f)".format(currentDelta, averageVelocityDelta))
+            addData(
+                "Delta Range",
+                "[%.2f, %.2f]"
+                    .format(
+                        if (minVelocityDelta == Double.POSITIVE_INFINITY) 0.0 else minVelocityDelta,
+                        if (maxVelocityDelta == Double.NEGATIVE_INFINITY) 0.0 else maxVelocityDelta,
+                    ),
+            )
+
+            addLine()
+            addLine(">>TIMINGS<<")
+            if (isSpinningUp) {
+                val currentSpinUpTime = System.currentTimeMillis() - spinUpStartTime
+                addData("Spin-Up", "%dms (in progress)".format(currentSpinUpTime))
+                addData("Avg Spin-Up", "%.0fms".format(averageSpinUpTime))
+            } else if (lastSpinUpTime > 0) {
+                addData("Last Spin-Up", "%dms".format(lastSpinUpTime))
+                addData("Avg Spin-Up", "%.0fms".format(averageSpinUpTime))
+            }
+
+            addLine()
+            addLine(">>SENSOR<<")
             addData("Measured Distance", distanceSensor.getDistance(DistanceUnit.INCH))
         }
-    }
 }
