@@ -6,6 +6,16 @@ buildscript {
     ext.min_pp_version = "2.0.5"
     ext.min_pp_telemetry_version = "1.0.0"
     ext.min_fullpanels_version = "1.0.2"
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.2.4"
+    }
 }
 
 apply plugin: 'com.android.library'
@@ -17,7 +27,7 @@ version = '0.3.3'
 
 android {
     defaultConfig {
-        minSdkVersion 33
+        minSdkVersion 24
         targetSdkVersion 36
     }
 

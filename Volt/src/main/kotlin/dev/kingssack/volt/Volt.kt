@@ -22,6 +22,18 @@ class Volt {
 
             // Register all static files from the public directory
             try {
+                // Create a single instance of the API handler
+                val apiHandler = FlowEditorApiHandler()
+
+                // Register each API endpoint explicitly
+                Log.d(TAG, "Registering API handlers")
+                webHandlerManager.register("/volt/api/metadata", VoltWebServer.createMetadataHandler())
+                webHandlerManager.register("/volt/api/opmodes", apiHandler)
+                webHandlerManager.register("/volt/api/robots", apiHandler)
+                webHandlerManager.register("/volt/api/actions", apiHandler)
+                webHandlerManager.register("/volt/api/validate", apiHandler)
+                webHandlerManager.register("/volt/api/generate", apiHandler)
+
                 val publicFiles = assetManager.list("public")
                 Log.d(TAG, "Found ${publicFiles?.size ?: 0} files in public directory")
 
@@ -42,11 +54,6 @@ class Volt {
                 // Register index.html as the root
                 Log.d(TAG, "Registering handler for /volt (index.html)")
                 webHandlerManager.register("/volt", StaticAssetHandler(assetManager, "public/index.html"))
-
-                // Register the flow editor API handler
-                Log.d(TAG, "Registering handler for /volt/api/*")
-                webHandlerManager.register("/volt/api/*", FlowEditorApiHandler())
-                webHandlerManager.register("/volt/api/metadata", VoltWebServer.createMetadataHandler())
 
                 Log.d(TAG, "Web server handlers attached successfully")
             } catch (e: IOException) {
