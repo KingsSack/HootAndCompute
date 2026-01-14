@@ -532,10 +532,13 @@ class FlowEditorApiHandler : WebHandler {
                     else -> "@OpMode(name = \"${opMode.name}\")"
                 }
             builder.appendLine(annotation)
-
             // Build the class declaration
+            var name = opMode.name.replace("-".toRegex(), "_").replace("^[A-z0-9_]".toRegex(), "")
+            if (name.substring(0, 1).matches("[0-9]".toRegex())) {
+                name = "_$name"
+            }
             builder.appendLine(
-                "class ${opMode.name.replace(" ".toRegex(), "").replace("-".toRegex(), "_")} : ${opMode.type}<${opMode.robotType}>({ hardwareMap -> ${opMode.robotType}(hardwareMap) }) {"
+                "class $name : ${opMode.type}<${opMode.robotType}>({ hardwareMap -> ${opMode.robotType}(hardwareMap) }) {"
             )
             builder.appendLine()
         }
