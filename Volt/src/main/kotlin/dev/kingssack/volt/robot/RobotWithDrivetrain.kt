@@ -13,4 +13,4 @@ import dev.kingssack.volt.attachment.drivetrain.Drivetrain
 open class RobotWithDrivetrain<T : Drivetrain>(
     hardwareMap: HardwareMap,
     open val drivetrain: T,
-) : Robot(hardwareMap)
+) : DefaultRobot(hardwareMap)
