@@ -39,19 +39,9 @@ function app() {
 
         categories: [
             {
-                name: 'Action Nodes',
-                nodes: [
-                    { type: 'action', label: 'Move Forward', description: 'Moves the robot forward by a distance', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>', colorClass: 'bg-blue-600', parameters: { distance: 10, speed: 0.5 } },
-                    { type: 'action', label: 'Turn', description: 'Turns the robot by an angle', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>', colorClass: 'bg-blue-600', parameters: { angle: 90, speed: 0.3 } },
-                    { type: 'action', label: 'Lift Arm', description: 'Moves the arm to a height', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>', colorClass: 'bg-indigo-600', parameters: { height: 5 } },
-                    { type: 'action', label: 'Claw Control', description: 'Opens or closes the claw', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>', colorClass: 'bg-indigo-600', parameters: { state: 'closed' } }
-                ]
-            },
-            {
                 name: 'Control Flow',
                 nodes: [
                     { type: 'control', label: 'Wait', description: 'Wait for a specified duration', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>', colorClass: 'bg-amber-600', parameters: { duration: 1.0 } },
-                    { type: 'control', label: 'Parallel', description: 'Execute child nodes in parallel', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>', colorClass: 'bg-purple-600', parameters: {} }
                 ]
             },
             {
@@ -82,7 +72,8 @@ function app() {
             try {
                 const response = await fetch('/volt/api/robots');
                 if (response.ok) {
-                    this.availableRobots = await response.json();
+                    const robots = await response.json();
+                    this.availableRobots = robots.map(robot => robot.simpleName);
                     if (this.availableRobots.length > 0) {
                         this.selectedRobot = this.availableRobots[0];
                     }
