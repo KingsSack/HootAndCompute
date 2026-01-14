@@ -393,7 +393,7 @@ class FlowEditorApiHandler : WebHandler {
         val buffer = ByteArray(contentLength)
 
         try {
-            session.inputStream.readNBytes(buffer, 0, contentLength)
+            session.inputStream.read(buffer, 0, contentLength)
             val json = String(buffer)
 
             // For complex types with generic collections
@@ -556,9 +556,6 @@ class FlowEditorApiHandler : WebHandler {
             builder.appendLine("    override fun runOpMode() {")
             builder.appendLine("        telemetry.addData(\"Status\", \"Initializing\")")
             builder.appendLine("        telemetry.update()")
-
-            // Traverse the flow graph starting from the start node, following connections
-            builder.appendLine("        // Generated execution sequence")
 
             // Build a map of nodes by ID for quick lookup
             val nodeMap = flowGraph.nodes.associateBy { it.id }
