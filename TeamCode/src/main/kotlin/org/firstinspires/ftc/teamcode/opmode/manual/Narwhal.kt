@@ -6,10 +6,7 @@ import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import org.firstinspires.ftc.teamcode.robot.GabePP
 
 @TeleOp(name = "Narwhal", group = "Default")
-class Narwhal :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ hardwareMap ->
-        GabePP(hardwareMap)
-    }) {
+class Narwhal : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ GabePP(it) }) {
     override fun initialize() {
         super.initialize()
         robot.drivetrain.startTeleOpDrive()
