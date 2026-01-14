@@ -260,7 +260,7 @@ function app() {
         },
 
         addNodeAt(type, x, y, template = null) {
-            const id = 'node-' + Math.random().toString(36).substr(2, 9);
+            const id = (typeof window !== 'undefined' && window.crypto && typeof window.crypto.randomUUID === 'function');
             const newNode = {
                 id: id,
                 type: type,
