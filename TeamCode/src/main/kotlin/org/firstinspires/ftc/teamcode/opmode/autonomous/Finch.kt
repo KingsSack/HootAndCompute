@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.robot.GabePP
-import org.firstinspires.ftc.teamcode.robot.drivetrain
-import org.firstinspires.ftc.teamcode.robot.launcher
-import org.firstinspires.ftc.teamcode.robot.storage
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.StartingPosition
@@ -16,10 +14,10 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Config
 abstract class Finch(
-    alliance: AllianceColor,
+    private val alliance: AllianceColor,
     initialPose: Pose,
     private val startingPosition: StartingPosition,
-) : AutonomousMode<GabePP>({ hardwareMap -> GabePP(hardwareMap, initialPose) }) {
+) : AutonomousMode<GabePP>({ GabePP(it, initialPose, alliance) }) {
     private val paths by lazy { PathConstants(robot.drivetrain.follower, alliance) }
 
     private lateinit var pathToLaunchZone: PathChain
@@ -32,23 +30,20 @@ abstract class Finch(
                 StartingPosition.GOAL -> paths.pathToLaunchZoneFromGoal
                 StartingPosition.RAMP -> TODO("RAMP starting position not implemented")
             }
+        blackboard["allianceColor"] = alliance
     }
 
+    /** Drives to launch zone, fires, and saves pose */
     override fun sequence() = execute {
-        parallel {
-            storage { +close() }
-            drivetrain { +pathTo(pathToLaunchZone) }
-        }
+        with(robot) {
+            parallel {
+                +storage.close()
+                +drivetrain.pathTo(pathToLaunchZone)
+            }
 
-        launcher { +enable() }
-        storage {
-            wait(0.5)
-            +release()
-            wait(10.0)
-            +close()
+            +fire(3)
+            +InstantAction { blackboard["endPose"] = drivetrain.pose }
         }
-        wait(4.0)
-        launcher { +disable() }
     }
 }
 
