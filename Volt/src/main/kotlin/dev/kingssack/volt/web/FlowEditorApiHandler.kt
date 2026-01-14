@@ -77,7 +77,6 @@ class FlowEditorApiHandler : WebHandler {
         val tags: List<String> = emptyList(),
     )
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun getResponse(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         val uri = session.uri.removePrefix("/volt")
         val method = session.method
