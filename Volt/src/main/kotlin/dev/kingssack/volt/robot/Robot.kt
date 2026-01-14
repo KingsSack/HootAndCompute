@@ -34,7 +34,7 @@ sealed interface RobotState {
 }
 
 /** Represents a robot with attachments. */
-abstract class Robot(protected val hardwareMap: HardwareMap) {
+open class Robot(protected val hardwareMap: HardwareMap) {
     private val _state = MutableStateFlow<RobotState>(RobotState.Initializing)
     val state: StateFlow<RobotState> = _state.asStateFlow()
 

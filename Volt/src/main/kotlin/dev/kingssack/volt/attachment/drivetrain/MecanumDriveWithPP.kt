@@ -11,6 +11,7 @@ import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.annotations.VoltAction
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
@@ -52,6 +53,10 @@ class MecanumDriveWithPP(
         follower.setTeleOpDrive(powers.linearVel.x, powers.linearVel.y, powers.angVel)
     }
 
+    @VoltAction(
+        name = "Follow Path",
+        description = "Follows the given path using PedroPathing",
+    )
     fun pathTo(pathChain: PathChain): Action = Action {
         if (!follower.isBusy) follower.followPath(pathChain, true)
         follower.update()

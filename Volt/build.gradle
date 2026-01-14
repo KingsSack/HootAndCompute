@@ -3,9 +3,19 @@ buildscript {
     ext.min_rr_ftc_version = "0.1.23"
     ext.min_rr_version = "1.0.1"
     ext.min_dash_version = "0.2.4+0.4.17"
-    ext.min_pp_version = "2.0.4"
+    ext.min_pp_version = "2.0.5"
     ext.min_pp_telemetry_version = "1.0.0"
     ext.min_fullpanels_version = "1.0.2"
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.2.4"
+    }
 }
 
 apply plugin: 'com.android.library'
@@ -18,8 +28,7 @@ version = '0.3.3'
 android {
     defaultConfig {
         minSdkVersion 24
-        //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 28
+        targetSdkVersion 36
     }
 
     buildFeatures {
@@ -73,6 +82,8 @@ dependencies {
 
     api "com.bylazar:fullpanels:$min_fullpanels_version"
 
+    api "dev.frozenmilk.sinister:Sloth:0.2.4"
+
     implementation("org.nanohttpd:nanohttpd-websocket:2.3.1") {
         exclude module: "nanohttpd"
     }
@@ -80,7 +91,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:2.2.21"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
 }
 
 dokka {
