@@ -1,6 +1,8 @@
 package dev.kingssack.volt.ai
 
 import com.acmerobotics.roadrunner.Action
+import dev.kingssack.volt.annotations.AIAction
+import dev.kingssack.volt.annotations.AIParam
 import dev.kingssack.volt.attachment.Attachment
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
