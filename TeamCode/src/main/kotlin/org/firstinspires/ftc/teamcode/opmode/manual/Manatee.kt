@@ -30,8 +30,10 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ Gab
             }
         }
         whileButtonHeld(GamepadButton.RIGHT_BUMPER1) {
-            if (launcher.isAtSpeed) rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.CONFETTI)
-            else setRGBPatternToAllianceColor(allianceColor)
+            with(robot) {
+                if (launcher.isAtSpeed) rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.CONFETTI)
+                else setRGBPatternToAllianceColor(allianceColor)
+            }
         }
         onButtonReleased(GamepadButton.DPAD_UP2) {
             +InstantAction { targetVelocity += modifyScale }

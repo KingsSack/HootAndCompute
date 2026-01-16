@@ -8,8 +8,6 @@ import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
-import dev.kingssack.volt.core.VoltActionBuilder
-import dev.kingssack.volt.core.VoltBuilderDsl
 import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import kotlin.math.abs
@@ -49,7 +47,10 @@ abstract class Gabe<T : MecanumDrivetrain>(
     }
 
     var allianceColor: AllianceColor = allianceColor
-        set(value) = setRGBPatternToAllianceColor(value)
+        set(value) {
+            field = value
+            setRGBPatternToAllianceColor(value)
+        }
 
     // Hardware
     val rgb by ledDriver("rgb")
@@ -138,7 +139,7 @@ abstract class Gabe<T : MecanumDrivetrain>(
 
     context(telemetry: Telemetry)
     fun pointTowardsAprilTag() = Action {
-        val targetId = if (allianceColor == AllianceColor.RED) 24 else 0
+        val targetId = if (allianceColor == AllianceColor.RED) 24 else 20
         val detectedTag = getDetectedAprilTags(targetId).firstOrNull()
 
         if (detectedTag == null) {
