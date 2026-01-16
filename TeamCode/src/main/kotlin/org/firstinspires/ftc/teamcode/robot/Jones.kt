@@ -40,6 +40,15 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     }
 
     // Hardware
+    private val gateServo by servo("gs")
+
+    private val classifierServo by servo("cs")
+
+    private val classifierSensor1 by colorSensor("ccs1")
+
+    private val classifierSensor2 by colorSensor("ccs2")
+
+    private val classifierSensor3 by colorSensor("ccs3")
     private val lidarLeft by distanceSensor(lidarLeftName)
     private val lidarRight by distanceSensor(lidarRightName)
     private val huskyLens by huskyLens(huskyLensName)
