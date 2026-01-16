@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.attachment.Launcher
+import org.firstinspires.ftc.teamcode.attachment.Pusher
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 /**
@@ -51,6 +52,8 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val classifierSensor2 by colorSensor("cs2")
     private val classifierSensor3 by colorSensor("cs3")
 
+    private val pusherServo by servo("ps")
+
     private val leftLauncherMotor by motorEx("fll")
     private val rightLauncherMotor by motorEx("flr")
 
@@ -76,6 +79,8 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
             classifierSensor3,
         )
     }
+
+    val pusher by attachment { Pusher(pusherServo) }
 
     init {
         // Set huskylens mode
