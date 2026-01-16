@@ -7,11 +7,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import dev.kingssack.volt.attachment.DcMotorAttachment;
 import dev.kingssack.volt.core.VoltActionBuilder;
 import dev.kingssack.volt.core.VoltActionBuilderKt;
-import dev.kingssack.volt.robot.Robot;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.jetbrains.annotations.NotNull;
+import dev.kingssack.volt.robot.DefaultRobot;
 
-public class SampleRobot extends Robot {
+public class SampleRobot extends DefaultRobot {
     public DcMotor attachmentMotor;
     public DcMotorAttachment motor;
 
@@ -22,15 +20,10 @@ public class SampleRobot extends Robot {
     }
 
     public Action score() {
-        return VoltActionBuilderKt.voltAction(this, (VoltActionBuilder<? super Robot> builder) -> {
+        return VoltActionBuilderKt.voltAction(this, (VoltActionBuilder<? super DefaultRobot> builder) -> {
             builder.unaryPlus(motor.goTo(0.5, 100));
             builder.unaryPlus(motor.goTo(0.5, 0));
             return kotlin.Unit.INSTANCE;
         });
-    }
-
-    @Override
-    public void update(@NotNull Telemetry telemetry) {
-        super.update(telemetry);
     }
 }

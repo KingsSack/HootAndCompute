@@ -4,16 +4,14 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
+import kotlin.math.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import kotlin.math.*
 import org.firstinspires.ftc.teamcode.attachment.Launcher
-import org.firstinspires.ftc.teamcode.pp.Constants
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 /**
@@ -99,27 +97,30 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
 
         return result
     }
-    
-    var detectedAprilTag : Boolean = false
+
+    var detectedAprilTag: Boolean = false
 
     context(telemetry: Telemetry)
-    fun pointTowardsAprilTag(allianceColor: AllianceColor): Action {
-        val tagId : Int = if (allianceColor == AllianceColor.RED) {24} else {20}
-        val driveVel = 1.0
-        return Action {
-            val detectedTag: HuskyLens.Block? = getDetectedAprilTags(tagId).firstOrNull()
-            val shouldStop = abs((detectedTag?.x ?: 160) - 160) < 5
-            if (shouldStop) {
+    fun pointTowardsAprilTag(allianceColor: AllianceColor) = Action {
+        val targetId = if (allianceColor == AllianceColor.RED) 24 else 20
+        val detectedTag = getDetectedAprilTags(targetId).firstOrNull()
+
+        if (detectedTag == null) {
+            drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
+            false
+        } else {
+            val error = detectedTag.x - 160
+            val tolerance = 5
+
+            if (abs(error) < tolerance) {
                 drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
-                detectedAprilTag = detectedTag == null
+                detectedAprilTag = true
+                false
             } else {
-                if (detectedTag!!.x < 160) {
-                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), driveVel))
-                } else {
-                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -driveVel))
-                }
+                val turnPower = (error / 160.0).coerceIn(-0.5, 0.5)
+                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -turnPower))
+                true
             }
-            shouldStop
         }
     }
 
@@ -136,9 +137,11 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         val distanceRight = lidarRight.getDistance(DistanceUnit.MM)
         val averageDistance = (distanceLeft + distanceRight) / 2
 
-        telemetry.addData("Range left", "%.01f mm".format(distanceLeft))
-        telemetry.addData("Range right", "%.01f mm".format(distanceRight))
-        telemetry.addData("Average range", "%.01f mm".format(averageDistance))
+        with(telemetry) {
+            addData("Left Range", "%.01f mm".format(distanceLeft))
+            addData("Right Range", "%.01f mm".format(distanceRight))
+            addData("Average Range", "%.01f mm".format(averageDistance))
+        }
 
         return averageDistance
     }

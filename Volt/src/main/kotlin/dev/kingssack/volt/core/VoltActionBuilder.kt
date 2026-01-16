@@ -52,6 +52,7 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
     }
 }
 
-fun <R : Robot> voltAction(robot: R, block: VoltActionBuilder<R>.() -> Unit): Action {
+context(robot: R)
+fun <R : Robot> voltAction(block: VoltActionBuilder<R>.() -> Unit): Action {
     return VoltActionBuilder(robot).apply(block).build()
 }

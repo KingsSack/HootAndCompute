@@ -5,16 +5,16 @@ import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.dfrobot.HuskyLens
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
-import dev.kingssack.volt.core.VoltActionBuilder
-import dev.kingssack.volt.core.VoltBuilderDsl
+import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
+import kotlin.math.abs
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
 import org.firstinspires.ftc.teamcode.util.AllianceColor
-import kotlin.math.abs
 
 /**
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
@@ -22,22 +22,39 @@ import kotlin.math.abs
  * @param hardwareMap for initializing hardware components
  */
 @Config
-abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
-    RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
+abstract class Gabe<T : MecanumDrivetrain>(
+    hardwareMap: HardwareMap,
+    drivetrain: T,
+    allianceColor: AllianceColor = AllianceColor.BLUE,
+) : RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     companion object {
-        private const val LAUNCHER_LEFT_P = 40.0
-        private const val LAUNCHER_LEFT_I = 0.0
+        private const val LAUNCHER_LEFT_P = 54.7
+        private const val LAUNCHER_LEFT_I = 0.21
         private const val LAUNCHER_LEFT_D = 0.0
-        private const val LAUNCHER_LEFT_F = 13.29
-        private const val LAUNCHER_RIGHT_P = 40.0
-        private const val LAUNCHER_RIGHT_I = 0.0
+        private const val LAUNCHER_LEFT_F = 13.37
+        private const val LAUNCHER_RIGHT_P = 54.8
+        private const val LAUNCHER_RIGHT_I = 0.23
         private const val LAUNCHER_RIGHT_D = 0.0
-        private const val LAUNCHER_RIGHT_F = 12.11
-        private const val LAUNCHER_MAX_VELOCITY = 6000.0
+        private const val LAUNCHER_RIGHT_F = 13.52
+        private const val LAUNCHER_MAX_VELOCITY = 2800.0
         private const val LAUNCHER_TARGET_VELOCITY = 1500.0
     }
 
+    fun setRGBPatternToAllianceColor(allianceColor: AllianceColor) {
+        if (allianceColor == AllianceColor.BLUE)
+            rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE)
+        else rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED)
+    }
+
+    var allianceColor: AllianceColor = allianceColor
+        set(value) {
+            field = value
+            setRGBPatternToAllianceColor(value)
+        }
+
     // Hardware
+    val rgb by ledDriver("rgb")
+
     private val huskyLens by huskyLens("lens")
     private val distanceSensor by distanceSensor("l")
 
@@ -64,6 +81,26 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
         )
     }
     val storage by attachment { Storage(storageServo) }
+
+    init {
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION)
+    }
+
+    /**
+     * Fire a specified number of artifacts.
+     *
+     * @param amount the number of artifacts to fire
+     */
+    fun fire(amount: Int) = voltAction {
+        repeat(amount) {
+            +launcher.enable()
+            +storage.release()
+            wait(0.6)
+            +storage.close()
+            wait(0.4)
+        }
+        +launcher.disable()
+    }
 
     /**
      * Get detected AprilTags from HuskyLens.
@@ -98,40 +135,36 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain:
         return result
     }
 
-    var detectedAprilTag : Boolean = false
+    var detectedAprilTag: Boolean = false
 
     context(telemetry: Telemetry)
-    fun pointTowardsAprilTag(allianceColor: AllianceColor): Action {
-        val tagId : Int = if (allianceColor == AllianceColor.RED) {24} else {20}
-        val driveVel = 1.0
-        return Action {
-            val detectedTag: HuskyLens.Block? = getDetectedAprilTags(tagId).firstOrNull()
-            val shouldStop = abs((detectedTag?.x ?: 160) - 160) < 5
-            if (shouldStop) {
+    fun pointTowardsAprilTag() = Action {
+        val targetId = if (allianceColor == AllianceColor.RED) 24 else 20
+        val detectedTag = getDetectedAprilTags(targetId).firstOrNull()
+
+        if (detectedTag == null) {
+            drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
+            false
+        } else {
+            val error = detectedTag.x - 160
+            val tolerance = 5
+
+            if (abs(error) < tolerance) {
                 drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
-                detectedAprilTag = detectedTag == null
+                detectedAprilTag = true
+                false
             } else {
-                if (detectedTag!!.x < 160) {
-                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), driveVel))
-                } else {
-                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -driveVel))
-                }
+                val turnPower = (error / 160.0).coerceIn(-0.5, 0.5)
+                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -turnPower))
+                true
             }
-            shouldStop
         }
     }
-}
 
-@VoltBuilderDsl
-inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.launcher(
-    block: Launcher.() -> Unit
-) {
-    block(robot.launcher)
-}
-
-@VoltBuilderDsl
-inline fun <D : MecanumDrivetrain, T : Gabe<D>> VoltActionBuilder<T>.storage(
-    block: Storage.() -> Unit
-) {
-    block(robot.storage)
+    context(telemetry: Telemetry)
+    override fun update(): Unit =
+        with(telemetry) {
+            super.update()
+            addData("Alliance Color", allianceColor)
+        }
 }

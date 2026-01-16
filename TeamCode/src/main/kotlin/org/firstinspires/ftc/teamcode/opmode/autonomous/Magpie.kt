@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
-import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.robot.JonesPP
@@ -25,12 +24,14 @@ class Magpie :
     private val paths by lazy { PathConstants(robot.drivetrain.follower, AllianceColor.BLUE) }
 
     override fun sequence() = execute {
-        val tags = context (telemetry) { robot.getDetectedAprilTags() }
-        +robot.drivetrain.pathTo(paths.pathToLaunchZoneFromWall)
-        when (tags[0].id) {
-            21 -> telemetry.addData("Pattern", "GPP")
-            22 -> telemetry.addData("Pattern", "PGP")
-            23 -> telemetry.addData("Pattern", "PPG")
+        with(robot) {
+            val tags = context(telemetry) { getDetectedAprilTags() }
+            +drivetrain.pathTo(paths.pathToLaunchZoneFromWall)
+            when (tags[0].id) {
+                21 -> telemetry.addData("Pattern", "GPP")
+                22 -> telemetry.addData("Pattern", "PGP")
+                23 -> telemetry.addData("Pattern", "PPG")
+            }
         }
     }
 }
