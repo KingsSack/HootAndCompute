@@ -12,6 +12,9 @@ import dev.kingssack.volt.util.ServoPosition
  * @param servo The servo used for pushing artifacts.
  */
 class Pusher(servo: Servo) : ServoAttachment("Pusher", servo) {
+    val isExtended: Boolean
+        get() = servo.position == 1.0
+
     @VoltAction(name = "Push Artifact", description = "Pushes an artifact into the launcher")
     fun push(): Action = goTo(ServoPosition(1.0))
 
