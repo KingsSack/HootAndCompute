@@ -9,24 +9,25 @@ import dev.kingssack.volt.attachment.Attachment
 import dev.kingssack.volt.attachment.ServoAttachment
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
-/**
- * [Classifier] is a [ServoAttachment] that controls a [gate] used for launching artifacts.
- */
+/** [Classifier] is a [ServoAttachment] that controls a [gate] used for launching artifacts. */
 class Classifier(
     private val gate: Servo,
     private val classifier: Servo,
     private val sectorOne: NormalizedColorSensor,
     private val sectorTwo: NormalizedColorSensor,
-    private val sectorThree: NormalizedColorSensor
+    private val sectorThree: NormalizedColorSensor,
 ) : Attachment("Classifier") {
     companion object {
-        private const val CAROUSEL_POSITION_1 = 0.0
-        private const val CAROUSEL_POSITION_2 = 0.33
-        private const val CAROUSEL_POSITION_3 = 0.67
+        private const val CAROUSEL_POSITION_1 =
+            0.0 // Servo position for an artifact from sector one
+        private const val CAROUSEL_POSITION_2 =
+            0.33 // Servo position for an artifact from sector two
+        private const val CAROUSEL_POSITION_3 =
+            0.67 // Servo position for an artifact from sector three
 
-        private const val GATE_CLOSED = 0.0
-        private const val GATE_OPEN = 1.0
-        private const val GATE_TIME = 1.0
+        private const val GATE_CLOSED = 0.0 // Fully closed position
+        private const val GATE_OPEN = 1.0 // Fully open position
+        private const val GATE_TIME = 1.0 // Time for artifact to go through the gate
 
         private const val PURPLE_HUE_MIN = 250f
         private const val PURPLE_HUE_MAX = 320f
@@ -37,7 +38,7 @@ class Classifier(
     enum class SectorState {
         PURPLE,
         GREEN,
-        EMPTY
+        EMPTY,
     }
 
     private val sectors = listOf(sectorOne, sectorTwo, sectorThree)
@@ -80,7 +81,6 @@ class Classifier(
         return null
     }
 
-
     fun releasePurple(): Action = action {
         val runtime = ElapsedTime()
 
@@ -91,12 +91,13 @@ class Classifier(
 
             val purpleSector = findArtifactSector(SectorState.PURPLE)
             if (purpleSector != null) {
-                classifier.position = when (purpleSector) {
-                    sectorOne -> CAROUSEL_POSITION_1
-                    sectorTwo -> CAROUSEL_POSITION_2
-                    sectorThree -> CAROUSEL_POSITION_3
-                    else -> CAROUSEL_POSITION_1
-                }
+                classifier.position =
+                    when (purpleSector) {
+                        sectorOne -> CAROUSEL_POSITION_1
+                        sectorTwo -> CAROUSEL_POSITION_2
+                        sectorThree -> CAROUSEL_POSITION_3
+                        else -> CAROUSEL_POSITION_1
+                    }
             }
 
             gate.position = GATE_OPEN
@@ -121,12 +122,13 @@ class Classifier(
 
             val greenSector = findArtifactSector(SectorState.GREEN)
             if (greenSector != null) {
-                classifier.position = when (greenSector) {
-                    sectorOne -> CAROUSEL_POSITION_1
-                    sectorTwo -> CAROUSEL_POSITION_2
-                    sectorThree -> CAROUSEL_POSITION_3
-                    else -> CAROUSEL_POSITION_1
-                }
+                classifier.position =
+                    when (greenSector) {
+                        sectorOne -> CAROUSEL_POSITION_1
+                        sectorTwo -> CAROUSEL_POSITION_2
+                        sectorThree -> CAROUSEL_POSITION_3
+                        else -> CAROUSEL_POSITION_1
+                    }
             }
 
             gate.position = GATE_OPEN
@@ -141,7 +143,6 @@ class Classifier(
         }
     }
 
-
     fun releaseNext(): Action = action {
         val runtime = ElapsedTime()
 
@@ -152,12 +153,13 @@ class Classifier(
 
             val nextSector = findNextSector()
             if (nextSector != null) {
-                classifier.position = when (nextSector) {
-                    sectorOne -> CAROUSEL_POSITION_1
-                    sectorTwo -> CAROUSEL_POSITION_2
-                    sectorThree -> CAROUSEL_POSITION_3
-                    else -> CAROUSEL_POSITION_1
-                }
+                classifier.position =
+                    when (nextSector) {
+                        sectorOne -> CAROUSEL_POSITION_1
+                        sectorTwo -> CAROUSEL_POSITION_2
+                        sectorThree -> CAROUSEL_POSITION_3
+                        else -> CAROUSEL_POSITION_1
+                    }
             }
 
             gate.position = GATE_OPEN
