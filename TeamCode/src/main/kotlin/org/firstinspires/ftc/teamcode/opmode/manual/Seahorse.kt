@@ -30,6 +30,14 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>({ J
             }
         }
 
+        onButtonTapped(GamepadButton.A2) { with(robot) { +classifier.releaseNext() } }
+        onButtonTapped(GamepadButton.X2) { with(robot) { +classifier.releasePurple() } }
+        onButtonTapped(GamepadButton.Y2) { with(robot) { +classifier.releaseGreen() } }
+
+        onButtonTapped(GamepadButton.B2) {
+            with(robot) { if (pusher.isExtended) +pusher.retract() else +pusher.push() }
+        }
+
         onButtonDoubleTapped(GamepadButton.LEFT_BUMPER1) {
             allianceColor =
                 if (allianceColor == AllianceColor.RED) AllianceColor.BLUE else AllianceColor.RED

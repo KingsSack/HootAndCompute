@@ -11,7 +11,9 @@ import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import kotlin.math.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.attachment.Launcher
+import org.firstinspires.ftc.teamcode.attachment.Pusher
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 /**
@@ -23,8 +25,8 @@ import org.firstinspires.ftc.teamcode.util.AllianceColor
 abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
     RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     companion object {
-        @JvmField var lidarLeftName: String = "lidarl"
-        @JvmField var lidarRightName: String = "lidarr"
+        @JvmField var lidarLeftName: String = "ll"
+        @JvmField var lidarRightName: String = "lr"
         @JvmField var huskyLensName: String = "lens"
 
         @JvmField var launcherLeftP: Double = 40.0
@@ -40,18 +42,17 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     }
 
     // Hardware
-    private val gateServo by servo("gs")
-
-    private val classifierServo by servo("cs")
-
-    private val classifierSensor1 by colorSensor("ccs1")
-
-    private val classifierSensor2 by colorSensor("ccs2")
-
-    private val classifierSensor3 by colorSensor("ccs3")
     private val lidarLeft by distanceSensor(lidarLeftName)
     private val lidarRight by distanceSensor(lidarRightName)
     private val huskyLens by huskyLens(huskyLensName)
+
+    private val gateServo by servo("gs")
+    private val classifierServo by servo("cs")
+    private val classifierSensor1 by colorSensor("cs1")
+    private val classifierSensor2 by colorSensor("cs2")
+    private val classifierSensor3 by colorSensor("cs3")
+
+    private val pusherServo by servo("ps")
 
     private val leftLauncherMotor by motorEx("fll")
     private val rightLauncherMotor by motorEx("flr")
@@ -68,6 +69,18 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
             launcherTargetVelocity,
         )
     }
+
+    val classifier by attachment {
+        Classifier(
+            gateServo,
+            classifierServo,
+            classifierSensor1,
+            classifierSensor2,
+            classifierSensor3,
+        )
+    }
+
+    val pusher by attachment { Pusher(pusherServo) }
 
     init {
         // Set huskylens mode
