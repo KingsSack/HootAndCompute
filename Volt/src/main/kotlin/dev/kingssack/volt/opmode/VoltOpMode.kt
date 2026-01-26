@@ -12,7 +12,7 @@ abstract class VoltOpMode<R : Robot>(robotFactory: (HardwareMap) -> R) : LinearO
         // Default implementation does nothing
     }
 
-    /** Optional code to run when the op mode begins. */
+    /** Code to run when the op mode begins. */
     abstract fun begin()
 
     override fun runOpMode() {
