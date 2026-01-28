@@ -18,12 +18,9 @@ class Classifier(
     private val sectorThree: NormalizedColorSensor,
 ) : Attachment("Classifier") {
     companion object {
-        private const val CAROUSEL_POSITION_1 =
-            0.0 // Servo position for an artifact from sector one
-        private const val CAROUSEL_POSITION_2 =
-            1.0 // Servo position for an artifact from sector two
-        private const val CAROUSEL_POSITION_3 =
-            0.5 // Servo position for an artifact from sector three
+        private const val CAROUSEL_POSITION_1 = 0.0
+        private const val CAROUSEL_POSITION_2 = 1.0
+        private const val CAROUSEL_POSITION_3 = 0.5
 
         private const val CAROUSEL_TIME = 0.5
 
@@ -32,6 +29,7 @@ class Classifier(
         private const val GATE_TIME = 1.5 // Time for artifact to go through the gate
 
         private const val SATURATION_THRESHOLD = 0.02f
+
         private const val PURPLE_HUE_MIN = 200f
         private const val PURPLE_HUE_MAX = 300f
         private const val GREEN_HUE_MIN = 80f
@@ -69,9 +67,8 @@ class Classifier(
         }
     }
 
-    private fun findNextSector(): NormalizedColorSensor? {
-        return sectors.firstOrNull { getSectorState(it) != SectorState.EMPTY }
-    }
+    private fun findNextSector(): NormalizedColorSensor? =
+        sectors.firstOrNull { getSectorState(it) != SectorState.EMPTY }
 
     private fun findArtifactSector(state: SectorState): NormalizedColorSensor? {
         for (sector in sectors) {
@@ -104,11 +101,12 @@ class Classifier(
             requireReady()
             runtime.reset()
 
-            val targetSector = when (type) {
-                ReleaseType.PURPLE -> findArtifactSector(SectorState.PURPLE)
-                ReleaseType.GREEN -> findArtifactSector(SectorState.GREEN)
-                ReleaseType.NEXT -> findNextSector()
-            }
+            val targetSector =
+                when (type) {
+                    ReleaseType.PURPLE -> findArtifactSector(SectorState.PURPLE)
+                    ReleaseType.GREEN -> findArtifactSector(SectorState.GREEN)
+                    ReleaseType.NEXT -> findNextSector()
+                }
             if (targetSector != null) classifier.position = getCarouselPosition(targetSector)
         }
 

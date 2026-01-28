@@ -58,7 +58,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val rightLauncherMotor by motorEx("flr")
 
     // Attachments
-    val launcher by attachment {
+    val launcher = attachment {
         Launcher(
             leftLauncherMotor,
             rightLauncherMotor,
@@ -70,7 +70,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         )
     }
 
-    val classifier by attachment {
+    val classifier = attachment {
         Classifier(
             gateServo,
             classifierServo,
@@ -80,7 +80,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         )
     }
 
-    val pusher by attachment { Pusher(pusherServo) }
+    val pusher = attachment { Pusher(pusherServo) }
 
     init {
         // Set huskylens mode
