@@ -21,18 +21,21 @@ class Classifier(
         private const val CAROUSEL_POSITION_1 =
             0.0 // Servo position for an artifact from sector one
         private const val CAROUSEL_POSITION_2 =
-            0.33 // Servo position for an artifact from sector two
+            1.0 // Servo position for an artifact from sector two
         private const val CAROUSEL_POSITION_3 =
-            0.67 // Servo position for an artifact from sector three
+            0.5 // Servo position for an artifact from sector three
 
-        private const val GATE_CLOSED = 0.0 // Fully closed position
-        private const val GATE_OPEN = 1.0 // Fully open position
-        private const val GATE_TIME = 1.0 // Time for artifact to go through the gate
+        private const val CAROUSEL_TIME = 0.5
 
-        private const val PURPLE_HUE_MIN = 250f
-        private const val PURPLE_HUE_MAX = 320f
+        private const val GATE_CLOSED = 0.8 // Fully closed position
+        private const val GATE_OPEN = 0.0 // Fully open position
+        private const val GATE_TIME = 1.5 // Time for artifact to go through the gate
+
+        private const val SATURATION_THRESHOLD = 0.02f
+        private const val PURPLE_HUE_MIN = 200f
+        private const val PURPLE_HUE_MAX = 300f
         private const val GREEN_HUE_MIN = 80f
-        private const val GREEN_HUE_MAX = 160f
+        private const val GREEN_HUE_MAX = 180f
     }
 
     enum class SectorState {
@@ -43,6 +46,11 @@ class Classifier(
 
     private val sectors = listOf(sectorOne, sectorTwo, sectorThree)
 
+    init {
+        gate.position = GATE_CLOSED
+        classifier.position = CAROUSEL_POSITION_1
+    }
+
     private fun getSectorState(sectorSensor: NormalizedColorSensor): SectorState {
         val hsvValues = FloatArray(3)
         Color.colorToHSV(sectorSensor.normalizedColors.toColor(), hsvValues)
@@ -50,7 +58,7 @@ class Classifier(
         val hue = hsvValues[0]
         val saturation = hsvValues[1]
 
-        if (saturation < 0.02) {
+        if (saturation < SATURATION_THRESHOLD) {
             return SectorState.EMPTY
         }
 
@@ -62,14 +70,7 @@ class Classifier(
     }
 
     private fun findNextSector(): NormalizedColorSensor? {
-        if (getSectorState(sectorOne) != SectorState.EMPTY) {
-            return sectorOne
-        } else if (getSectorState(sectorTwo) != SectorState.EMPTY) {
-            return sectorTwo
-        } else if (getSectorState(sectorThree) != SectorState.EMPTY) {
-            return sectorThree
-        }
-        return null
+        return sectors.firstOrNull { getSectorState(it) != SectorState.EMPTY }
     }
 
     private fun findArtifactSector(state: SectorState): NormalizedColorSensor? {
@@ -81,96 +82,59 @@ class Classifier(
         return null
     }
 
-    fun releasePurple(): Action = action {
-        val runtime = ElapsedTime()
-
-        init {
-            requireReady()
-
-            runtime.reset()
-
-            val purpleSector = findArtifactSector(SectorState.PURPLE)
-            if (purpleSector != null) {
-                classifier.position =
-                    when (purpleSector) {
-                        sectorOne -> CAROUSEL_POSITION_1
-                        sectorTwo -> CAROUSEL_POSITION_2
-                        sectorThree -> CAROUSEL_POSITION_3
-                        else -> CAROUSEL_POSITION_1
-                    }
-            }
-
-            gate.position = GATE_OPEN
-        }
-
-        loop {
-            if (runtime.seconds() > GATE_TIME) {
-                gate.position = GATE_CLOSED
-                true
-            }
-            false
+    private fun getCarouselPosition(sector: NormalizedColorSensor): Double {
+        return when (sector) {
+            sectorOne -> CAROUSEL_POSITION_1
+            sectorTwo -> CAROUSEL_POSITION_2
+            sectorThree -> CAROUSEL_POSITION_3
+            else -> CAROUSEL_POSITION_1
         }
     }
 
-    fun releaseGreen(): Action = action {
+    enum class ReleaseType {
+        PURPLE,
+        GREEN,
+        NEXT,
+    }
+
+    fun releaseArtifact(type: ReleaseType): Action = action {
         val runtime = ElapsedTime()
 
         init {
             requireReady()
-
             runtime.reset()
 
-            val greenSector = findArtifactSector(SectorState.GREEN)
-            if (greenSector != null) {
-                classifier.position =
-                    when (greenSector) {
-                        sectorOne -> CAROUSEL_POSITION_1
-                        sectorTwo -> CAROUSEL_POSITION_2
-                        sectorThree -> CAROUSEL_POSITION_3
-                        else -> CAROUSEL_POSITION_1
-                    }
+            val targetSector = when (type) {
+                ReleaseType.PURPLE -> findArtifactSector(SectorState.PURPLE)
+                ReleaseType.GREEN -> findArtifactSector(SectorState.GREEN)
+                ReleaseType.NEXT -> findNextSector()
             }
-
-            gate.position = GATE_OPEN
+            if (targetSector != null) classifier.position = getCarouselPosition(targetSector)
         }
 
         loop {
-            if (runtime.seconds() > GATE_TIME) {
+            if (runtime.seconds() > CAROUSEL_TIME) gate.position = GATE_OPEN
+            if (runtime.seconds() > CAROUSEL_TIME + GATE_TIME) {
                 gate.position = GATE_CLOSED
-                true
+                classifier.position = CAROUSEL_POSITION_1
+                return@loop true
             }
-            false
+            return@loop false
         }
     }
 
-    fun releaseNext(): Action = action {
-        val runtime = ElapsedTime()
-
+    fun goToPos(position: Int): Action = action {
         init {
             requireReady()
-
-            runtime.reset()
-
-            val nextSector = findNextSector()
-            if (nextSector != null) {
-                classifier.position =
-                    when (nextSector) {
-                        sectorOne -> CAROUSEL_POSITION_1
-                        sectorTwo -> CAROUSEL_POSITION_2
-                        sectorThree -> CAROUSEL_POSITION_3
-                        else -> CAROUSEL_POSITION_1
-                    }
+            when (position) {
+                1 -> classifier.position = CAROUSEL_POSITION_1
+                2 -> classifier.position = CAROUSEL_POSITION_2
+                3 -> classifier.position = CAROUSEL_POSITION_3
+                else -> throw IllegalArgumentException("Invalid position: $position")
             }
+        }
 
-            gate.position = GATE_OPEN
-        }
-        loop {
-            if (runtime.seconds() > GATE_TIME) {
-                gate.position = GATE_CLOSED
-                true
-            }
-            false
-        }
+        loop { true }
     }
 
     context(telemetry: Telemetry)
@@ -182,6 +146,18 @@ class Classifier(
             addData("Sector One", getSectorState(sectorOne))
             addData("Sector Two", getSectorState(sectorTwo))
             addData("Sector Three", getSectorState(sectorThree))
+
+            // Display HSV values for each sector
+            val hsvValues = FloatArray(3)
+            Color.colorToHSV(sectorOne.normalizedColors.toColor(), hsvValues)
+            telemetry.addData("Sector One Hue", hsvValues[0].toString())
+            telemetry.addData("Sector One Saturation", hsvValues[1].toString())
+            Color.colorToHSV(sectorTwo.normalizedColors.toColor(), hsvValues)
+            telemetry.addData("Sector Two Hue", hsvValues[0].toString())
+            telemetry.addData("Sector Two Saturation", hsvValues[1].toString())
+            Color.colorToHSV(sectorThree.normalizedColors.toColor(), hsvValues)
+            telemetry.addData("Sector Three Hue", hsvValues[0].toString())
+            telemetry.addData("Sector Three Saturation", hsvValues[1].toString())
         }
     }
 }
