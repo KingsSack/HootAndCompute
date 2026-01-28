@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor
 import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.attachment.Attachment
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /** Represents the state of a robot. */
@@ -32,25 +32,17 @@ sealed interface RobotState {
 }
 
 /** Represents a robot with attachments. */
-interface Robot {
-    val hardwareMap: HardwareMap
-    val _state: MutableStateFlow<RobotState>
-    val state: StateFlow<RobotState>
+open class Robot(private val hardwareMap: HardwareMap) {
+    private val _state = MutableStateFlow<RobotState>(RobotState.Initializing)
+    val state = _state.asStateFlow()
 
-    /** Sets the state of the robot to [newState]. */
-    fun setState(newState: RobotState) {
-        _state.value = newState
-    }
-
-    val attachments: MutableList<Attachment>
+    private val attachments = mutableListOf<Attachment>()
 
     fun registerAttachment(attachment: Attachment) {
         attachments.add(attachment)
     }
 
-    fun <T : Attachment> attachment(factory: () -> T): Lazy<T> = lazy {
-        factory().also(::registerAttachment)
-    }
+    fun <T : Attachment> attachment(factory: () -> T): T = factory().also { registerAttachment(it) }
 
     /**
      * Helper function to create a motor property delegate.
@@ -168,20 +160,21 @@ interface Robot {
      */
     context(telemetry: Telemetry)
     fun update() {
-        if (state.value !is RobotState.Fault) {
-            setState(RobotState.Idle)
-            attachments.forEach {
-                it.update()
+        if (state.value is RobotState.Fault) {
+            telemetry.update()
+            return
+        }
 
-                if (
-                    it.isBusy() &&
-                        state.value !is RobotState.Running &&
-                        state.value !is RobotState.Fault
-                ) {
-                    setState(RobotState.Running)
-                }
+        _state.value = RobotState.Idle
+
+        for (attachment in attachments) {
+            attachment.update()
+
+            if (attachment.isBusy() && state.value == RobotState.Idle) {
+                _state.value = RobotState.Running
             }
         }
+
         telemetry.update()
     }
 }
