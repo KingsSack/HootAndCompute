@@ -39,6 +39,8 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         @JvmField var launcherRightF: Double = 13.4
         @JvmField var launcherMaxVelocity: Double = 2800.0
         @JvmField var launcherTargetVelocity: Double = 2000.0
+        @JvmField var launcherMediumVelocity: Double = 1800.0
+        @JvmField var launcherLowVelocity: Double = 1500.0
     }
 
     // Hardware

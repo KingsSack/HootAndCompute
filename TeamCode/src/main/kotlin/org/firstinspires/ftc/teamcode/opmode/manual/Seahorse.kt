@@ -28,12 +28,9 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>({ J
                 gamepad2.stopRumble()
             }
         }
-        onButtonTapped(GamepadButton.DPAD_LEFT2) {
-            targetVelocity = Jones.launcherTargetVelocity - 500.0
-        }
-        onButtonTapped(GamepadButton.DPAD_UP2) {
-            targetVelocity = Jones.launcherTargetVelocity - 200.0
-        }
+        onButtonTapped(GamepadButton.DPAD_LEFT2) { targetVelocity = Jones.launcherLowVelocity }
+        onButtonTapped(GamepadButton.DPAD_UP2) { targetVelocity = Jones.launcherMediumVelocity }
+        onButtonTapped(GamepadButton.DPAD_RIGHT2) { targetVelocity = Jones.launcherTargetVelocity }
 
         // Classifier
         onButtonTapped(GamepadButton.DPAD_LEFT1) { with(robot) { +classifier.goToPos(1) } }
