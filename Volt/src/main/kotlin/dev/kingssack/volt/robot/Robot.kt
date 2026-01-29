@@ -38,11 +38,12 @@ open class Robot(private val hardwareMap: HardwareMap) {
 
     private val attachments = mutableListOf<Attachment>()
 
-    fun registerAttachment(attachment: Attachment) {
+    protected fun registerAttachment(attachment: Attachment) {
         attachments.add(attachment)
     }
 
-    fun <T : Attachment> attachment(factory: () -> T): T = factory().also { registerAttachment(it) }
+    protected fun <T : Attachment> attachment(factory: () -> T): T =
+        factory().also { registerAttachment(it) }
 
     /**
      * Helper function to create a motor property delegate.
@@ -159,7 +160,7 @@ open class Robot(private val hardwareMap: HardwareMap) {
      * @param telemetry for updating telemetry
      */
     context(telemetry: Telemetry)
-    fun update() {
+    open fun update() {
         if (state.value is RobotState.Fault) {
             telemetry.update()
             return
