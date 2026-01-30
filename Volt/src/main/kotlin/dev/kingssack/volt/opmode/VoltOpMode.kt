@@ -8,27 +8,28 @@ import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.frozenmilk.sinister.targeting.NarrowSearch
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.VoltLogs
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import java.lang.reflect.Modifier
 
 abstract class VoltOpMode<R : Robot> : LinearOpMode() {
     protected val robot: R by lazy { getRobot(hardwareMap) }
-    abstract fun getRobot(hardwareMap: HardwareMap) :  R
+    protected abstract fun getRobot(hardwareMap: HardwareMap) :  R
 
     /** Optional initialization code. */
     open fun initialize() {
-        // Default implementation does nothing
     }
-
     /** Optional code to run when the op mode begins. */
     abstract fun begin()
 
     override fun runOpMode() {
+        VoltOpModeWrapper.initializeOpMode(this, robot, javaClass)
         initialize()
+        VoltOpModeWrapper.postInitializeOpMode()
         waitForStart()
         begin()
-    }
 
+    }
     // runtime reflection to call register functions in opmodes
     protected abstract fun register(registrationHelper:RegistrationHelper)
 
@@ -43,6 +44,7 @@ abstract class VoltOpMode<R : Robot> : LinearOpMode() {
                     (cls as Class<VoltOpMode<*>>).getDeclaredConstructor().newInstance().register(registrationHelper)
                 // due to type erasure, casting is necessary here
             } catch (e : Error) {
+                VoltLogs.log("error registering opmodes: ${e.message.toString()}")
                 registrationHelper.register(OpModeMeta.Builder().setName("error: $e").build(), object : OpMode() {
                     override fun init() {}
                     override fun loop() {}
