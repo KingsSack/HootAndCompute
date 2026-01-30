@@ -24,7 +24,7 @@ class Classifier(
 
         private const val CAROUSEL_TIME = 0.5
 
-        private const val GATE_CLOSED = 0.8 // Fully closed position
+        private const val GATE_CLOSED = 0.6 // Fully closed position
         private const val GATE_OPEN = 0.0 // Fully open position
         private const val GATE_TIME = 1.5 // Time for artifact to go through the gate
 
