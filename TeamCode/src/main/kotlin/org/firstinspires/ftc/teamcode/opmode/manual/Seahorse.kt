@@ -22,12 +22,7 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>({ J
         onButtonTapped(GamepadButton.RIGHT_BUMPER2) {
             with(robot) { +launcher.enable(targetVelocity) }
         }
-        onButtonTapped(GamepadButton.LEFT_BUMPER2) {
-            with(robot) {
-                +launcher.disable()
-                gamepad2.stopRumble()
-            }
-        }
+        onButtonTapped(GamepadButton.LEFT_BUMPER2) { with(robot) { +launcher.disable() } }
         onButtonTapped(GamepadButton.DPAD_LEFT2) {
             with(robot) {
                 targetVelocity = Jones.launcherLowVelocity
@@ -99,6 +94,7 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>({ J
                 gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
             } else {
                 gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+                gamepad2.stopRumble()
             }
 
             super.tick()
