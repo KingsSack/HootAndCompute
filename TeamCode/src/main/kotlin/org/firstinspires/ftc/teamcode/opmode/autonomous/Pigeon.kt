@@ -2,31 +2,28 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
-import com.pedropathing.paths.PathChain
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
-import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.StartingPosition
+import org.firstinspires.ftc.teamcode.util.maybeFlip
 import org.firstinspires.ftc.teamcode.util.toRadians
 
 abstract class Pigeon(
     private val alliance: AllianceColor,
-    initialPose: Pose,
+    private val initialPose: Pose,
     private val startingPosition: StartingPosition,
 ) : AutonomousMode<GabePP>({ GabePP(it, initialPose, alliance) }) {
-    private val paths by lazy { PathConstants(robot.drivetrain.follower, alliance) }
-
-    private lateinit var pathOffLaunchLine: PathChain
+    private lateinit var endPose: Pose
 
     override fun initialize() {
         super.initialize()
-        pathOffLaunchLine =
+        endPose =
             when (startingPosition) {
-                StartingPosition.WALL -> paths.pathOffWallLaunchLine
-                StartingPosition.GOAL -> paths.pathOffGoalLaunchLine
-                StartingPosition.RAMP -> paths.pathOffRampLaunchLine
+                StartingPosition.WALL -> Pose(37.0, 9.0, 90.0.toRadians()).maybeFlip(alliance)
+                StartingPosition.GOAL -> Pose(36.0, 125.0, 323.0.toRadians()).maybeFlip(alliance)
+                StartingPosition.RAMP -> Pose(15.0, 105.0, 0.0.toRadians()).maybeFlip(alliance)
             }
         blackboard["allianceColor"] = alliance
     }
@@ -34,7 +31,7 @@ abstract class Pigeon(
     /** Drives off the launch line and saves pose */
     override fun sequence() = execute {
         with(robot) {
-            +drivetrain.pathTo(pathOffLaunchLine)
+            +drivetrain.path(initialPose) { lineTo(endPose) }
             +InstantAction { blackboard["endPose"] = drivetrain.pose }
         }
     }
