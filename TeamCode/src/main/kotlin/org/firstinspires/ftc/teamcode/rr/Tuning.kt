@@ -16,13 +16,13 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithRR
-import dev.kingssack.volt.robot.DefaultRobot
+import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Drawing.drawRobot
 import java.util.*
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 @Config
-class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : DefaultRobot(hardwareMap) {
+class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareMap) {
     companion object {
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD

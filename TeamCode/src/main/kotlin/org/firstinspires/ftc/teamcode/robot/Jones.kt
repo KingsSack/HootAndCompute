@@ -25,20 +25,22 @@ import org.firstinspires.ftc.teamcode.util.AllianceColor
 abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
     RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     companion object {
-        @JvmField var lidarLeftName: String = "ll"
-        @JvmField var lidarRightName: String = "lr"
+        @JvmField var lidarLeftName: String = "lsl"
+        @JvmField var lidarRightName: String = "lsr"
         @JvmField var huskyLensName: String = "lens"
 
-        @JvmField var launcherLeftP: Double = 40.0
-        @JvmField var launcherLeftI: Double = 0.0
+        @JvmField var launcherLeftP: Double = 24.0
+        @JvmField var launcherLeftI: Double = 0.1
         @JvmField var launcherLeftD: Double = 0.0
-        @JvmField var launcherLeftF: Double = 13.29
-        @JvmField var launcherRightP: Double = 40.0
-        @JvmField var launcherRightI: Double = 0.0
+        @JvmField var launcherLeftF: Double = 14.3
+        @JvmField var launcherRightP: Double = 24.0
+        @JvmField var launcherRightI: Double = 0.1
         @JvmField var launcherRightD: Double = 0.0
-        @JvmField var launcherRightF: Double = 12.11
-        @JvmField var launcherMaxVelocity: Double = 6000.0
+        @JvmField var launcherRightF: Double = 13.4
+        @JvmField var launcherMaxVelocity: Double = 2800.0
         @JvmField var launcherTargetVelocity: Double = 1500.0
+        @JvmField var launcherMediumVelocity: Double = 1400.0
+        @JvmField var launcherLowVelocity: Double = 1100.0
     }
 
     // Hardware
@@ -58,7 +60,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val rightLauncherMotor by motorEx("flr")
 
     // Attachments
-    val launcher by attachment {
+    val launcher = attachment {
         Launcher(
             leftLauncherMotor,
             rightLauncherMotor,
@@ -70,7 +72,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         )
     }
 
-    val classifier by attachment {
+    val classifier = attachment {
         Classifier(
             gateServo,
             classifierServo,
@@ -80,7 +82,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         )
     }
 
-    val pusher by attachment { Pusher(pusherServo) }
+    val pusher = attachment { Pusher(pusherServo) }
 
     init {
         // Set huskylens mode

@@ -82,7 +82,7 @@ class Launcher(
 
         listOf(leftMotor, rightMotor).forEach {
             it.mode = DcMotor.RunMode.RUN_USING_ENCODER
-            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT
         }
 
         leftMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, leftPIDFCoefficients)
@@ -108,20 +108,6 @@ class Launcher(
             put("Right flywheel velocity", rightMotor.velocity)
 
             isStopped
-        }
-    }
-
-    @VoltAction(
-        name = "Change Launcher Velocity",
-        description = "Changes the launcher velocity by the specified delta",
-    )
-    fun changeVelocity(delta: Double): Action = action {
-        init { setVelocity(currentVelocity + delta) }
-        loop {
-            put("Left flywheel velocity", leftMotor.velocity)
-            put("Right flywheel velocity", rightMotor.velocity)
-
-            isAtSpeed
         }
     }
 
@@ -183,12 +169,13 @@ class Launcher(
             )
 
             addLine()
-            addLine(">>TIMINGS<<")
             if (isSpinningUp) {
+                addLine(">>TIMINGS<<")
                 val currentSpinUpTime = System.currentTimeMillis() - spinUpStartTime
                 addData("Spin-Up", "%dms (in progress)".format(currentSpinUpTime))
                 addData("Avg Spin-Up", "%.0fms".format(averageSpinUpTime))
             } else if (lastSpinUpTime > 0) {
+                addLine(">>TIMINGS<<")
                 addData("Last Spin-Up", "%dms".format(lastSpinUpTime))
                 addData("Avg Spin-Up", "%.0fms".format(averageSpinUpTime))
             }
