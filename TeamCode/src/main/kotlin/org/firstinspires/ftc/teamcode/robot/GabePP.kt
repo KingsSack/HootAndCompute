@@ -12,9 +12,8 @@ import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
-import dev.kingssack.volt.core.VoltActionBuilder
-import dev.kingssack.volt.core.VoltBuilderDsl
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 /**
  * [Gabe] with [MecanumDriveWithPP] drivetrain.
@@ -23,7 +22,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param initialPose The initial pose of the robot.
  */
 @Config
-class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
+class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose(), allianceColor: AllianceColor = AllianceColor.BLUE) :
     Gabe<MecanumDriveWithPP>(
         hardwareMap,
         MecanumDriveWithPP(
@@ -65,15 +64,11 @@ class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
                 .yVelocity(52.0),
             initialPose,
         ),
+        allianceColor
     ) {
     context(telemetry: Telemetry)
     override fun update() {
         drivetrain.update()
         super.update()
     }
-}
-
-@VoltBuilderDsl
-inline fun VoltActionBuilder<GabePP>.drivetrain(block: MecanumDriveWithPP.() -> Unit) {
-    block(robot.drivetrain)
 }

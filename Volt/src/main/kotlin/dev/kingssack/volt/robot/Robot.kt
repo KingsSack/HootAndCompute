@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.ftc.LazyHardwareMapImu
 import com.acmerobotics.roadrunner.ftc.LazyImu
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.CRServo
@@ -17,14 +18,11 @@ import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.attachment.Attachment
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /** Represents the state of a robot. */
 sealed interface RobotState {
     data object Initializing : RobotState
-
-    data object Initialized : RobotState
 
     data object Idle : RobotState
 
@@ -34,27 +32,24 @@ sealed interface RobotState {
 }
 
 /** Represents a robot with attachments. */
-abstract class Robot(protected val hardwareMap: HardwareMap) {
-    private val _state = MutableStateFlow<RobotState>(RobotState.Initializing)
-    val state: StateFlow<RobotState> = _state.asStateFlow()
+interface Robot {
+    val hardwareMap: HardwareMap
+    val _state: MutableStateFlow<RobotState>
+    val state: StateFlow<RobotState>
 
     /** Sets the state of the robot to [newState]. */
-    protected fun setState(newState: RobotState) {
+    fun setState(newState: RobotState) {
         _state.value = newState
     }
 
-    private var attachments = mutableListOf<Attachment>()
+    val attachments: MutableList<Attachment>
 
-    protected fun registerAttachment(attachment: Attachment) {
+    fun registerAttachment(attachment: Attachment) {
         attachments.add(attachment)
     }
 
-    protected fun <T : Attachment> attachment(factory: () -> T): Lazy<T> = lazy {
+    fun <T : Attachment> attachment(factory: () -> T): Lazy<T> = lazy {
         factory().also(::registerAttachment)
-    }
-
-    init {
-        setState(RobotState.Initialized)
     }
 
     /**
@@ -63,7 +58,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the motor
      * @return a Lazy that gets the motor from the hardware map
      */
-    protected fun motor(name: String): Lazy<DcMotor> = lazy { hardwareMap.dcMotor.get(name) }
+    fun motor(name: String): Lazy<DcMotor> = lazy { hardwareMap.dcMotor.get(name) }
 
     /**
      * Helper function to create a motorEx property delegate.
@@ -71,7 +66,9 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the motorEx
      * @return a Lazy that gets the motorEx from the hardware map
      */
-    protected fun motorEx(name: String): Lazy<DcMotorEx> = lazy { hardwareMap.get(DcMotorEx::class.java, name) }
+    fun motorEx(name: String): Lazy<DcMotorEx> = lazy {
+        hardwareMap.get(DcMotorEx::class.java, name)
+    }
 
     /**
      * Helper function to create a servo property delegate.
@@ -79,7 +76,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the servo
      * @return a Lazy that gets the servo from the hardware map
      */
-    protected fun servo(name: String): Lazy<Servo> = lazy { hardwareMap.servo.get(name) }
+    fun servo(name: String): Lazy<Servo> = lazy { hardwareMap.servo.get(name) }
 
     /**
      * Helper function to create a continuous rotation servo property delegate.
@@ -87,7 +84,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the continuous rotation servo
      * @return a Lazy that gets the continuous rotation servo from the hardware map
      */
-    protected fun crServo(name: String): Lazy<CRServo> = lazy { hardwareMap.crservo.get(name) }
+    fun crServo(name: String): Lazy<CRServo> = lazy { hardwareMap.crservo.get(name) }
 
     /**
      * Helper function to create a HuskyLens property delegate.
@@ -95,7 +92,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the HuskyLens
      * @return a Lazy that gets the HuskyLens from the hardware map
      */
-    protected fun huskyLens(name: String): Lazy<HuskyLens> = lazy {
+    fun huskyLens(name: String): Lazy<HuskyLens> = lazy {
         hardwareMap.get(HuskyLens::class.java, name)
     }
 
@@ -105,7 +102,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the Rev2mDistanceSensor
      * @return a Lazy that gets the Rev2mDistanceSensor from the hardware
      */
-    protected fun distanceSensor(name: String): Lazy<Rev2mDistanceSensor> = lazy {
+    fun distanceSensor(name: String): Lazy<Rev2mDistanceSensor> = lazy {
         hardwareMap.get(Rev2mDistanceSensor::class.java, name)
     }
 
@@ -115,7 +112,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the NormalizedColorSensor
      * @return a Lazy that gets the NormalizedColorSensor from the hardware map
      */
-    protected fun colorSensor(name: String): Lazy<NormalizedColorSensor> = lazy {
+    fun colorSensor(name: String): Lazy<NormalizedColorSensor> = lazy {
         hardwareMap.get(NormalizedColorSensor::class.java, name)
     }
 
@@ -125,7 +122,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the IMU
      * @return a Lazy that gets the IMU from the hardware map
      */
-    protected fun imu(name: String): Lazy<IMU> = lazy { hardwareMap.get(IMU::class.java, name) }
+    fun imu(name: String): Lazy<IMU> = lazy { hardwareMap.get(IMU::class.java, name) }
 
     /**
      * Helper function to create a lazy IMU property delegate.
@@ -134,10 +131,9 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param orientation the orientation of the IMU on the robot
      * @return a Lazy that gets the lazy IMU from the hardware map
      */
-    protected fun lazyImu(name: String, orientation: RevHubOrientationOnRobot): Lazy<LazyImu> =
-        lazy {
-            LazyHardwareMapImu(hardwareMap, name, orientation)
-        }
+    fun lazyImu(name: String, orientation: RevHubOrientationOnRobot): Lazy<LazyImu> = lazy {
+        LazyHardwareMapImu(hardwareMap, name, orientation)
+    }
 
     /**
      * Helper function to create an LED property delegate.
@@ -145,7 +141,17 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the LED
      * @return a Lazy that gets the LED from the hardware map
      */
-    protected fun led(name: String): Lazy<LED> = lazy { hardwareMap.led.get(name) }
+    fun led(name: String): Lazy<LED> = lazy { hardwareMap.led.get(name) }
+
+    /**
+     * Helper function to create an LED driver property delegate.
+     *
+     * @param name the name of the LED driver
+     * @return a Lazy that gets the LED driver from the hardware map
+     */
+    fun ledDriver(name: String): Lazy<RevBlinkinLedDriver> = lazy {
+        hardwareMap.get(RevBlinkinLedDriver::class.java, name)
+    }
 
     /**
      * Helper function to create an AnalogInput property delegate.
@@ -153,9 +159,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param name the name of the AnalogInput
      * @return a Lazy that gets the AnalogInput from the hardware map
      */
-    protected fun analogInput(name: String): Lazy<AnalogInput> = lazy {
-        hardwareMap.analogInput.get(name)
-    }
+    fun analogInput(name: String): Lazy<AnalogInput> = lazy { hardwareMap.analogInput.get(name) }
 
     /**
      * Updates the robot.
@@ -163,7 +167,7 @@ abstract class Robot(protected val hardwareMap: HardwareMap) {
      * @param telemetry for updating telemetry
      */
     context(telemetry: Telemetry)
-    open fun update() {
+    fun update() {
         if (state.value !is RobotState.Fault) {
             setState(RobotState.Idle)
             attachments.forEach {

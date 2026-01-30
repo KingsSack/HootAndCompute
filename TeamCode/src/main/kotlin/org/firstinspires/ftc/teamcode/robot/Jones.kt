@@ -10,9 +10,10 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import kotlin.math.*
+import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
+import org.firstinspires.ftc.teamcode.attachment.Pusher
 
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
@@ -23,9 +24,20 @@ import dev.kingssack.volt.opmode.autonomous.AllianceColor
 abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
     RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     companion object {
-        @JvmField var lidarLeftName: String = "lidarl"
-        @JvmField var lidarRightName: String = "lidarr"
+        @JvmField var lidarLeftName: String = "ll"
+        @JvmField var lidarRightName: String = "lr"
         @JvmField var huskyLensName: String = "lens"
+
+        @JvmField var launcherLeftP: Double = 40.0
+        @JvmField var launcherLeftI: Double = 0.0
+        @JvmField var launcherLeftD: Double = 0.0
+        @JvmField var launcherLeftF: Double = 13.29
+        @JvmField var launcherRightP: Double = 40.0
+        @JvmField var launcherRightI: Double = 0.0
+        @JvmField var launcherRightD: Double = 0.0
+        @JvmField var launcherRightF: Double = 12.11
+        @JvmField var launcherMaxVelocity: Double = 6000.0
+        @JvmField var launcherTargetVelocity: Double = 1500.0
     }
 
     // Hardware
@@ -33,11 +45,41 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val lidarRight by distanceSensor(lidarRightName)
     private val huskyLens by huskyLens(huskyLensName)
 
+    private val gateServo by servo("gs")
+    private val classifierServo by servo("cs")
+    private val classifierSensor1 by colorSensor("cs1")
+    private val classifierSensor2 by colorSensor("cs2")
+    private val classifierSensor3 by colorSensor("cs3")
+
+    private val pusherServo by servo("ps")
+
     private val leftLauncherMotor by motorEx("fll")
     private val rightLauncherMotor by motorEx("flr")
 
     // Attachments
-    val launcher by attachment { Launcher(leftLauncherMotor, rightLauncherMotor, lidarLeft) }
+    val launcher by attachment {
+        Launcher(
+            leftLauncherMotor,
+            rightLauncherMotor,
+            lidarLeft,
+            PIDFCoefficients(launcherLeftP, launcherLeftI, launcherLeftD, launcherLeftF),
+            PIDFCoefficients(launcherRightP, launcherRightI, launcherRightD, launcherRightF),
+            launcherMaxVelocity,
+            launcherTargetVelocity,
+        )
+    }
+
+    val classifier by attachment {
+        Classifier(
+            gateServo,
+            classifierServo,
+            classifierSensor1,
+            classifierSensor2,
+            classifierSensor3,
+        )
+    }
+
+    val pusher by attachment { Pusher(pusherServo) }
 
     init {
         // Set huskylens mode
@@ -76,32 +118,35 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
 
         return result
     }
-    
-    var detectedAprilTag : Boolean = false
+
+    var detectedAprilTag: Boolean = false
 
     context(telemetry: Telemetry)
-    fun pointTowardsAprilTag(allianceColor: AllianceColor): Action {
-        val tagId : Int = if (allianceColor == AllianceColor.RED) {24} else {20}
-        val driveVel = 1.0
-        return Action {
-            val detectedTag: HuskyLens.Block? = getDetectedAprilTags(tagId).firstOrNull()
-            val shouldStop = abs((detectedTag?.x ?: 160) - 160) < 5
-            if (shouldStop) {
+    fun pointTowardsAprilTag(allianceColor: AllianceColor) = Action {
+        val targetId = if (allianceColor == AllianceColor.RED) 24 else 20
+        val detectedTag = getDetectedAprilTags(targetId).firstOrNull()
+
+        if (detectedTag == null) {
+            drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
+            false
+        } else {
+            val error = detectedTag.x - 160
+            val tolerance = 5
+
+            if (abs(error) < tolerance) {
                 drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
-                detectedAprilTag = detectedTag == null
+                detectedAprilTag = true
+                false
             } else {
-                if (detectedTag!!.x < 160) {
-                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), driveVel))
-                } else {
-                    drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -driveVel))
-                }
+                val turnPower = (error / 160.0).coerceIn(-0.5, 0.5)
+                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -turnPower))
+                true
             }
-            shouldStop
         }
     }
 
     /**
-     * Get distance to an obstacle from distance sensor.
+     * Get distance to an obstacle from the distance sensor.
      *
      * @return distance to an obstacle
      * @see DistanceSensor
@@ -113,9 +158,11 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         val distanceRight = lidarRight.getDistance(DistanceUnit.MM)
         val averageDistance = (distanceLeft + distanceRight) / 2
 
-        telemetry.addData("Range left", "%.01f mm".format(distanceLeft))
-        telemetry.addData("Range right", "%.01f mm".format(distanceRight))
-        telemetry.addData("Average range", "%.01f mm".format(averageDistance))
+        with(telemetry) {
+            addData("Left Range", "%.01f mm".format(distanceLeft))
+            addData("Right Range", "%.01f mm".format(distanceRight))
+            addData("Average Range", "%.01f mm".format(averageDistance))
+        }
 
         return averageDistance
     }

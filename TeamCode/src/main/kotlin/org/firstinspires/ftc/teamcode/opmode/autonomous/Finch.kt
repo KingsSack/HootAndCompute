@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.teamcode.robot.GabePP
-import org.firstinspires.ftc.teamcode.robot.drivetrain
-import org.firstinspires.ftc.teamcode.robot.launcher
-import org.firstinspires.ftc.teamcode.robot.storage
 import dev.kingssack.volt.opmode.autonomous.MultiDualAutonomousMode
+import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.toRadians
 
@@ -31,25 +29,20 @@ abstract class Finch() :
                 FinchStartingPosition.WALL -> paths.pathToLaunchZoneFromWall
                 FinchStartingPosition.GOAL -> paths.pathToLaunchZoneFromGoal
             }
+        blackboard["allianceColor"] = color
     }
 
+    /** Drives to launch zone, fires, and saves pose */
     override fun sequence() = execute {
-        parallel {
-            storage { +close() }
-            drivetrain { +pathTo(pathToLaunchZone) }
-        }
-
-        launcher { +enable() }
-        repeat(3) {
-            storage {
-                wait(3.0)
-                +release()
-                wait(0.6)
-                +close()
+        with(robot) {
+            parallel {
+                +storage.close()
+                +drivetrain.pathTo(pathToLaunchZone)
             }
+
+            +fire(3)
+            +InstantAction { blackboard["endPose"] = drivetrain.pose }
         }
-        wait(4.0)
-        launcher { +disable() }
     }
 }
 enum class FinchStartingPosition {

@@ -8,18 +8,6 @@
 // please think carefully as to whether such customizations are really necessary
 // before doing so.
 
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://repo.dairy.foundation/releases"
-        }
-    }
-    dependencies {
-        classpath "dev.frozenmilk:Load:0.2.4"
-    }
-}
-
 // Custom definitions may go here
 
 // Include common definitions from above.

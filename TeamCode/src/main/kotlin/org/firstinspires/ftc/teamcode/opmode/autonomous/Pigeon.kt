@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
+import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -36,7 +37,14 @@ abstract class Pigeon() :
                 StartingPosition.GOAL -> paths.pathOffGoalLaunchLine
                 StartingPosition.RAMP -> paths.pathOffRampLaunchLine
             }
+        blackboard["allianceColor"] = color
     }
 
-    override fun sequence() = execute { +robot.drivetrain.pathTo(pathOffLaunchLine) }
+    /** Drives off the launch line and saves pose */
+    override fun sequence() = execute {
+        with(robot) {
+            +drivetrain.pathTo(pathOffLaunchLine)
+            +InstantAction { blackboard["endPose"] = drivetrain.pose }
+        }
+    }
 }

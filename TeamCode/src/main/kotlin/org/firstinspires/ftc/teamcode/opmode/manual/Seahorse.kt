@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
@@ -17,17 +18,30 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
         return JonesPP(hardwareMap)
     }
     var allianceColor = AllianceColor.BLUE
+
     init {
         // Launcher
-        onButtonTapped(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.enable() }
-        onButtonReleased(GamepadButton.RIGHT_BUMPER2) { +robot.launcher.disable() }
+        onButtonTapped(GamepadButton.RIGHT_BUMPER2) { with(robot) { +launcher.enable() } }
+        onButtonReleased(GamepadButton.RIGHT_BUMPER2) { with(robot) { +launcher.disable() } }
         onButtonReleased(GamepadButton.DPAD_UP2) {
-            +robot.launcher.increaseVelocity(100.0)
-            gamepad2.rumble(0.5, 0.5, 200)
+            with(robot) {
+                +launcher.changeVelocity(100.0)
+                gamepad2.rumble(0.5, 0.5, 100)
+            }
         }
         onButtonReleased(GamepadButton.DPAD_DOWN2) {
-            +robot.launcher.decreaseVelocity(100.0)
-            gamepad2.rumble(0.5, 0.5, 200)
+            with(robot) {
+                +launcher.changeVelocity(-100.0)
+                gamepad2.rumble(0.5, 0.5, 100)
+            }
+        }
+
+        onButtonTapped(GamepadButton.A2) { with(robot) { +classifier.releaseNext() } }
+        onButtonTapped(GamepadButton.X2) { with(robot) { +classifier.releasePurple() } }
+        onButtonTapped(GamepadButton.Y2) { with(robot) { +classifier.releaseGreen() } }
+
+        onButtonTapped(GamepadButton.B2) {
+            with(robot) { if (pusher.isExtended) +pusher.retract() else +pusher.push() }
         }
 
         onButtonDoubleTapped(GamepadButton.LEFT_BUMPER1) {
@@ -37,7 +51,7 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
         }
         context(telemetry) {
             onButtonTapped(GamepadButton.RIGHT_BUMPER1) {
-                +robot.pointTowardsAprilTag(allianceColor)
+                with(robot) { +pointTowardsAprilTag(allianceColor) }
             }
         }
     }
@@ -50,6 +64,14 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
     context(telemetry: Telemetry)
     override fun tick() {
         telemetry.addData("Alliance Color", allianceColor)
+
+        if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
+            gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+            gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
+        } else {
+            gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+        }
+
         super.tick()
     }
 }
