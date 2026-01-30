@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
+import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import kotlin.math.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -20,6 +21,9 @@ import org.firstinspires.ftc.teamcode.util.AllianceColor
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
+ * @param drivetrain the mecanum drivetrain used by the robot
+ * @param T the type of mecanum drivetrain
+ * @see MecanumDrivetrain
  */
 @Config
 abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
@@ -90,6 +94,17 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     }
 
     /**
+     * Fire all stored artifacts using the [launcher] and [classifier] at [targetVelocity].
+     *
+     * @return an [Action] that fires all stored artifacts
+     */
+    fun fireAllStoredArtifacts(targetVelocity: Double = launcherTargetVelocity) = voltAction {
+        +launcher.enable(targetVelocity)
+        +classifier.releaseAllArtifacts()
+        +launcher.disable()
+    }
+
+    /**
      * Get detected AprilTags from HuskyLens.
      *
      * @param id optional ID to filter detected tags; if null, returns all detected tags
@@ -124,6 +139,11 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
 
     var detectedAprilTag: Boolean = false
 
+    /**
+     * Points the robot towards the AprilTag with the specified ID based on [allianceColor].
+     *
+     * @return an [Action] that points the robot towards the AprilTag
+     */
     context(telemetry: Telemetry)
     fun pointTowardsAprilTag(allianceColor: AllianceColor) = Action {
         val targetId = if (allianceColor == AllianceColor.RED) 24 else 20

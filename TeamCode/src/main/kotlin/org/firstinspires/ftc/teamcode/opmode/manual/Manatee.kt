@@ -13,7 +13,10 @@ import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 @TeleOp(name = "Manatee", group = "Competition")
-class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ GabePP(it) }) {
+class Manatee :
+    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({
+        GabePP(it, blackboard["endPose"] as? Pose ?: Pose())
+    }) {
     var targetVelocity = 1500.0
     var modifyScale = 100.0
 
@@ -69,7 +72,6 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ Gab
         with(robot) {
             drivetrain.startTeleOpDrive()
             allianceColor = blackboard["allianceColor"] as? AllianceColor ?: allianceColor
-            drivetrain.pose = blackboard["endPose"] as? Pose ?: drivetrain.pose
         }
     }
 

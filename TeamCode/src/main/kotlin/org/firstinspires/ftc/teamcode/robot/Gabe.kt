@@ -20,6 +20,9 @@ import org.firstinspires.ftc.teamcode.util.AllianceColor
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
+ * @param drivetrain the mecanum drivetrain used by the robot
+ * @param T the type of mecanum drivetrain
+ * @see MecanumDrivetrain
  */
 @Config
 abstract class Gabe<T : MecanumDrivetrain>(
@@ -87,9 +90,9 @@ abstract class Gabe<T : MecanumDrivetrain>(
     }
 
     /**
-     * Fire a specified number of artifacts.
+     * Fire [amount] artifacts.
      *
-     * @param amount the number of artifacts to fire
+     * @return an [Action] that fires the specified number of artifacts
      */
     fun fire(amount: Int) = voltAction {
         repeat(amount) {
@@ -137,6 +140,11 @@ abstract class Gabe<T : MecanumDrivetrain>(
 
     var detectedAprilTag: Boolean = false
 
+    /**
+     * Points the robot towards the AprilTag with the specified ID based on [allianceColor].
+     *
+     * @return an [Action] that points the robot towards the AprilTag
+     */
     context(telemetry: Telemetry)
     fun pointTowardsAprilTag() = Action {
         val targetId = if (allianceColor == AllianceColor.RED) 24 else 20

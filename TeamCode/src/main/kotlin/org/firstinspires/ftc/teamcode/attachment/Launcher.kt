@@ -22,6 +22,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
  * @param rightPIDFCoefficients the [PIDFCoefficients] for the right motor
  * @param maxVelocity the maximum velocity of the launcher motors
  * @param targetVelocity the target velocity of the launcher motors
+ * @property currentVelocity the current target velocity of the launcher motors
+ * @property averageSpinUpTime the average time taken to spin up to target velocity
+ * @property averageVelocityDelta the average difference in velocity between the left and right
+ *   motors
+ * @property isAtSpeed whether the launcher is at the target velocity
+ * @property isStopped whether the launcher is stopped
+ * @property velocityDelta the difference in velocity between the left and right motors
+ * @property isOverheating whether either motor is overheating
  */
 class Launcher(
     private val leftMotor: DcMotorEx,
@@ -89,6 +97,11 @@ class Launcher(
         rightMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, rightPIDFCoefficients)
     }
 
+    /**
+     * Enables the launcher to spin up to the [target] velocity.
+     *
+     * @return an [Action] that enables the launcher
+     */
     @VoltAction(name = "Enable Launcher", description = "Enables the launcher at target velocity")
     fun enable(target: Double = targetVelocity): Action = action {
         init { setVelocity(target) }
@@ -100,6 +113,11 @@ class Launcher(
         }
     }
 
+    /**
+     * Disables the launcher by setting the velocity to 0.
+     *
+     * @return an [Action] that disables the launcher
+     */
     @VoltAction(name = "Disable Launcher", description = "Disables the launcher")
     fun disable(): Action = action {
         init { setVelocity(0.0) }
