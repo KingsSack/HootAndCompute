@@ -9,10 +9,10 @@ import java.lang.System.nanoTime
 @DslMarker annotation class VoltBuilderDsl
 
 /**
- * Builder for creating complex action sequences for a [Robot].
+ * Builder for creating complex action sequences for a [Robot]
  *
- * @param R The type of Robot the actions will operate on.
- * @property robot The robot instance the actions will control.
+ * @param R The type of Robot the actions will operate on
+ * @property robot The robot instance the actions will control
  */
 @VoltBuilderDsl
 class VoltActionBuilder<R : Robot>(val robot: R) {
