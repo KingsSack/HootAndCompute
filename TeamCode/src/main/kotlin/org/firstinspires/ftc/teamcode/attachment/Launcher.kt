@@ -82,7 +82,7 @@ class Launcher(
 
         listOf(leftMotor, rightMotor).forEach {
             it.mode = DcMotor.RunMode.RUN_USING_ENCODER
-            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT
         }
 
         leftMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, leftPIDFCoefficients)
