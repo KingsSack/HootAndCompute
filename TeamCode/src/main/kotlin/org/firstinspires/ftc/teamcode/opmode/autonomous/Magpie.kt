@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
 import org.firstinspires.ftc.teamcode.robot.JonesPP
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import org.firstinspires.ftc.teamcode.util.PathConstants
@@ -27,55 +28,33 @@ class Magpie :
 
     private val paths by lazy { PathConstants(robot.drivetrain.follower, AllianceColor.BLUE) }
 
-    enum class ArtifactColor {
-        PURPLE,
-        GREEN,
-    }
+    private val patterns =
+        mapOf(
+            21 to listOf(ReleaseType.GREEN, ReleaseType.PURPLE, ReleaseType.PURPLE),
+            22 to listOf(ReleaseType.PURPLE, ReleaseType.GREEN, ReleaseType.PURPLE),
+            23 to listOf(ReleaseType.PURPLE, ReleaseType.PURPLE, ReleaseType.GREEN),
+        )
 
-    lateinit var artifacts: List<ArtifactColor>
+    private val defaultPattern = listOf(ReleaseType.NEXT, ReleaseType.NEXT, ReleaseType.NEXT)
 
     override fun sequence() = execute {
         with(robot) {
             val tags = context(telemetry) { getDetectedAprilTags() }
+            val pattern = tags.firstOrNull { it.id in patterns.keys }?.id
+
             +drivetrain.pathTo(paths.pathToLaunchZoneFromWall)
-
-            when (tags[0].id) {
-                21 -> {
-                    telemetry.addData("Pattern", "GPP")
-                    artifacts =
-                        listOf(ArtifactColor.GREEN, ArtifactColor.PURPLE, ArtifactColor.PURPLE)
-                }
-
-                22 -> {
-                    telemetry.addData("Pattern", "PGP")
-                    artifacts =
-                        listOf(ArtifactColor.PURPLE, ArtifactColor.GREEN, ArtifactColor.PURPLE)
-                }
-
-                23 -> {
-                    telemetry.addData("Pattern", "PPG")
-                    artifacts =
-                        listOf(ArtifactColor.PURPLE, ArtifactColor.PURPLE, ArtifactColor.GREEN)
-                }
-
-                else -> {
-                    telemetry.addData("Pattern", "Unknown - defaulting to PPG")
-                    artifacts =
-                        listOf(ArtifactColor.PURPLE, ArtifactColor.PURPLE, ArtifactColor.GREEN)
-                }
-            }
 
             +launcher.enable()
 
-            for (artifact in artifacts) {
-                when (artifact) {
-                    ArtifactColor.PURPLE -> {
-                        +classifier.releasePurple()
-                    }
-                    ArtifactColor.GREEN -> {
-                        +classifier.releaseGreen()
-                    }
-                }
+            if (pattern == null) {
+                telemetry.addData("Pattern ID", "None detected")
+            } else {
+                telemetry.addData("Pattern ID", pattern)
+            }
+
+            for (artifact in patterns[pattern] ?: defaultPattern) {
+                +classifier.releaseArtifact(artifact)
+                wait(0.5)
             }
 
             +launcher.disable()

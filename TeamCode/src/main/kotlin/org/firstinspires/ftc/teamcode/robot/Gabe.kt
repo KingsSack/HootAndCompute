@@ -64,7 +64,7 @@ abstract class Gabe<T : MecanumDrivetrain>(
     private val storageServo by servo("ss")
 
     // Attachments
-    val launcher by attachment {
+    val launcher = attachment {
         Launcher(
             leftLauncherMotor,
             rightLauncherMotor,
@@ -80,7 +80,7 @@ abstract class Gabe<T : MecanumDrivetrain>(
             LAUNCHER_TARGET_VELOCITY,
         )
     }
-    val storage by attachment { Storage(storageServo) }
+    val storage = attachment { Storage(storageServo) }
 
     init {
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION)
