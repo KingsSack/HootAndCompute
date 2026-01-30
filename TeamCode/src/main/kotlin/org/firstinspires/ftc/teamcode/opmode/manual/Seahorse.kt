@@ -12,7 +12,7 @@ import dev.kingssack.volt.opmode.autonomous.AllianceColor
 @Suppress("unused")
 class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
 
-    override val name= "Seahorse"
+    override val name = "Seahorse"
     override val group = "Competition"
     override fun getRobot(hardwareMap: HardwareMap): JonesPP {
         return JonesPP(hardwareMap)

@@ -15,7 +15,7 @@ import dev.kingssack.volt.opmode.autonomous.AllianceColor
 @Suppress("unused")
 class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
 
-    override val name =  "Manatee"
+    override val name = "Manatee"
     override val group = "Competition"
     override fun getRobot(hardwareMap: HardwareMap): GabePP {
         return GabePP(hardwareMap)

@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.util.AllianceColor
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 /**
  * [Gabe] with [MecanumDriveWithPP] drivetrain.
