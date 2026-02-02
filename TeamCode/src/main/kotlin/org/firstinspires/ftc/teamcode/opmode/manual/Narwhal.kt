@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
