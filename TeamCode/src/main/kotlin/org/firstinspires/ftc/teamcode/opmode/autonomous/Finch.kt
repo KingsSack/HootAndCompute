@@ -5,20 +5,19 @@ import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.MultiDualAutonomousMode
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Suppress("unused")
 @Config
+@VoltOpModeMeta("Finch", OpModeMeta.DefaultGroup, "Manatee")
 abstract class Finch() :
     MultiDualAutonomousMode<GabePP, FinchStartingPosition>(FinchStartingPosition::class.java) {
-    override val name = "Finch"
-    override val autoTransition = "Manatee"
-    override fun getRobot(hardwareMap: HardwareMap): GabePP {
-        return GabePP(hardwareMap, sw(if (type == FinchStartingPosition.WALL) Pose(56.0, 9.0, 90.0.toRadians()) else Pose(26.0, 133.0, 142.0.toRadians())))
-    }
+    override val robot: GabePP = GabePP(hardwareMap, sw(if (type == FinchStartingPosition.WALL) Pose(56.0, 9.0, 90.0.toRadians()) else Pose(26.0, 133.0, 142.0.toRadians())))
     private val paths by lazy { PathConstants(robot.drivetrain.follower, color) }
     private lateinit var pathToLaunchZone: PathChain
 

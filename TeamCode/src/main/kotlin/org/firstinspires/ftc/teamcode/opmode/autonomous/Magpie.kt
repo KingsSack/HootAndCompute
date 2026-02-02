@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
 import org.firstinspires.ftc.teamcode.robot.JonesPP
@@ -12,14 +13,10 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Config
 @Suppress("unused")
+@VoltOpModeMeta("Magpie", "Competition", "Seahorse")
 class Magpie :
     AutonomousMode<JonesPP>() {
-    override fun getRobot(hardwareMap: HardwareMap): JonesPP {
-        return JonesPP(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
-    }
-    override val name = "Magpie"
-    override val group = "Competition"
-    override val autoTransition = "Seahorse"
+    override val robot: JonesPP = JonesPP(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
     companion object {
         @JvmField var INITIAL_X: Double = 56.0
         @JvmField var INITIAL_Y: Double = 8.0

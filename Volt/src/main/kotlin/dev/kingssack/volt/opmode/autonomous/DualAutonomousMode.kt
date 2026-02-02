@@ -1,23 +1,37 @@
 package dev.kingssack.volt.opmode.autonomous
 
 import com.pedropathing.geometry.Pose
-import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
+import dev.kingssack.volt.opmode.VoltOpMode
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
-import kotlin.jvm.javaClass
 
 abstract class DualAutonomousMode<R : Robot> : AutonomousMode<R>() {
-    override fun register(registrationHelper: RegistrationHelper) {
-        val red : DualAutonomousMode<R> = javaClass.getDeclaredConstructor().newInstance()
-        val blue : DualAutonomousMode<R> = javaClass.getDeclaredConstructor().newInstance()
-        red.color = AllianceColor.RED
-        blue.color = AllianceColor.BLUE
-        registrationHelper.register(OpModeMeta.Builder().setName("$name Red").setGroup(group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), red)
-        registrationHelper.register(OpModeMeta.Builder().setName("$name Blue").setGroup(group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build(), blue)
+    @Suppress("unused")
+    object Register : Registrar() {
+        override fun register(registrationHelper: VoltRegistrationHelper, clazz: Class<VoltOpMode<*>>) {
+            if (clazz.isAnnotationPresent(VoltOpModeMeta::class.java)) {
+                val annotation = clazz.getAnnotation(VoltOpModeMeta::class.java)
+                if (annotation != null) {
+                    registrationHelper.register({
+                        ColorHolder.color = AllianceColor.RED
+                        val red = (clazz as Class<DualAutonomousMode<*>>).getDeclaredConstructor().newInstance()
+                        red
+                    }, OpModeMeta.Builder().setName("${annotation.name} Red").setGroup(annotation.group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(if (annotation.autoTransition == "") null else annotation.autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build())
+                    registrationHelper.register({
+                        ColorHolder.color = AllianceColor.BLUE
+                        val blue = (clazz as Class<DualAutonomousMode<*>>).getDeclaredConstructor().newInstance()
+                        blue
+                    }, OpModeMeta.Builder().setName("${annotation.name} Blue").setGroup(annotation.group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setTransitionTarget(if (annotation.autoTransition == "") null else annotation.autoTransition).setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build())
+                }
+            }
+
+        }
     }
-
-    lateinit var color: AllianceColor private set
-
+    open val color: AllianceColor = ColorHolder.color!!
+    private object ColorHolder {
+        var color: AllianceColor? = null
+    }
     /**
      * returns one of its 2 parameters depending on what alliance you're on
      * @param red what to return if you are on the red alliance

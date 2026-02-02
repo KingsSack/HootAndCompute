@@ -4,8 +4,8 @@ import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.Gamepad
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.robot.GabePP
@@ -13,13 +13,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 @Suppress("unused")
+@VoltOpModeMeta("Manatee", "Competition")
 class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
-
-    override val name = "Manatee"
-    override val group = "Competition"
-    override fun getRobot(hardwareMap: HardwareMap): GabePP {
-        return GabePP(hardwareMap)
-    }
+    override val robot: GabePP = GabePP(hardwareMap)
 
     var targetVelocity = 1500.0
     var modifyScale = 100.0

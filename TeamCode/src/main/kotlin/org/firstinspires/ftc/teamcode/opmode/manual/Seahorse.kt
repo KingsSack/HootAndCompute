@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
-import com.qualcomm.robotcore.hardware.HardwareMap
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -13,13 +13,9 @@ import org.firstinspires.ftc.teamcode.robot.JonesPP
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 @Suppress("unused")
+@VoltOpModeMeta("Seahorse", "Competition")
 class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
-
-    override val name = "Seahorse"
-    override val group = "Competition"
-    override fun getRobot(hardwareMap: HardwareMap): JonesPP {
-        return JonesPP(hardwareMap)
-    }
+    override val robot: JonesPP = JonesPP(hardwareMap)
     var targetVelocity = Jones.launcherTargetVelocity
     var allianceColor = AllianceColor.BLUE
 
