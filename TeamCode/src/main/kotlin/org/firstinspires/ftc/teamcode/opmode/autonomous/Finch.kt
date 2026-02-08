@@ -1,22 +1,21 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
-import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 import org.firstinspires.ftc.teamcode.util.StartingPosition
 import org.firstinspires.ftc.teamcode.util.maybeFlip
 import org.firstinspires.ftc.teamcode.util.toRadians
 
-@Config
 abstract class Finch(
     private val alliance: AllianceColor,
     private val initialPose: Pose,
     private val startingPosition: StartingPosition,
-) : AutonomousMode<GabePP>({ GabePP(it, initialPose, alliance) }) {
+) : AutonomousMode<Gabe<MecanumDriveWithPP>>({ GabePP(it, initialPose) }) {
     private lateinit var launchPose: Pose
 
     override fun initialize() {
@@ -35,7 +34,7 @@ abstract class Finch(
         with(robot) {
             +drivetrain.path { lineTo(launchPose) }
             +fire(3)
-            +InstantAction { blackboard["endPose"] = drivetrain.pose }
+            instant { blackboard["endPose"] = drivetrain.pose }
         }
     }
 }

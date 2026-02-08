@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
-import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 import org.firstinspires.ftc.teamcode.util.StartingPosition
@@ -14,7 +15,7 @@ abstract class Pigeon(
     private val alliance: AllianceColor,
     private val initialPose: Pose,
     private val startingPosition: StartingPosition,
-) : AutonomousMode<GabePP>({ GabePP(it, initialPose, alliance) }) {
+) : AutonomousMode<Gabe<MecanumDriveWithPP>>({ GabePP(it, initialPose) }) {
     private lateinit var endPose: Pose
 
     override fun initialize() {
@@ -31,8 +32,8 @@ abstract class Pigeon(
     /** Drives off the launch line and saves pose */
     override fun sequence() = execute {
         with(robot) {
-            +drivetrain.path(initialPose) { lineTo(endPose) }
-            +InstantAction { blackboard["endPose"] = drivetrain.pose }
+            +drivetrain.path { lineTo(endPose) }
+            instant { blackboard["endPose"] = drivetrain.pose }
         }
     }
 }
