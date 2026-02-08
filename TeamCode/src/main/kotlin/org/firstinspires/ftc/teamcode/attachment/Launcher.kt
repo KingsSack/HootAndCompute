@@ -153,8 +153,11 @@ class Launcher(
             super.update()
 
             val currentDelta = velocityDelta
-            velocityDeltaSum += currentDelta
-            velocityDeltaSampleCount++
+
+            if (currentVelocity > 0.0) {
+                velocityDeltaSum += currentDelta
+                velocityDeltaSampleCount++
+            }
 
             if (currentDelta > maxVelocityDelta) {
                 maxVelocityDelta = currentDelta
@@ -175,7 +178,9 @@ class Launcher(
             addLine(">>VELOCITIES<<")
             addData("Target", "%.1f".format(currentVelocity))
             addData("Left Motor", "%.1f".format(leftMotor.velocity))
+            addData("Left Error", "%.1f".format(leftMotor.velocity - currentVelocity))
             addData("Right Motor", "%.1f".format(rightMotor.velocity))
+            addData("Right Error", "%.1f".format(rightMotor.velocity - currentVelocity))
             addData("Delta", "%.2f (avg: %.2f)".format(currentDelta, averageVelocityDelta))
             addData(
                 "Delta Range",
