@@ -14,13 +14,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(5.45)
-            .forwardZeroPowerAcceleration(-70)
-            .lateralZeroPowerAcceleration(-150)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.3, 0, 0, 0.015))
-            .headingPIDFCoefficients(new PIDFCoefficients(0.8, 0.01, 0.01, 0.025))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.8, 0, 0.02, 0.1, 0.1))
-            .centripetalScaling(0.00054);
+            .mass(9.8)
+            .forwardZeroPowerAcceleration(-55)
+            .lateralZeroPowerAcceleration(-110)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.02, 0.0, 0.0, 0.07))
+            .headingPIDFCoefficients(new PIDFCoefficients(0.04, 0.0, 0.0, 0.02))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.1, 0.0, 0.0, 0.0, 0.3))
+            .centripetalScaling(0.0003);
 
     public static DriveEncoderConstants localizerConstants =
             new DriveEncoderConstants()
@@ -32,11 +32,11 @@ public class Constants {
                     .leftRearEncoderDirection(Encoder.FORWARD)
                     .rightFrontEncoderDirection(Encoder.REVERSE)
                     .rightRearEncoderDirection(Encoder.REVERSE)
-                    .robotWidth(13)
+                    .robotWidth(14)
                     .robotLength(9)
                     .forwardTicksToInches(0.0057725)
-                    .strafeTicksToInches(0.004527)
-                    .turnTicksToInches(0.0092964);
+                    .strafeTicksToInches(0.0069642)
+                    .turnTicksToInches(0.009961);
 
     public static PathConstraints pathConstraints = new PathConstraints(
             0.99,
@@ -46,7 +46,7 @@ public class Constants {
     );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(1)
+            .maxPower(0.8)
             .rightFrontMotorName("rf")
             .rightRearMotorName("rr")
             .leftRearMotorName("lr")
