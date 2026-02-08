@@ -157,7 +157,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
     context(telemetry: Telemetry)
     fun getDetectedAprilTags(id: Int? = null): List<AprilTagDetection> {
         val detections = aprilTag.detections
-        telemetry.addData("Detected Tags", detections.size)
+        telemetry.addData("Detected", "${detections.size} Tags")
 
         val result =
             if (id == null) {
@@ -166,8 +166,8 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
                 detections.filter { it.id == id }
             }
 
-        for (detection in detections) {
-            telemetry.addData("Detected ID", detection.id)
+        for (detection in result) {
+            telemetry.addData("Detected Tag ID", detection.id)
         }
 
         return result
