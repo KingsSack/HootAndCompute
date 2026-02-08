@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.robot
 
-import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
@@ -20,16 +19,15 @@ import org.firstinspires.ftc.teamcode.util.AllianceColor
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
- * @param drivetrain the mecanum drivetrain used by the robot
  * @param T the type of mecanum drivetrain
+ * @property drivetrain the mecanum drivetrain used by the robot
+ * @property rgb the LED driver for controlling RGB LEDs on the robot
+ * @property launcher the launcher attachment for firing artifacts
+ * @property storage the storage attachment for holding and releasing artifacts
  * @see MecanumDrivetrain
  */
-@Config
-abstract class Gabe<T : MecanumDrivetrain>(
-    hardwareMap: HardwareMap,
-    drivetrain: T,
-    allianceColor: AllianceColor = AllianceColor.BLUE,
-) : RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
+abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override val drivetrain: T) :
+    RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     companion object {
         private const val LAUNCHER_LEFT_P = 54.7
         private const val LAUNCHER_LEFT_I = 0.21
@@ -43,19 +41,8 @@ abstract class Gabe<T : MecanumDrivetrain>(
         private const val LAUNCHER_TARGET_VELOCITY = 1500.0
     }
 
-    fun setRGBPatternToAllianceColor(allianceColor: AllianceColor) {
-        if (allianceColor == AllianceColor.BLUE)
-            rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE)
-        else rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED)
-    }
+    // --- Hardware ---
 
-    var allianceColor: AllianceColor = allianceColor
-        set(value) {
-            field = value
-            setRGBPatternToAllianceColor(value)
-        }
-
-    // Hardware
     val rgb by ledDriver("rgb")
 
     private val huskyLens by huskyLens("lens")
@@ -66,7 +53,8 @@ abstract class Gabe<T : MecanumDrivetrain>(
 
     private val storageServo by servo("ss")
 
-    // Attachments
+    // --- Attachments ---
+
     val launcher = attachment {
         Launcher(
             leftLauncherMotor,
@@ -87,7 +75,10 @@ abstract class Gabe<T : MecanumDrivetrain>(
 
     init {
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION)
+        rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_RAINBOW_PALETTE)
     }
+
+    // --- Actions ---
 
     /**
      * Fire [amount] artifacts.
@@ -104,6 +95,8 @@ abstract class Gabe<T : MecanumDrivetrain>(
         }
         +launcher.disable()
     }
+
+    // --- Helpers ---
 
     /**
      * Get detected AprilTags from HuskyLens.
@@ -146,7 +139,7 @@ abstract class Gabe<T : MecanumDrivetrain>(
      * @return an [Action] that points the robot towards the AprilTag
      */
     context(telemetry: Telemetry)
-    fun pointTowardsAprilTag() = Action {
+    fun pointTowardsAprilTag(allianceColor: AllianceColor) = Action {
         val targetId = if (allianceColor == AllianceColor.RED) 24 else 20
         val detectedTag = getDetectedAprilTags(targetId).firstOrNull()
 
@@ -168,11 +161,4 @@ abstract class Gabe<T : MecanumDrivetrain>(
             }
         }
     }
-
-    context(telemetry: Telemetry)
-    override fun update(): Unit =
-        with(telemetry) {
-            super.update()
-            addData("Alliance Color", allianceColor)
-        }
 }
