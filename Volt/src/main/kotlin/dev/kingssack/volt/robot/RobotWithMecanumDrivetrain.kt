@@ -12,5 +12,5 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
  */
 open class RobotWithMecanumDrivetrain<T : MecanumDrivetrain>(
     hardwareMap: HardwareMap,
-    drivetrain: T,
+    override val drivetrain: T,
 ) : RobotWithDrivetrain<T>(hardwareMap, drivetrain)
