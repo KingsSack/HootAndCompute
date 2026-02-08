@@ -226,6 +226,7 @@ class Classifier(
                     if (runtime.seconds() > MAX_CLASSIFIER_TIME + TRANSFER_TIME) {
                         gate.position = GATE_CLOSED
                         state = ReleaseState.RESETTING
+                        runtime.reset()
                     }
                 }
                 ReleaseState.RESETTING -> {
