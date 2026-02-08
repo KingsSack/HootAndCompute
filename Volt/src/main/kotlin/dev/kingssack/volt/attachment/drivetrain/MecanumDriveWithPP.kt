@@ -99,10 +99,10 @@ class MecanumDriveWithPP(
      * Creates a path following action starting from the given pose
      *
      * @param startPose The starting pose of the robot
-     * @return An action that executes the defined path following behavior
+     * @return An [Action] that executes a defined path following behavior
      */
     fun path(
-        startPose: Pose = follower.pose,
+        startPose: Pose = pose,
         block: FollowerActionBuilder.() -> FollowerActionBuilder,
     ): Action {
         return FollowerActionBuilder(startPose).block().build()
