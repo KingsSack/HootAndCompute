@@ -12,9 +12,6 @@ import dev.kingssack.volt.util.ServoPosition
  * @param servo The servo used for pushing artifacts
  */
 class Pusher(servo: Servo) : ServoAttachment("Pusher", servo) {
-    val isExtended: Boolean
-        get() = servo.position > 0.0
-
     init {
         servo.position = 0.0
     }
