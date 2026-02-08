@@ -2,55 +2,64 @@ package org.firstinspires.ftc.teamcode.robot
 
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
-import com.acmerobotics.roadrunner.PoseVelocity2d
-import com.acmerobotics.roadrunner.Vector2d
-import com.qualcomm.hardware.dfrobot.HuskyLens
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.*
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
-import kotlin.math.*
+import java.util.concurrent.TimeUnit
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Pusher
-import org.firstinspires.ftc.teamcode.util.AllianceColor
+import org.firstinspires.ftc.teamcode.util.AprilTagAiming
+import org.firstinspires.ftc.vision.VisionPortal
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
 
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
- * @param drivetrain the mecanum drivetrain used by the robot
  * @param T the type of mecanum drivetrain
+ * @property drivetrain the mecanum drivetrain used by the robot
+ * @property visionPortal the vision portal for processing camera input
+ * @property launcher the launcher attachment for firing artifacts
+ * @property classifier the classifier attachment for classifying and releasing artifacts
+ * @property pusher the pusher attachment for pushing artifacts into the launcher
+ * @property aprilTagAiming the AprilTag aiming utility for aligning with targets using AprilTags
  * @see MecanumDrivetrain
  */
 @Config
-abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain: T) :
+abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override val drivetrain: T) :
     RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
     companion object {
-        @JvmField var lidarLeftName: String = "lsl"
-        @JvmField var lidarRightName: String = "lsr"
-        @JvmField var huskyLensName: String = "lens"
-
-        @JvmField var launcherLeftP: Double = 24.0
-        @JvmField var launcherLeftI: Double = 0.1
-        @JvmField var launcherLeftD: Double = 0.0
-        @JvmField var launcherLeftF: Double = 14.3
-        @JvmField var launcherRightP: Double = 24.0
-        @JvmField var launcherRightI: Double = 0.1
-        @JvmField var launcherRightD: Double = 0.0
-        @JvmField var launcherRightF: Double = 13.4
+        @JvmField var launcherLeftP: Double = 90.0
+        @JvmField var launcherLeftI: Double = 0.0
+        @JvmField var launcherLeftD: Double = 0.1
+        @JvmField var launcherLeftF: Double = 13.9
+        @JvmField var launcherRightP: Double = 90.0
+        @JvmField var launcherRightI: Double = 0.0
+        @JvmField var launcherRightD: Double = 0.1
+        @JvmField var launcherRightF: Double = 13.2
         @JvmField var launcherMaxVelocity: Double = 2800.0
-        @JvmField var launcherTargetVelocity: Double = 1500.0
-        @JvmField var launcherMediumVelocity: Double = 1400.0
-        @JvmField var launcherLowVelocity: Double = 1100.0
+        @JvmField var launcherTargetVelocity: Double = 1340.0
+        @JvmField var launcherMediumVelocity: Double = 1300.0
+        @JvmField var launcherLowVelocity: Double = 1240.0
+        @JvmField var exposureMs: Int = 6
+        @JvmField var gain: Int = 230
     }
 
-    // Hardware
-    private val lidarLeft by distanceSensor(lidarLeftName)
-    private val lidarRight by distanceSensor(lidarRightName)
-    private val huskyLens by huskyLens(huskyLensName)
+    // --- Hardware ---
+
+    private val rgb by ledDriver("rgb")
+
+    private val lidarLeft by distanceSensor("lsl")
+    private val lidarRight by distanceSensor("lsr")
 
     private val gateServo by servo("gs")
     private val classifierServo by servo("cs")
@@ -63,7 +72,8 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
     private val leftLauncherMotor by motorEx("fll")
     private val rightLauncherMotor by motorEx("flr")
 
-    // Attachments
+    // --- Attachments ---
+
     val launcher = attachment {
         Launcher(
             leftLauncherMotor,
@@ -78,20 +88,52 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
 
     val classifier = attachment {
         Classifier(
-            gateServo,
-            classifierServo,
             classifierSensor1,
             classifierSensor2,
             classifierSensor3,
+            gateServo,
+            classifierServo,
+            rgb,
         )
     }
 
     val pusher = attachment { Pusher(pusherServo) }
 
+    // --- AprilTag Detection ---
+
+    private val aprilTag: AprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults()
+    val visionPortal: VisionPortal =
+        VisionPortal.easyCreateWithDefaults(
+            hardwareMap.get(WebcamName::class.java, "Webcam 1"),
+            aprilTag,
+        )
+
+    val aprilTagAiming = AprilTagAiming()
+
     init {
-        // Set huskylens mode
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION)
+        rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED)
+
+        try {
+            while (
+                visionPortal != null &&
+                    visionPortal.cameraState != VisionPortal.CameraState.STREAMING
+            ) {
+                Thread.sleep(100)
+            }
+
+            val exposureControl = visionPortal.getCameraControl(ExposureControl::class.java)
+            val gainControl = visionPortal.getCameraControl(GainControl::class.java)
+
+            if (exposureControl.mode != ExposureControl.Mode.Manual)
+                exposureControl.mode = ExposureControl.Mode.Manual
+            exposureControl.setExposure(exposureMs.toLong(), TimeUnit.MILLISECONDS)
+            gainControl.gain = gain
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
     }
+
+    // --- Actions ---
 
     /**
      * Fire all stored artifacts using the [launcher] and [classifier] at [targetVelocity].
@@ -104,68 +146,31 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, drivetrain
         +launcher.disable()
     }
 
+    // --- Helpers ---
+
     /**
-     * Get detected AprilTags from HuskyLens.
+     * Get detected AprilTags from the webcam using the [aprilTag] processor.
      *
      * @param id optional ID to filter detected tags; if null, returns all detected tags
-     * @return array of detected AprilTags
-     * @see HuskyLens
-     * @see HuskyLens.Block
+     * @return list of detected AprilTags
      */
     context(telemetry: Telemetry)
-    fun getDetectedAprilTags(id: Int? = null): Array<out HuskyLens.Block> {
-        // Get AprilTags
-        val blocks = huskyLens.blocks()
-        telemetry.addData("Block count", blocks.size)
+    fun getDetectedAprilTags(id: Int? = null): List<AprilTagDetection> {
+        val detections = aprilTag.detections
+        telemetry.addData("Detected Tags", detections.size)
 
-        // If an id is provided, filter to matching blocks; otherwise return all blocks.
-        val result: Array<out HuskyLens.Block> =
+        val result =
             if (id == null) {
-                blocks
+                detections
             } else {
-                blocks.filter { it.id == id }.toTypedArray()
+                detections.filter { it.id == id }
             }
 
-        // Log each block in the result
-        for (block in result) {
-            telemetry.addData("Block", block.toString())
+        for (detection in detections) {
+            telemetry.addData("Detected ID", detection.id)
         }
-
-        // Also log the filtered count (useful when id was provided)
-        telemetry.addData("Filtered count", result.size)
 
         return result
-    }
-
-    var detectedAprilTag: Boolean = false
-
-    /**
-     * Points the robot towards the AprilTag with the specified ID based on [allianceColor].
-     *
-     * @return an [Action] that points the robot towards the AprilTag
-     */
-    context(telemetry: Telemetry)
-    fun pointTowardsAprilTag(allianceColor: AllianceColor) = Action {
-        val targetId = if (allianceColor == AllianceColor.RED) 24 else 20
-        val detectedTag = getDetectedAprilTags(targetId).firstOrNull()
-
-        if (detectedTag == null) {
-            drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
-            false
-        } else {
-            val error = detectedTag.x - 160
-            val tolerance = 5
-
-            if (abs(error) < tolerance) {
-                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), 0.0))
-                detectedAprilTag = true
-                false
-            } else {
-                val turnPower = (error / 160.0).coerceIn(-0.5, 0.5)
-                drivetrain.setDrivePowers(PoseVelocity2d(Vector2d(0.0, 0.0), -turnPower))
-                true
-            }
-        }
     }
 
     /**

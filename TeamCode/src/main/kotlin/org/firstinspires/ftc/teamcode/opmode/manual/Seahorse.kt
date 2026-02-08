@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
+import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Classifier
@@ -14,7 +15,7 @@ import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 @TeleOp(name = "Seahorse", group = "Competition")
 class Seahorse :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>({
+    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, Jones<MecanumDriveWithPP>>({
         JonesPP(it, blackboard["endPose"] as? Pose ?: Pose())
     }) {
     var targetVelocity = Jones.launcherTargetVelocity
@@ -64,8 +65,24 @@ class Seahorse :
 
         // Aiming
         context(telemetry) {
-            onButtonTapped(GamepadButton.RIGHT_BUMPER1) {
-                with(robot) { +pointTowardsAprilTag(allianceColor) }
+            onAnalog(GamepadAnalogInput.RIGHT_TRIGGER1) { value ->
+                with(robot) {
+                    if (value <= 0.3) {
+                        aprilTagAiming.reset()
+                        return@onAnalog
+                    }
+
+                    val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
+                    val tag = getDetectedAprilTags(targetId).firstOrNull()
+
+                    rx =
+                        if (tag != null) {
+                            aprilTagAiming.pointTowardsAprilTag(tag)
+                        } else {
+                            aprilTagAiming.reset()
+                            0.0
+                        }
+                }
             }
         }
 
