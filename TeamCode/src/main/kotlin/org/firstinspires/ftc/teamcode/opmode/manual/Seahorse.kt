@@ -23,6 +23,8 @@ class Seahorse :
         blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
     }
 
+    var position: Int = 0
+
     init {
         // Launcher
         onButtonTapped(GamepadButton.RIGHT_BUMPER2) {
@@ -31,19 +33,19 @@ class Seahorse :
         onButtonTapped(GamepadButton.LEFT_BUMPER2) { with(robot) { +launcher.disable() } }
         onButtonTapped(GamepadButton.DPAD_LEFT2) {
             with(robot) {
-                targetVelocity = Jones.launcherLowVelocity
+                instant { targetVelocity = Jones.launcherLowVelocity }
                 if (launcher.currentVelocity > 0.0) +launcher.enable(targetVelocity)
             }
         }
         onButtonTapped(GamepadButton.DPAD_UP2) {
             with(robot) {
-                targetVelocity = Jones.launcherMediumVelocity
+                instant { targetVelocity = Jones.launcherMediumVelocity }
                 if (launcher.currentVelocity > 0.0) +launcher.enable(targetVelocity)
             }
         }
         onButtonTapped(GamepadButton.DPAD_RIGHT2) {
             with(robot) {
-                targetVelocity = Jones.launcherTargetVelocity
+                instant { targetVelocity = Jones.launcherTargetVelocity }
                 if (launcher.currentVelocity > 0.0) +launcher.enable(targetVelocity)
             }
         }
@@ -57,6 +59,12 @@ class Seahorse :
         }
         onButtonTapped(GamepadButton.Y2) {
             with(robot) { +classifier.releaseArtifact(Classifier.ReleaseType.GREEN) }
+        }
+        onButtonTapped(GamepadButton.DPAD_DOWN1) {
+            with(robot) {
+                instant { position++ }
+                +classifier.goToPos(position % 3 + 1)
+            }
         }
 
         // Pusher
@@ -94,7 +102,7 @@ class Seahorse :
 
     override fun initialize() {
         super.initialize()
-        robot.drivetrain.startTeleOpDrive()
+        with(robot) { drivetrain.startTeleOpDrive() }
     }
 
     context(telemetry: Telemetry)
@@ -102,6 +110,7 @@ class Seahorse :
         with(telemetry) {
             addData("Alliance Color", allianceColor)
             addData("Target Velocity", targetVelocity)
+            addData("Classifier Position", position % 3 + 1)
 
             if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
                 gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)

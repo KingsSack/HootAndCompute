@@ -1,45 +1,70 @@
 package org.firstinspires.ftc.teamcode.attachment
 
-import android.graphics.Color
 import com.acmerobotics.roadrunner.Action
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor
+import com.qualcomm.robotcore.hardware.NormalizedRGBA
 import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.util.ElapsedTime
 import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.attachment.Attachment
-import dev.kingssack.volt.attachment.ServoAttachment
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * [Classifier] is a [ServoAttachment] that controls a [gate], [classifier], [sectorOne],
- * [sectorTwo], and [sectorThree] used for launching artifacts.
+ * [Classifier] is an [Attachment] that classifies and releases artifacts.
+
+ * @param sectorOneSensor the [NormalizedColorSensor] used to detect the color of the artifact
+ * @param sectorTwoSensor the [NormalizedColorSensor] used to detect the color of the artifact
+ * @param sectorThreeSensor the [NormalizedColorSensor] used to detect the color of the artifact
+ * @param gate the [Servo] used to open and close the gate that releases artifacts from the classifier
+ * @param classifier the [Servo] used to rotate the classifier to different positions
+ * @param rgb the LED driver used to control lights in the [Classifier]
  */
 class Classifier(
+    sectorOneSensor: NormalizedColorSensor,
+    sectorTwoSensor: NormalizedColorSensor,
+    sectorThreeSensor: NormalizedColorSensor,
     private val gate: Servo,
     private val classifier: Servo,
-    private val sectorOne: NormalizedColorSensor,
-    private val sectorTwo: NormalizedColorSensor,
-    private val sectorThree: NormalizedColorSensor,
+    private val rgb: RevBlinkinLedDriver,
 ) : Attachment("Classifier") {
     companion object {
-        private const val CAROUSEL_POSITION_1 = 0.0
-        private const val CAROUSEL_POSITION_2 = 1.0
-        private const val CAROUSEL_POSITION_3 = 0.5
+        private const val GATE_CLOSED = 0.6
+        private const val GATE_OPEN = 0.0
 
-        private const val GATE_CLOSED = 0.6 // Fully closed position
-        private const val GATE_OPEN = 0.0 // Fully open position
-
-        private const val SATURATION_THRESHOLD = 0.02f
+        private const val SATURATION_THRESHOLD = 0.15f
 
         private const val PURPLE_HUE_MIN = 200f
-        private const val PURPLE_HUE_MAX = 300f
-        private const val GREEN_HUE_MIN = 80f
-        private const val GREEN_HUE_MAX = 180f
+        private const val PURPLE_HUE_MAX = 350f
+        private const val GREEN_HUE_MIN = 140f
+        private const val GREEN_HUE_MAX = 200f
 
-        private const val MAX_CLASSIFY_TIME = 0.6 // The maximum time to classify an artifact
-        private const val TRANSFER_TIME = 1.5 // The time to transfer an artifact through the gate
-        private const val RESET_TIME = 0.5 // The time to clos the gate
+        private const val SECTOR_ONE_POSITION = 0.0
+        private const val SECTOR_TWO_POSITION = 1.0
+        private const val SECTOR_THREE_POSITION = 0.6
+        private const val MAX_CLASSIFIER_POSITION = 1.0
+
+        private const val SECTOR_ONE_TIME = 0.0
+        private const val SECTOR_TWO_TIME = 1.0
+        private const val SECTOR_THREE_TIME = 0.5
+        private const val MAX_CLASSIFIER_TIME = 1.0
+
+        private const val TRANSFER_TIME = 1.2
+        private const val RESET_TIME = 0.4
     }
+
+    private data class SectorConfig(val position: Double, val rotateTime: Double)
+
+    private data class Sector(
+        val sensor: NormalizedColorSensor,
+        val config: SectorConfig,
+    )
+
+    private val sectors = listOf(
+        Sector(sectorOneSensor, SectorConfig(SECTOR_ONE_POSITION, SECTOR_ONE_TIME)),
+        Sector(sectorTwoSensor, SectorConfig(SECTOR_TWO_POSITION, SECTOR_TWO_TIME)),
+        Sector(sectorThreeSensor, SectorConfig(SECTOR_THREE_POSITION, SECTOR_THREE_TIME)),
+    )
 
     enum class SectorState {
         PURPLE,
@@ -47,23 +72,31 @@ class Classifier(
         EMPTY,
     }
 
-    private val sectors = listOf(sectorOne, sectorTwo, sectorThree)
+    private fun normalizedRgbaToHsv(colors: NormalizedRGBA): FloatArray {
+        val r = colors.red
+        val g = colors.green
+        val b = colors.blue
 
-    init {
-        gate.position = GATE_CLOSED
-        classifier.position = CAROUSEL_POSITION_1
+        val max = maxOf(r, g, b)
+        val min = minOf(r, g, b)
+        val delta = max - min
+
+        val hue =
+            when {
+                delta == 0f -> 0f
+                max == r -> 60f * (((g - b) / delta) % 6f)
+                max == g -> 60f * (((b - r) / delta) + 2)
+                else -> 60f * (((r - g) / delta) + 4)
+            }.let { if (it < 0) it + 360f else it }
+
+        val saturation = if (max == 0f) 0f else delta / max
+        return floatArrayOf(hue, saturation, max)
     }
 
-    private fun getSectorState(sectorSensor: NormalizedColorSensor): SectorState {
-        val hsvValues = FloatArray(3)
-        Color.colorToHSV(sectorSensor.normalizedColors.toColor(), hsvValues)
+    private fun getSectorState(sensor: NormalizedColorSensor): SectorState {
+        val (hue, saturation) = normalizedRgbaToHsv(sensor.normalizedColors)
 
-        val hue = hsvValues[0]
-        val saturation = hsvValues[1]
-
-        if (saturation < SATURATION_THRESHOLD) {
-            return SectorState.EMPTY
-        }
+        if (saturation < SATURATION_THRESHOLD) return SectorState.EMPTY
 
         return when (hue) {
             in PURPLE_HUE_MIN..PURPLE_HUE_MAX -> SectorState.PURPLE
@@ -72,26 +105,21 @@ class Classifier(
         }
     }
 
-    private fun findNextSector(): NormalizedColorSensor? =
-        sectors.firstOrNull { getSectorState(it) != SectorState.EMPTY }
-
-    private fun findArtifactSector(state: SectorState): NormalizedColorSensor? {
-        for (sector in sectors) {
-            if (getSectorState(sector) == state) {
-                return sector
-            }
-        }
-        return null
+    init {
+        gate.position = GATE_CLOSED
+        classifier.position = SECTOR_ONE_POSITION
     }
 
-    private fun getCarouselPosition(sector: NormalizedColorSensor): Double {
-        return when (sector) {
-            sectorOne -> CAROUSEL_POSITION_1
-            sectorTwo -> CAROUSEL_POSITION_2
-            sectorThree -> CAROUSEL_POSITION_3
-            else -> CAROUSEL_POSITION_1
-        }
-    }
+    // --- Sector Lookup ---
+
+    private fun findSector(predicate: (SectorState) -> Boolean): Sector? =
+        sectors.firstOrNull { predicate(getSectorState(it.sensor)) }
+
+    private fun findArtifactSector(state: SectorState): Sector? = findSector { it == state }
+
+    private fun findNextSector(): Sector? = findSector { it != SectorState.EMPTY }
+
+    // --- Actions ---
 
     enum class ReleaseType {
         PURPLE,
@@ -112,30 +140,37 @@ class Classifier(
      *
      * @return an [Action] that performs the release
      */
-    @VoltAction(name = "Release Artifact", description = "Releases an artifact of the specified type")
+    @VoltAction(
+        name = "Release Artifact",
+        description = "Releases an artifact of the specified type",
+    )
     fun releaseArtifact(type: ReleaseType): Action = action {
         val runtime = ElapsedTime()
         var state = ReleaseState.POSITIONING
-        var targetSector: NormalizedColorSensor? = null
+        var rotateTime = 0.0
 
         init {
             requireReady()
             runtime.reset()
+            rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.SHOT_WHITE)
 
-            targetSector =
-                when (type) {
-                    ReleaseType.PURPLE -> findArtifactSector(SectorState.PURPLE)
-                    ReleaseType.GREEN -> findArtifactSector(SectorState.GREEN)
-                    ReleaseType.NEXT -> findNextSector()
-                }
-            if (targetSector == null) state = ReleaseState.DONE
-            else classifier.position = getCarouselPosition(targetSector!!)
+            val target = when (type) {
+                ReleaseType.PURPLE -> findArtifactSector(SectorState.PURPLE)
+                ReleaseType.GREEN -> findArtifactSector(SectorState.GREEN)
+                ReleaseType.NEXT -> findNextSector()
+            }
+
+            if (target == null) { state = ReleaseState.DONE }
+            else {
+                classifier.position = target.config.position
+                rotateTime = target.config.rotateTime
+            }
         }
 
         loop {
             when (state) {
                 ReleaseState.POSITIONING -> {
-                    if (runtime.seconds() > MAX_CLASSIFY_TIME) {
+                    if (runtime.seconds() > rotateTime) {
                         gate.position = GATE_OPEN
                         state = ReleaseState.TRANSFERRING
                         runtime.reset()
@@ -150,7 +185,7 @@ class Classifier(
                 }
                 ReleaseState.RESETTING -> {
                     if (runtime.seconds() > RESET_TIME) {
-                        classifier.position = CAROUSEL_POSITION_1
+                        classifier.position = sectors[0].config.position
                         state = ReleaseState.DONE
                     }
                 }
@@ -158,6 +193,8 @@ class Classifier(
             }
             return@loop false
         }
+
+        cleanup { rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED) }
     }
 
     /**
@@ -168,58 +205,62 @@ class Classifier(
     @VoltAction(name = "Release All Artifacts", description = "Releases all stored artifacts")
     fun releaseAllArtifacts(): Action = action {
         val runtime = ElapsedTime()
+        var state = ReleaseState.TRANSFERRING
 
         init {
             requireReady()
             runtime.reset()
-
             gate.position = GATE_OPEN
-            classifier.position = 1.0
         }
 
         loop {
-            if (runtime.seconds() > MAX_CLASSIFY_TIME) {
-                gate.position = GATE_CLOSED
-                classifier.position = CAROUSEL_POSITION_1
-                return@loop true
+            when (state) {
+                ReleaseState.TRANSFERRING -> {
+                    if (runtime.seconds() > TRANSFER_TIME) {
+                        classifier.position = MAX_CLASSIFIER_POSITION
+                        state = ReleaseState.POSITIONING
+                        runtime.reset()
+                    }
+                }
+                ReleaseState.POSITIONING -> {
+                    if (runtime.seconds() > MAX_CLASSIFIER_TIME + TRANSFER_TIME) {
+                        gate.position = GATE_CLOSED
+                        state = ReleaseState.RESETTING
+                    }
+                }
+                ReleaseState.RESETTING -> {
+                    if (runtime.seconds() > RESET_TIME) {
+                        classifier.position = sectors[0].config.position
+                        state = ReleaseState.DONE
+                    }
+                }
+                ReleaseState.DONE -> return@loop true
             }
             return@loop false
         }
+    }
+
+    /**
+     * Rotates the classifier to the specified [position] (1, 2, or 3).
+     *
+     * @return an [Action] that rotates the classifier to the specified position
+     */
+    fun goToPos(position: Int): Action = action {
+        init {
+            val index = (position - 1).coerceIn(sectors.indices)
+            classifier.position = sectors[index].config.position
+        }
+
+        loop { true }
     }
 
     context(telemetry: Telemetry)
     override fun update() {
         super.update()
         with(telemetry) {
-            addData("Carousel Position", classifier.position)
-            addData("Gate Position", gate.position)
-            addData("Sector One", getSectorState(sectorOne))
-            addData("Sector Two", getSectorState(sectorTwo))
-            addData("Sector Three", getSectorState(sectorThree))
-
-            // Display HSV values for each sector
-            val hsvValues = FloatArray(3)
-            Color.colorToHSV(sectorOne.normalizedColors.toColor(), hsvValues)
-            telemetry.addData("Sector One Hue", hsvValues[0].toString())
-            telemetry.addData("Sector One Saturation", hsvValues[1].toString())
-            telemetry.addData(
-                "Sector One Colors",
-                "R: ${sectorOne.normalizedColors.red}, G: ${sectorOne.normalizedColors.green}, B: ${sectorOne.normalizedColors.blue}, A: ${sectorOne.normalizedColors.alpha}",
-            )
-            Color.colorToHSV(sectorTwo.normalizedColors.toColor(), hsvValues)
-            telemetry.addData("Sector Two Hue", hsvValues[0].toString())
-            telemetry.addData("Sector Two Saturation", hsvValues[1].toString())
-            telemetry.addData(
-                "Sector Two Colors",
-                "R: ${sectorTwo.normalizedColors.red}, G: ${sectorTwo.normalizedColors.green}, B: ${sectorTwo.normalizedColors.blue}, A: ${sectorTwo.normalizedColors.alpha}",
-            )
-            Color.colorToHSV(sectorThree.normalizedColors.toColor(), hsvValues)
-            telemetry.addData("Sector Three Hue", hsvValues[0].toString())
-            telemetry.addData("Sector Three Saturation", hsvValues[1].toString())
-            telemetry.addData(
-                "Sector Three Colors",
-                "R: ${sectorThree.normalizedColors.red}, G: ${sectorThree.normalizedColors.green}, B: ${sectorThree.normalizedColors.blue}, A: ${sectorThree.normalizedColors.alpha}",
-            )
+            addData("Sector One", getSectorState(sectors[0].sensor))
+            addData("Sector Two", getSectorState(sectors[1].sensor))
+            addData("Sector Three", getSectorState(sectors[2].sensor))
         }
     }
 }
