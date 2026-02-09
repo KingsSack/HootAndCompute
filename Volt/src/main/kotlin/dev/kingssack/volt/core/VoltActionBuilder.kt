@@ -18,10 +18,10 @@ import java.lang.System.nanoTime
  */
 @VoltBuilderDsl
 class VoltActionBuilder<R : Robot>(val robot: R) {
-    private val actions = mutableListOf<Action>()
+    private val _actions = mutableListOf<Action>()
 
-    operator fun Action.unaryPlus() {
-        actions.add(TracedAction(inferName(this), this))
+    private fun addAction(action: Action) {
+        _actions.add(TracedAction(inferName(action), action))
     }
 
     private fun inferName(action: Action): String {
@@ -33,10 +33,14 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
         }
     }
 
+    operator fun Action.unaryPlus() {
+        addAction(this)
+    }
+
     /** Adds an [Action] that will run until the specified time duration [dt] has elapsed. */
     fun wait(dt: Double) {
         var beginNs: Long = -1
-        actions.add(
+        addAction(
             Action {
                 if (beginNs == -1L) {
                     beginNs = nanoTime()
@@ -49,25 +53,25 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
 
     /** Adds a parallel block of actions that will run simultaneously. */
     fun parallel(block: VoltActionBuilder<R>.() -> Unit) {
-        actions.add(ParallelAction(extractActions(block)))
+        addAction(ParallelAction(extractActions(block)))
     }
 
     /** Adds a sequential block of actions that will run one after another. */
     fun sequence(block: VoltActionBuilder<R>.() -> Unit) {
-        actions.add(SequentialAction(extractActions(block)))
+        addAction(SequentialAction(extractActions(block)))
     }
 
     /** Adds an instant action that executes a block of code immediately. */
     fun instant(block: () -> Unit) {
-        actions.add(InstantAction(block))
+        addAction(InstantAction(block))
     }
 
     private fun extractActions(block: VoltActionBuilder<R>.() -> Unit): List<Action> {
-        return VoltActionBuilder(robot).apply(block).actions
+        return VoltActionBuilder(robot).apply(block)._actions
     }
 
     internal fun build(): SequentialAction {
-        return SequentialAction(actions)
+        return SequentialAction(_actions)
     }
 }
 
