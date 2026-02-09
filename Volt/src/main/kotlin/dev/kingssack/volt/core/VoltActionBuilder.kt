@@ -29,7 +29,7 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
             is SequentialAction -> "Sequence"
             is ParallelAction -> "Parallel"
             is InstantAction -> "Instant"
-            else -> action.javaClass.simpleName ?: "Action"
+            else -> action.javaClass.simpleName.ifBlank { "Action" }
         }
     }
 
