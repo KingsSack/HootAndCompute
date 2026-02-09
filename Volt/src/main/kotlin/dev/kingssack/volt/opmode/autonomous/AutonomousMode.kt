@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.telemetry.ActionTracer
 
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
@@ -43,13 +44,14 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
 
         var running = true
         while (running && opModeIsActive() && !Thread.currentThread().isInterrupted) {
-            val p = TelemetryPacket()
-            p.fieldOverlay().operations.addAll(canvas.operations)
+            val packet = TelemetryPacket()
+            packet.fieldOverlay().operations.addAll(canvas.operations)
 
-            running = action.run(p)
+            running = action.run(packet)
 
             context(telemetry) { robot.update() }
-            dash?.sendTelemetryPacket(p)
+            context(packet) { ActionTracer.writePacket() }
+            dash?.sendTelemetryPacket(packet)
         }
     }
 }

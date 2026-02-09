@@ -43,7 +43,7 @@ abstract class Attachment(val name: String) {
     @DslMarker @Target(AnnotationTarget.CLASS) annotation class AttachmentActionDsl
 
     @AttachmentActionDsl
-    inner class AttachmentActionBuilder() {
+    inner class AttachmentActionBuilder {
         private var init: (() -> Unit)? = null
         private var loop: (TelemetryPacket.() -> Boolean)? = null
         private var cleanup: (() -> Unit)? = null
@@ -94,7 +94,11 @@ abstract class Attachment(val name: String) {
             }
     }
 
-    /** Creates an action using the [AttachmentActionBuilder]. */
+    /**
+     * Creates an action using the [AttachmentActionBuilder].
+     *
+     * @return an [Action] that can be executed by an OpMode
+     */
     fun action(block: AttachmentActionBuilder.() -> Unit): Action =
         AttachmentActionBuilder().apply(block).build()
 
