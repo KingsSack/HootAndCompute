@@ -40,9 +40,7 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
         robot.visionPortal.stopStreaming()
     }
 
-    /**
-     * Drives to the launch zone, fires artifacts according to the detected pattern, and saves pose
-     */
+    /** Fires artifacts according to the detected pattern, drives to, and saves final pose */
     override fun sequence() = execute {
         with(robot) {
             +launcher.enable()

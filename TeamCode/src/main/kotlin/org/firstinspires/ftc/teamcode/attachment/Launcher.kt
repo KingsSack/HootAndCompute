@@ -41,6 +41,9 @@ class Launcher(
     private val targetVelocity: Double,
     private val velocityTolerance: Double = 40.0,
 ) : Attachment("Launcher") {
+
+    // --- State Tracking ---
+
     private var spinUpStartTime: Long = 0
     private var lastSpinUpTime: Long = 0
     private var isSpinningUp: Boolean = false
@@ -49,6 +52,8 @@ class Launcher(
     private var velocityDeltaSum = 0.0
     private var maxVelocityDelta = Double.NEGATIVE_INFINITY
     private var minVelocityDelta = Double.POSITIVE_INFINITY
+
+    // --- Properties ---
 
     var currentVelocity = 0.0
         private set
@@ -96,6 +101,8 @@ class Launcher(
         leftMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, leftPIDFCoefficients)
         rightMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, rightPIDFCoefficients)
     }
+
+    // --- Actions ---
 
     /**
      * Enables the launcher to spin up to the [target] velocity.

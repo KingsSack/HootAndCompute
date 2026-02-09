@@ -42,7 +42,8 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
     }
 
     /**
-     * Drives to the launch zone, fires artifacts according to the detected pattern, and saves pose
+     * Drives to the launch zone, fires artifacts according to the detected pattern, drives to, and
+     * saves final pose
      */
     override fun sequence() = execute {
         with(robot) {
