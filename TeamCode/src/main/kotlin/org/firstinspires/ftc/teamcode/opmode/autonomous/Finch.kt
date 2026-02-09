@@ -1,33 +1,29 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
-import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
-import com.pedropathing.paths.PathChain
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
-import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.StartingPosition
+import org.firstinspires.ftc.teamcode.util.maybeFlip
 import org.firstinspires.ftc.teamcode.util.toRadians
 
-@Config
 abstract class Finch(
     private val alliance: AllianceColor,
-    initialPose: Pose,
+    private val initialPose: Pose,
     private val startingPosition: StartingPosition,
-) : AutonomousMode<GabePP>({ GabePP(it, initialPose, alliance) }) {
-    private val paths by lazy { PathConstants(robot.drivetrain.follower, alliance) }
-
-    private lateinit var pathToLaunchZone: PathChain
+) : AutonomousMode<Gabe<MecanumDriveWithPP>>({ GabePP(it, initialPose) }) {
+    private lateinit var launchPose: Pose
 
     override fun initialize() {
         super.initialize()
-        pathToLaunchZone =
+        launchPose =
             when (startingPosition) {
-                StartingPosition.WALL -> paths.pathToLaunchZoneFromWall
-                StartingPosition.GOAL -> paths.pathToLaunchZoneFromGoal
+                StartingPosition.WALL -> Pose(64.0, 100.0, 140.0.toRadians()).maybeFlip(alliance)
+                StartingPosition.GOAL -> Pose(64.0, 125.0, 148.0.toRadians()).maybeFlip(alliance)
                 StartingPosition.RAMP -> TODO("RAMP starting position not implemented")
             }
         blackboard["allianceColor"] = alliance
@@ -36,13 +32,9 @@ abstract class Finch(
     /** Drives to launch zone, fires, and saves pose */
     override fun sequence() = execute {
         with(robot) {
-            parallel {
-                +storage.close()
-                +drivetrain.pathTo(pathToLaunchZone)
-            }
-
+            +drivetrain.path { lineTo(launchPose) }
             +fire(3)
-            +InstantAction { blackboard["endPose"] = drivetrain.pose }
+            instant { blackboard["endPose"] = drivetrain.pose }
         }
     }
 }

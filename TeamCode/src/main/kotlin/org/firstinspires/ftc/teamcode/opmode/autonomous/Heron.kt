@@ -11,9 +11,10 @@ import org.firstinspires.ftc.teamcode.util.AllianceColor
 import org.firstinspires.ftc.teamcode.util.maybeFlip
 import org.firstinspires.ftc.teamcode.util.toRadians
 
-abstract class Magpie(private val alliance: AllianceColor, private val initialPose: Pose) :
+abstract class Heron(private val alliance: AllianceColor, private val initialPose: Pose) :
     AutonomousMode<Jones<MecanumDriveWithPP>>({ JonesPP(it, initialPose) }) {
-    private val finalPose: Pose = Pose(56.0, 36.0, 115.0.toRadians()).maybeFlip(alliance)
+    private val launchPose: Pose = Pose(60.0, 12.0, 115.0.toRadians()).maybeFlip(alliance)
+    private val finalPose: Pose = Pose(60.0, 30.0, 115.0.toRadians()).maybeFlip(alliance)
 
     private val patterns =
         mapOf(
@@ -40,10 +41,16 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
         robot.visionPortal.stopStreaming()
     }
 
-    /** Fires artifacts according to the detected pattern, drives to, and saves final pose */
+    /**
+     * Drives to the launch zone, fires artifacts according to the detected pattern, drives to, and
+     * saves final pose
+     */
     override fun sequence() = execute {
         with(robot) {
-            +launcher.enable()
+            parallel {
+                +drivetrain.path { lineTo(launchPose) }
+                +launcher.enable()
+            }
 
             for (artifact in patterns[patternId] ?: defaultPattern) {
                 +classifier.releaseArtifact(artifact)
@@ -60,8 +67,8 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
     }
 }
 
-@Autonomous(name = "Magpie Blue", group = "Competition", preselectTeleOp = "Seahorse")
-class MagpieBlue : Magpie(AllianceColor.BLUE, Pose(56.0, 8.0, 115.0.toRadians()))
+@Autonomous(name = "Heron Blue", group = "Competition", preselectTeleOp = "Seahorse")
+class HeronBlue : Heron(AllianceColor.BLUE, Pose(63.875, 8.0, 90.0.toRadians()))
 
-@Autonomous(name = "Magpie Red", group = "Competition", preselectTeleOp = "Seahorse")
-class MagpieRed : Magpie(AllianceColor.RED, Pose(56.0, 8.0, 115.0.toRadians()).mirror())
+@Autonomous(name = "Heron Red", group = "Competition", preselectTeleOp = "Seahorse")
+class HeronRed : Heron(AllianceColor.RED, Pose(63.875, 8.0, 90.0.toRadians()).mirror())

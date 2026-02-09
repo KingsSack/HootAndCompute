@@ -22,6 +22,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
  * @param rightPIDFCoefficients the [PIDFCoefficients] for the right motor
  * @param maxVelocity the maximum velocity of the launcher motors
  * @param targetVelocity the target velocity of the launcher motors
+ * @property currentVelocity the current target velocity of the launcher motors
+ * @property averageSpinUpTime the average time taken to spin up to target velocity
+ * @property averageVelocityDelta the average difference in velocity between the left and right
+ *   motors
+ * @property isAtSpeed whether the launcher is at the target velocity
+ * @property isStopped whether the launcher is stopped
+ * @property velocityDelta the difference in velocity between the left and right motors
+ * @property isOverheating whether either motor is overheating
  */
 class Launcher(
     private val leftMotor: DcMotorEx,
@@ -33,6 +41,9 @@ class Launcher(
     private val targetVelocity: Double,
     private val velocityTolerance: Double = 40.0,
 ) : Attachment("Launcher") {
+
+    // --- State Tracking ---
+
     private var spinUpStartTime: Long = 0
     private var lastSpinUpTime: Long = 0
     private var isSpinningUp: Boolean = false
@@ -41,6 +52,8 @@ class Launcher(
     private var velocityDeltaSum = 0.0
     private var maxVelocityDelta = Double.NEGATIVE_INFINITY
     private var minVelocityDelta = Double.POSITIVE_INFINITY
+
+    // --- Properties ---
 
     var currentVelocity = 0.0
         private set
@@ -89,6 +102,13 @@ class Launcher(
         rightMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, rightPIDFCoefficients)
     }
 
+    // --- Actions ---
+
+    /**
+     * Enables the launcher to spin up to the [target] velocity.
+     *
+     * @return an [Action] that enables the launcher
+     */
     @VoltAction(name = "Enable Launcher", description = "Enables the launcher at target velocity")
     fun enable(target: Double = targetVelocity): Action = action {
         init { setVelocity(target) }
@@ -100,6 +120,11 @@ class Launcher(
         }
     }
 
+    /**
+     * Disables the launcher by setting the velocity to 0.
+     *
+     * @return an [Action] that disables the launcher
+     */
     @VoltAction(name = "Disable Launcher", description = "Disables the launcher")
     fun disable(): Action = action {
         init { setVelocity(0.0) }
@@ -135,8 +160,11 @@ class Launcher(
             super.update()
 
             val currentDelta = velocityDelta
-            velocityDeltaSum += currentDelta
-            velocityDeltaSampleCount++
+
+            if (currentVelocity > 0.0) {
+                velocityDeltaSum += currentDelta
+                velocityDeltaSampleCount++
+            }
 
             if (currentDelta > maxVelocityDelta) {
                 maxVelocityDelta = currentDelta
@@ -157,7 +185,9 @@ class Launcher(
             addLine(">>VELOCITIES<<")
             addData("Target", "%.1f".format(currentVelocity))
             addData("Left Motor", "%.1f".format(leftMotor.velocity))
+            addData("Left Error", "%.1f".format(leftMotor.velocity - currentVelocity))
             addData("Right Motor", "%.1f".format(rightMotor.velocity))
+            addData("Right Error", "%.1f".format(rightMotor.velocity - currentVelocity))
             addData("Delta", "%.2f (avg: %.2f)".format(currentDelta, averageVelocityDelta))
             addData(
                 "Delta Range",

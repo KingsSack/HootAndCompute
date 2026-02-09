@@ -9,13 +9,21 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
 
 @TeleOp(name = "Manatee", group = "Competition")
-class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ GabePP(it) }) {
+class Manatee :
+    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, Gabe<MecanumDriveWithPP>>({
+        GabePP(it, blackboard["endPose"] as? Pose ?: Pose())
+    }) {
     var targetVelocity = 1500.0
     var modifyScale = 100.0
+
+    val allianceColor: AllianceColor by lazy {
+        blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
+    }
 
     init {
         // Launcher
@@ -26,13 +34,6 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ Gab
             with(robot) {
                 +launcher.disable()
                 gamepad2.stopRumble()
-                setRGBPatternToAllianceColor(allianceColor)
-            }
-        }
-        whileButtonHeld(GamepadButton.RIGHT_BUMPER1) {
-            with(robot) {
-                if (launcher.isAtSpeed) rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.CONFETTI)
-                else setRGBPatternToAllianceColor(allianceColor)
             }
         }
         onButtonReleased(GamepadButton.DPAD_UP2) {
@@ -51,31 +52,20 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>({ Gab
         onButtonReleased(GamepadButton.A2) { with(robot) { +storage.close() } }
 
         // Aiming
-        onButtonDoubleTapped(GamepadButton.LEFT_BUMPER1) {
-            with(robot) {
-                allianceColor =
-                    if (allianceColor == AllianceColor.RED) AllianceColor.BLUE
-                    else AllianceColor.RED
-                if (!gamepad1.isRumbling) gamepad1.rumbleBlips(3)
-            }
-        }
         context(telemetry) {
-            onButtonTapped(GamepadButton.RIGHT_BUMPER1) { with(robot) { +pointTowardsAprilTag() } }
+            onButtonTapped(GamepadButton.RIGHT_BUMPER1) { with(robot) { +pointTowardsAprilTag(allianceColor) } }
         }
     }
 
     override fun initialize() {
         super.initialize()
-        with(robot) {
-            drivetrain.startTeleOpDrive()
-            allianceColor = blackboard["allianceColor"] as? AllianceColor ?: allianceColor
-            drivetrain.pose = blackboard["endPose"] as? Pose ?: drivetrain.pose
-        }
+        robot.drivetrain.startTeleOpDrive()
     }
 
     context(telemetry: Telemetry)
     override fun tick() =
         with(telemetry) {
+            addData("Alliance Color", allianceColor)
             addData("Target Velocity", targetVelocity)
             addData("Modify Scale", modifyScale)
 
