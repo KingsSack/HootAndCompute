@@ -17,7 +17,7 @@ import dev.kingssack.volt.opmode.autonomous.AllianceColor
 class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
     override val robot: JonesPP = JonesPP(hardwareMap)
     var targetVelocity = Jones.launcherTargetVelocity
-    var allianceColor = AllianceColor.BLUE
+    var allianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
 
     init {
         // Launcher
@@ -74,11 +74,6 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
                 with(robot) { +pointTowardsAprilTag(allianceColor) }
             }
         }
-    }
-
-    override fun initialize() {
-        super.initialize()
-        allianceColor = blackboard["allianceColor"] as? AllianceColor ?: allianceColor
         with(robot.drivetrain) {
             startTeleOpDrive()
             pose = blackboard["endPose"] as? Pose ?: pose

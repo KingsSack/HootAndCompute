@@ -23,10 +23,7 @@ abstract class VoltOpMode<R : Robot> {
     val gamepad2 : Gamepad = OpModeInfoHolder.gamepad2!!
     val blackboard : java.util.HashMap<String, Any> = OpModeInfoHolder.blackboard!!
 
-    /** Optional initialization code. */
-    open fun initialize() {
-    }
-    /** Optional code to run when the op mode begins. */
+    /** code to run when the op mode begins. */
     abstract fun begin()
     fun opModeIsActive(): Boolean {
         return OpModeInfoHolder.isActiveFunction!!()
@@ -43,6 +40,7 @@ abstract class VoltOpMode<R : Robot> {
     class VoltRegistrationHelper(val h: RegistrationHelper) {
         private class InternalOpMode <R: Robot>(val opModeBuilder: () -> VoltOpMode<R>) : LinearOpMode() {
             override fun runOpMode() {
+                VoltOpModeWrapper.initializeOpMode()
                 OpModeInfoHolder.blackboard = blackboard
                 OpModeInfoHolder.telemetry = telemetry
                 OpModeInfoHolder.hardwareMap = hardwareMap
@@ -50,16 +48,14 @@ abstract class VoltOpMode<R : Robot> {
                 OpModeInfoHolder.gamepad1 = gamepad1
                 OpModeInfoHolder.gamepad2 = gamepad2
                 val opMode = opModeBuilder()
-                VoltOpModeWrapper.initializeOpMode(opMode, opMode.robot, opMode.javaClass)
-                opMode.initialize()
-                VoltOpModeWrapper.postInitializeOpMode()
+                VoltOpModeWrapper.postInitializeOpMode(opMode, opMode.robot, opMode.javaClass)
                 waitForStart()
                 opMode.begin()
 
             }
         }
         fun register(c: Constructor<VoltOpMode<*>>, meta: OpModeMeta) {
-            h.register(meta, InternalOpMode{c.newInstance()})
+            h.register(meta, InternalOpMode { c.newInstance() } )
         }
         fun <R: Robot> register(c: () -> VoltOpMode<R>, meta: OpModeMeta) {
             h.register(meta, InternalOpMode(c))

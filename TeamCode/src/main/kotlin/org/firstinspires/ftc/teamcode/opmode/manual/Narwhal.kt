@@ -10,8 +10,7 @@ import org.firstinspires.ftc.teamcode.robot.GabePP
 class Narwhal : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
     override val robot: GabePP = GabePP(hardwareMap)
 
-    override fun initialize() {
-        super.initialize()
+    init {
         robot.drivetrain.startTeleOpDrive()
     }
 }

@@ -20,19 +20,19 @@ object VoltOpModeWrapper {
     var state = OpModeState.INACTIVE
     var currentOpMode: ActiveOpMode<*, *>? = null
         private set
-    fun <R: Robot, O: VoltOpMode<R>> initializeOpMode(opMode: O, robot: R, clazz: Class<O>) {
-        currentOpMode = ActiveOpMode(opMode, robot, clazz)
-        isActive = true
+    fun initializeOpMode() {
         initListeners.forEach {
             try {
-                it(currentOpMode!!)
+                it()
             } catch (e : Error) {
                 VoltLogs.log("error in listener: ${e.message.toString()}")
             }
         }
         state = OpModeState.INITIALIZING
     }
-    fun postInitializeOpMode() {
+    fun <R: Robot, O: VoltOpMode<R>> postInitializeOpMode(opMode: O, robot: R, clazz: Class<O>) {
+        currentOpMode = ActiveOpMode(opMode, robot, clazz)
+        isActive = true
             postInitListeners.forEach {
                 try {
                     it(currentOpMode!!)
@@ -67,7 +67,7 @@ object VoltOpModeWrapper {
 
     private val startListeners : MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
     private val stopListeners : MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
-    private val initListeners : MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
+    private val initListeners : MutableList<() -> Unit> = mutableListOf()
     private val postInitListeners : MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
 
     @Suppress("unused")
@@ -79,7 +79,7 @@ object VoltOpModeWrapper {
         stopListeners.add(listener)
     }
     @Suppress("unused")
-    fun addInitListener(listener: (ActiveOpMode<*, *>) -> Unit) {
+    fun addInitListener(listener: () -> Unit) {
         initListeners.add(listener)
     }
     @Suppress("unused")

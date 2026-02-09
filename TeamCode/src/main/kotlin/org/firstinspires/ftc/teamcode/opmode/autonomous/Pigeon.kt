@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Suppress("unused")
 @VoltOpModeMeta("Pigeon", "Competition", "Manatee")
-abstract class Pigeon() :
+abstract class Pigeon :
     MultiDualAutonomousMode<GabePP, StartingPosition>(StartingPosition::class.java) {
 
     override val robot: GabePP = GabePP(hardwareMap, sw(
@@ -21,17 +21,14 @@ abstract class Pigeon() :
                 StartingPosition.GOAL -> Pose(26.0, 133.0, 323.0.toRadians())
                 StartingPosition.RAMP -> Pose(15.0, 112.0, 0.0.toRadians())
             }))
-    private val paths by lazy { PathConstants(robot.drivetrain.follower, color) }
-    private lateinit var pathOffLaunchLine: PathChain
+    private val paths = PathConstants(robot.drivetrain.follower, color)
+    private var pathOffLaunchLine: PathChain = when (type) {
+        StartingPosition.WALL -> paths.pathOffWallLaunchLine
+        StartingPosition.GOAL -> paths.pathOffGoalLaunchLine
+        StartingPosition.RAMP -> paths.pathOffRampLaunchLine
+    }
 
-    override fun initialize() {
-        super.initialize()
-        pathOffLaunchLine =
-            when (type) {
-                StartingPosition.WALL -> paths.pathOffWallLaunchLine
-                StartingPosition.GOAL -> paths.pathOffGoalLaunchLine
-                StartingPosition.RAMP -> paths.pathOffRampLaunchLine
-            }
+    init {
         blackboard["allianceColor"] = color
     }
 

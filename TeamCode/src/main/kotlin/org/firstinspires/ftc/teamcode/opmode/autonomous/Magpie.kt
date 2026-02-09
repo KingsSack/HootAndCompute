@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.geometry.Pose
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
@@ -23,7 +22,7 @@ class Magpie :
         @JvmField var INITIAL_HEADING: Double = 90.0
     }
 
-    private val paths by lazy { PathConstants(robot.drivetrain.follower, AllianceColor.BLUE) }
+    private val paths = PathConstants(robot.drivetrain.follower, AllianceColor.BLUE)
 
     private val patterns =
         mapOf(

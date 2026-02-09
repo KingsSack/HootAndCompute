@@ -65,10 +65,6 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
         context(telemetry) {
             onButtonTapped(GamepadButton.RIGHT_BUMPER1) { with(robot) { +pointTowardsAprilTag() } }
         }
-    }
-
-    override fun initialize() {
-        super.initialize()
         with(robot) {
             drivetrain.startTeleOpDrive()
             allianceColor = blackboard["allianceColor"] as? AllianceColor ?: allianceColor
