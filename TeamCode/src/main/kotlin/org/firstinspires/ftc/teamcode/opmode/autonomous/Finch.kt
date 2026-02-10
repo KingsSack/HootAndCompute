@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
-import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathChain
 import dev.kingssack.volt.opmode.VoltOpModeMeta
@@ -12,7 +10,6 @@ import org.firstinspires.ftc.teamcode.util.PathConstants
 import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Suppress("unused")
-@Config
 @VoltOpModeMeta("Finch", OpModeMeta.DefaultGroup, "Manatee")
 abstract class Finch :
     MultiDualAutonomousMode<GabePP, FinchStartingPosition>(FinchStartingPosition::class.java) {
@@ -22,6 +19,10 @@ abstract class Finch :
         FinchStartingPosition.WALL -> paths.pathToLaunchZoneFromWall
         FinchStartingPosition.GOAL -> paths.pathToLaunchZoneFromGoal
     }
+    private var launchPose: Pose = sw(when (type) {
+        FinchStartingPosition.WALL -> Pose(64.0, 100.0, 140.0.toRadians())
+        FinchStartingPosition.GOAL -> Pose(64.0, 125.0, 148.0.toRadians())
+    })
 
     init {
         blackboard["allianceColor"] = color
@@ -30,13 +31,9 @@ abstract class Finch :
     /** Drives to launch zone, fires, and saves pose */
     override fun sequence() = execute {
         with(robot) {
-            parallel {
-                +storage.close()
-                +drivetrain.pathTo(pathToLaunchZone)
-            }
-
+            +drivetrain.path { lineTo(launchPose) }
             +fire(3)
-            +InstantAction { blackboard["endPose"] = drivetrain.pose }
+            instant { blackboard["endPose"] = drivetrain.pose }
         }
     }
 }

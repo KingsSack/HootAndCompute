@@ -1,6 +1,7 @@
 package dev.kingssack.volt.core
 
 import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.ParallelAction
 import com.acmerobotics.roadrunner.SequentialAction
 import dev.kingssack.volt.robot.Robot
@@ -9,10 +10,10 @@ import java.lang.System.nanoTime
 @DslMarker annotation class VoltBuilderDsl
 
 /**
- * Builder for creating complex action sequences for a [Robot].
+ * Builder for creating complex action sequences for a [Robot]
  *
- * @param R The type of Robot the actions will operate on.
- * @property robot The robot instance the actions will control.
+ * @param R The type of Robot the actions will operate on
+ * @property robot The robot instance the actions will control
  */
 @VoltBuilderDsl
 class VoltActionBuilder<R : Robot>(val robot: R) {
@@ -41,6 +42,10 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
 
     fun sequence(block: VoltActionBuilder<R>.() -> Unit) {
         actions.add(SequentialAction(extractActions(block)))
+    }
+
+    fun instant(block: () -> Unit) {
+        actions.add(InstantAction(block))
     }
 
     private fun extractActions(block: VoltActionBuilder<R>.() -> Unit): List<Action> {

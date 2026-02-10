@@ -2,6 +2,7 @@ package dev.kingssack.volt.robot
 
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.Drivetrain
+import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * A base class for robots that have a drivetrain.
@@ -10,7 +11,11 @@ import dev.kingssack.volt.attachment.drivetrain.Drivetrain
  * @param hardwareMap The hardware map of the robot.
  * @property drivetrain The drivetrain of the robot.
  */
-open class RobotWithDrivetrain<T : Drivetrain>(
-    hardwareMap: HardwareMap,
-    open val drivetrain: T,
-) : Robot(hardwareMap)
+open class RobotWithDrivetrain<T : Drivetrain>(hardwareMap: HardwareMap, open val drivetrain: T) :
+    Robot(hardwareMap) {
+    context(telemetry: Telemetry)
+    override fun update() {
+        drivetrain.update()
+        super.update()
+    }
+}

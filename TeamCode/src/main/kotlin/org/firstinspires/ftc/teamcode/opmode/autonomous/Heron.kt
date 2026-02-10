@@ -1,25 +1,20 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.pedropathing.geometry.Pose
-import dev.kingssack.volt.opmode.VoltOpModeMeta
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
-import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
+import org.firstinspires.ftc.teamcode.util.AllianceColor
+import org.firstinspires.ftc.teamcode.util.maybeFlip
 import org.firstinspires.ftc.teamcode.util.toRadians
 
-@Suppress("unused")
-@VoltOpModeMeta("Magpie", "Competition", "Seahorse")
-class Magpie :
-    DualAutonomousMode<JonesPP>() {
-    override val robot: JonesPP = JonesPP(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
-    companion object {
-        @JvmField var INITIAL_X: Double = 56.0
-        @JvmField var INITIAL_Y: Double = 8.0
-        @JvmField var INITIAL_HEADING: Double = 90.0
-    }
-    private val initialPose: Pose = sw(Pose(56.0, 8.0, 115.0.toRadians()))
+abstract class Heron(private val alliance: AllianceColor, private val initialPose: Pose) :
+    AutonomousMode<Jones<MecanumDriveWithPP>>({ JonesPP(it, initialPose) }) {
+    private val launchPose: Pose = Pose(60.0, 12.0, 115.0.toRadians()).maybeFlip(alliance)
+    private val finalPose: Pose = Pose(60.0, 30.0, 115.0.toRadians()).maybeFlip(alliance)
 
     private val patterns =
         mapOf(
@@ -32,8 +27,9 @@ class Magpie :
 
     private var patternId: Int? = null
 
-    init {
-        blackboard["allianceColor"] = color
+    override fun initialize() {
+        super.initialize()
+        blackboard["allianceColor"] = alliance
 
         while (opModeInInit()) {
             val tags = context(telemetry) { robot.getDetectedAprilTags() }
@@ -45,10 +41,16 @@ class Magpie :
         robot.visionPortal.stopStreaming()
     }
 
-    /** Fires artifacts according to the detected pattern, drives to, and saves final pose */
+    /**
+     * Drives to the launch zone, fires artifacts according to the detected pattern, drives to, and
+     * saves final pose
+     */
     override fun sequence() = execute {
         with(robot) {
-            +launcher.enable()
+            parallel {
+                +drivetrain.path { lineTo(launchPose) }
+                +launcher.enable()
+            }
 
             for (artifact in patterns[patternId] ?: defaultPattern) {
                 +classifier.releaseArtifact(artifact)
@@ -64,3 +66,9 @@ class Magpie :
         }
     }
 }
+
+@Autonomous(name = "Heron Blue", group = "Competition", preselectTeleOp = "Seahorse")
+class HeronBlue : Heron(AllianceColor.BLUE, Pose(63.875, 8.0, 90.0.toRadians()))
+
+@Autonomous(name = "Heron Red", group = "Competition", preselectTeleOp = "Seahorse")
+class HeronRed : Heron(AllianceColor.RED, Pose(63.875, 8.0, 90.0.toRadians()).mirror())
