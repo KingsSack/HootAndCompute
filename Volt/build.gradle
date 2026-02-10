@@ -63,7 +63,7 @@ repositories {
 dependencies {
     api "org.firstinspires.ftc:RobotCore:$min_sdk_version"
     api "org.firstinspires.ftc:Hardware:$min_sdk_version"
-
+    implementation("dev.frozenmilk.dairy:Core:2.2.4")
     api("com.acmerobotics.roadrunner:ftc:$min_rr_ftc_version") {
         exclude group: "com.acmerobotics.dashboard"
     }

@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.pedropathing.geometry.Pose
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
@@ -11,17 +11,15 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
-import org.firstinspires.ftc.teamcode.util.AllianceColor
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
-@TeleOp(name = "Seahorse", group = "Competition")
+@Suppress("unused")
+@VoltOpModeMeta("Seahorse", "Competition")
 class Seahorse :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, Jones<MecanumDriveWithPP>>({
-        JonesPP(it, blackboard["endPose"] as? Pose ?: Pose())
-    }) {
+    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
+    override val robot: JonesPP = JonesPP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
     var targetVelocity = Jones.launcherTargetVelocity
-    val allianceColor: AllianceColor by lazy {
-        blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
-    }
+    var allianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
 
     var position: Int = 0
 
@@ -93,15 +91,13 @@ class Seahorse :
                 }
             }
         }
-
         // Automatic firing
         onButtonTapped(GamepadButton.DPAD_DOWN2) {
             with(robot) { +fireAllStoredArtifacts(targetVelocity) }
         }
     }
 
-    override fun initialize() {
-        super.initialize()
+    init {
         with(robot) { drivetrain.startTeleOpDrive() }
     }
 

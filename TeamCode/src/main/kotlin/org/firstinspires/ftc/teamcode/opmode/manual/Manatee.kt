@@ -2,28 +2,26 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.acmerobotics.roadrunner.InstantAction
 import com.pedropathing.geometry.Pose
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
-import org.firstinspires.ftc.teamcode.util.AllianceColor
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
-@TeleOp(name = "Manatee", group = "Competition")
+@Suppress("unused")
+@VoltOpModeMeta("Manatee", "Competition")
 class Manatee :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, Gabe<MecanumDriveWithPP>>({
-        GabePP(it, blackboard["endPose"] as? Pose ?: Pose())
-    }) {
+    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
+    override val robot: GabePP = GabePP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
+
     var targetVelocity = 1500.0
     var modifyScale = 100.0
 
-    val allianceColor: AllianceColor by lazy {
-        blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
-    }
+    val allianceColor: AllianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
 
     init {
         // Launcher
@@ -57,9 +55,11 @@ class Manatee :
         }
     }
 
-    override fun initialize() {
-        super.initialize()
+    init {
         robot.drivetrain.startTeleOpDrive()
+        with(robot) {
+            drivetrain.startTeleOpDrive()
+        }
     }
 
     context(telemetry: Telemetry)

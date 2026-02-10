@@ -3,7 +3,6 @@ package dev.kingssack.volt.opmode.manual
 import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import dev.kingssack.volt.util.GamepadAnalogInput
@@ -26,11 +25,10 @@ abstract class SimpleManualModeWithSpeedModes<
     T : MecanumDrivetrain,
     R : RobotWithMecanumDrivetrain<T>,
 >(
-    robotFactory: (hardwareMap: HardwareMap) -> R,
     private val params: SimpleManualModeWithSpeedModesParams =
         SimpleManualModeWithSpeedModesParams(),
     manualParams: ManualParams = ManualParams(),
-) : ManualMode<R>(robotFactory, manualParams) {
+) : ManualMode<R>(manualParams) {
     /**
      * Configuration object for manual control.
      *

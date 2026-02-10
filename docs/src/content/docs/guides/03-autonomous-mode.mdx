@@ -14,8 +14,10 @@ This guide will walk you through the process of setting up your own `AutonomousM
 ### 1. Create Your `AutonomousMode` Class
 
 First, create a new class that inherits `AutonomousMode`.
-The constructor requires a `robotFactory`, which is used to create your `Robot` instance.
-Use a lambda function to provide the `robotFactory`.
+implement the `getRobot` method, which is used to create your `Robot` instance.
+override the name field, which is the name that will show up on the driver hub
+make sure it has a no-parameter constructor.
+your opmodes will automatically be registered, you don't have to worry about annotations.
 
 <Tabs>
 
@@ -23,8 +25,15 @@ Use a lambda function to provide the `robotFactory`.
 
 ```kotlin
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import com.qualcomm.robotcore.hardware.HardwareMap
 
-class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
+class ExampleAuto : AutonomousMode<MyRobot>() {
+    override val name = "example auto"
+    override val group = "examples"
+    override val autoTransition = "example teleop"
+    override fun getRobot(hardwareMap: HardwareMap) {
+        return MyRobot(hardwareMap)
+    }
     override fun sequence() = execute {
         // Your actions will go here
     }
@@ -37,10 +46,30 @@ class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRo
 
 ```java
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ExampleAuto extends AutonomousMode<MyRobot> {
+    @Override
+    public MyRobot getRobot(HardwareMap hardwareMap) {
+        return new MyRobot(hardwareMap);
+    }
+
     public ExampleAuto() {
-        super(MyRobot::new);
+        super();
+    }
+
+    @Override
+    public String getName() {
+        return "example auto";
+    }
+    @Override
+    public String getGroup() {
+        return "examples";
+    }
+    // optional auto transition
+    @Override
+    public String getAutoTransition() {
+        return "example teleop";
     }
 
     @Override
@@ -66,8 +95,12 @@ We'll open the claw, then close the claw and score at the same time. We'll repea
 
 ```kotlin {5-12}
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import com.qualcomm.robotcore.hardware.HardwareMap
 
-class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
+class ExampleAuto : AutonomousMode<MyRobot>() {
+    override fun getRobot(hardwareMap: HardwareMap) : MyRobot {
+        return MyRobot(hardwareMap)
+    }
     override fun sequence() = execute {
         repeat(3)  {
             +robot.claw.open() // Add an action to the sequence
@@ -89,8 +122,27 @@ class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRo
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
 
 public class ExampleAuto extends AutonomousMode<MyRobot> {
+    @Override
+    public MyRobot getRobot(HardwareMap hardwareMap) {
+        return new MyRobot(hardwareMap);
+    }
+
     public ExampleAuto() {
-        super(MyRobot::new);
+        super();
+    }
+
+    @Override
+    public String getName() {
+        return "example auto";
+    }
+    @Override
+    public String getGroup() {
+        return "examples";
+    }
+    // optional auto transition
+    @Override
+    public String getAutoTransition() {
+        return "example teleop";
     }
 
     @Override
@@ -113,90 +165,29 @@ public class ExampleAuto extends AutonomousMode<MyRobot> {
 
 </Tabs>
 
-### 3. Make it an OpMode
+## multi and dual autos
 
-Add the `@Autonomous` annotation to the class definition. Without this annotation, the OpMode will not be registered and will not appear on the Driver Station.
-
-<Tabs>
-
-<TabItem label="Kotlin">
-
-```kotlin {4}
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import dev.kingssack.volt.opmode.autonomous.AutonomousMode
-
-@Autonomous(name = "Example Auto", group = "Examples")
-class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
-    override fun sequence() = execute {
-        repeat(3)  {
-            +robot.claw.open()
-
-            parallel {
-                +robot.claw.close()
-                +robot.score()
-            }
-        }
-    }
-}
-```
-
-</TabItem>
-
-<TabItem label="Java">
-
-```java {4}
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
-
-@Autonomous(name = "Example Auto", group = "Examples")
-public class ExampleAuto extends AutonomousMode<MyRobot> {
-    public ExampleAuto() {
-        super(MyRobot::new);
-    }
-
-    @Override
-    public void sequence() {
-        execute(builder -> {
-            for (int i = 0; i < 3; i++) {
-                builder.unaryPlus(robot.getClaw().open());
-
-                parallel(() -> {
-                    builder.unaryPlus(robot.getClaw().close());
-                    builder.unaryPlus(robot.score());
-                });
-            }
-        });
-    }
-}
-```
-
-</TabItem>
-
-</Tabs>
-
-## Result
+Need to make multiple similar autos for different starting positions?
+Use dualOpmodes for different colors, and multi-opmodes for other differences.
+Here is an example of a dual auto. it can use the `color` property to determine which team it is on, and the `sw` function to change its
 
 <Tabs>
 
 <TabItem label="Kotlin">
 
 ```kotlin
-package org.firstinspires.ftc.teamcode.opmodes.autonomous
-
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import com.qualcomm.robotcore.hardware.HardwareMap
 
-@Autonomous(name = "Example Auto", group = "Examples")
-class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRobot(hardwareMap) }) {
+class ExampleAuto : DualAutonomousMode<MyRobot>() {
+    override val name = "example auto"
+    override val group = "examples"
+    override val autoTransition = "example teleop"
+    override fun getRobot(hardwareMap: HardwareMap) {
+        return MyRobot(hardwareMap)
+    }
     override fun sequence() = execute {
-        repeat(3)  {
-            +robot.claw.open()
-
-            parallel {
-                +robot.claw.close()
-                +robot.score()
-            }
-        }
+        // Your actions will go here
     }
 }
 ```
@@ -206,28 +197,37 @@ class ExampleAuto : AutonomousMode<MyRobot>(robotFactory = { hardwareMap -> MyRo
 <TabItem label="Java">
 
 ```java
-package org.firstinspires.ftc.teamcode.opmodes.autonomous;
-
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
-@Autonomous(name = "Example Auto", group = "Examples")
-public class ExampleAuto extends AutonomousMode<MyRobot> {
+public class ExampleAuto extends DualAutonomousMode<MyRobot> {
+    @Override
+    public MyRobot getRobot(HardwareMap hardwareMap) {
+        return new MyRobot(hardwareMap);
+    }
+
     public ExampleAuto() {
-        super(MyRobot::new);
+        super();
+    }
+
+    @Override
+    public String getName() {
+        return "example auto";
+    }
+    @Override
+    public String getGroup() {
+        return "examples";
+    }
+    // optional auto transition
+    @Override
+    public String getAutoTransition() {
+        return "example teleop";
     }
 
     @Override
     public void sequence() {
-        execute(builder -> {
-            for (int i = 0; i < 3; i++) {
-                builder.unaryPlus(robot.getClaw().open());
-
-                parallel(() -> {
-                    builder.unaryPlus(robot.getClaw().close());
-                    builder.unaryPlus(robot.score());
-                });
-            }
+        execute(() -> {
+            // Your actions will go here
         });
     }
 }
@@ -236,3 +236,4 @@ public class ExampleAuto extends AutonomousMode<MyRobot> {
 </TabItem>
 
 </Tabs>
+

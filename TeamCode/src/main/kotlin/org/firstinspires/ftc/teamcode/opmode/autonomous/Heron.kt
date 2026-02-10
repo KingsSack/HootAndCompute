@@ -1,20 +1,21 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.pedropathing.geometry.Pose
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
-import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.opmode.VoltOpModeMeta
+import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
-import org.firstinspires.ftc.teamcode.util.AllianceColor
-import org.firstinspires.ftc.teamcode.util.maybeFlip
 import org.firstinspires.ftc.teamcode.util.toRadians
-
-abstract class Heron(private val alliance: AllianceColor, private val initialPose: Pose) :
-    AutonomousMode<Jones<MecanumDriveWithPP>>({ JonesPP(it, initialPose) }) {
-    private val launchPose: Pose = Pose(60.0, 12.0, 115.0.toRadians()).maybeFlip(alliance)
-    private val finalPose: Pose = Pose(60.0, 30.0, 115.0.toRadians()).maybeFlip(alliance)
+@Suppress("Unused")
+@VoltOpModeMeta("Heron", "Competition", "Seahorse")
+class Heron :
+    DualAutonomousMode<Jones<MecanumDriveWithPP>>() {
+    private val initialPose = sw(Pose(63.875, 8.0, 90.0.toRadians()))
+    override val robot: Jones<MecanumDriveWithPP> = JonesPP(hardwareMap, initialPose)
+    private val launchPose: Pose = sw(Pose(60.0, 12.0, 115.0.toRadians()))
+    private val finalPose: Pose = sw(Pose(60.0, 30.0, 115.0.toRadians()))
 
     private val patterns =
         mapOf(
@@ -27,9 +28,8 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
 
     private var patternId: Int? = null
 
-    override fun initialize() {
-        super.initialize()
-        blackboard["allianceColor"] = alliance
+    init {
+        blackboard["allianceColor"] = color
 
         while (opModeInInit()) {
             val tags = context(telemetry) { robot.getDetectedAprilTags() }
@@ -66,9 +66,3 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
         }
     }
 }
-
-@Autonomous(name = "Heron Blue", group = "Competition", preselectTeleOp = "Seahorse")
-class HeronBlue : Heron(AllianceColor.BLUE, Pose(63.875, 8.0, 90.0.toRadians()))
-
-@Autonomous(name = "Heron Red", group = "Competition", preselectTeleOp = "Seahorse")
-class HeronRed : Heron(AllianceColor.RED, Pose(63.875, 8.0, 90.0.toRadians()).mirror())
