@@ -20,8 +20,6 @@ import org.firstinspires.ftc.teamcode.util.AprilTagAiming
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
-
-import kotlin.math.abs
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
  *
@@ -116,7 +114,6 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
 
         try {
             while (
-                visionPortal != null &&
                     visionPortal.cameraState != VisionPortal.CameraState.STREAMING
             ) {
                 Thread.sleep(100)

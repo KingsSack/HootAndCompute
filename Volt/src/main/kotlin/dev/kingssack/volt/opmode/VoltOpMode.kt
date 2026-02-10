@@ -22,6 +22,9 @@ abstract class VoltOpMode<R : Robot> {
     val gamepad1 : Gamepad =  OpModeInfoHolder.gamepad1!!
     val gamepad2 : Gamepad = OpModeInfoHolder.gamepad2!!
     val blackboard : java.util.HashMap<String, Any> = OpModeInfoHolder.blackboard!!
+    fun opModeInInit() : Boolean {
+        return OpModeInfoHolder.opModeInInit!!()
+    }
 
     /** code to run when the op mode begins. */
     abstract fun begin()
@@ -35,6 +38,7 @@ abstract class VoltOpMode<R : Robot> {
         var gamepad1 : Gamepad? = null
         var gamepad2 : Gamepad? = null
         var blackboard : java.util.HashMap<String, Any>? = null
+        var opModeInInit : (() -> Boolean)? = null
     }
     // runtime reflection to call register functions in opmodes
     class VoltRegistrationHelper(val h: RegistrationHelper) {
@@ -47,11 +51,11 @@ abstract class VoltOpMode<R : Robot> {
                 OpModeInfoHolder.isActiveFunction = { this.opModeIsActive() }
                 OpModeInfoHolder.gamepad1 = gamepad1
                 OpModeInfoHolder.gamepad2 = gamepad2
+                OpModeInfoHolder.opModeInInit = { this.opModeInInit() }
                 val opMode = opModeBuilder()
                 VoltOpModeWrapper.postInitializeOpMode(opMode, opMode.robot, opMode.javaClass)
                 waitForStart()
                 opMode.begin()
-
             }
         }
         fun register(c: Constructor<VoltOpMode<*>>, meta: OpModeMeta) {
