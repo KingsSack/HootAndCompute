@@ -22,6 +22,10 @@ abstract class AIOpMode<R: Robot>(
         ActionRegistry.clear()
         ActionRegistry.registerInstance(robot)
 
+        for (attachment in robot.attachments) {
+            ActionRegistry.registerInstance(attachment)
+        }
+
         aiServer = AIServer(serverPort)
     }
 

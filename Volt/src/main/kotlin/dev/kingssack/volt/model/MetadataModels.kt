@@ -4,6 +4,7 @@ data class ActionMetadata(
     val id: String,
     val name: String,
     val description: String,
+    val enableAITool: Boolean,
     val parameters: List<ParameterMetadata>,
     val robotType: String
 )
