@@ -37,6 +37,7 @@ class AIServer(port: Int = 8081) : NanoWSD(port) {
             // Send available tools on connection
             val tools = ActionRegistry.toAITools()
             val response = mapOf("type" to "tools", "tools" to tools)
+            send(gson.toJson(response))
         }
 
         override fun onMessage(message: WebSocketFrame) {

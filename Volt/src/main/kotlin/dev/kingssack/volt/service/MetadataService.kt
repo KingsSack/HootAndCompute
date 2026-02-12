@@ -4,6 +4,10 @@ import dev.frozenmilk.sinister.Scanner
 import dev.frozenmilk.sinister.Scanner.Companion.INDEPENDENT
 import dev.frozenmilk.sinister.targeting.NarrowSearch
 import dev.frozenmilk.sinister.targeting.SearchTarget
+import dev.kingssack.volt.ai.ActionDescriptor
+import dev.kingssack.volt.ai.ActionParameter
+import dev.kingssack.volt.ai.ActionRegistry
+import dev.kingssack.volt.annotations.AIParam
 import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.model.ActionMetadata
 import dev.kingssack.volt.model.ParameterMetadata
@@ -11,6 +15,7 @@ import dev.kingssack.volt.model.RobotMetadata
 import dev.kingssack.volt.robot.Robot
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -26,10 +31,7 @@ object MetadataService {
         override val unloadAdjacencyRule = INDEPENDENT
         override val targets: SearchTarget = NarrowSearch()
 
-        override fun scan(
-            loader: ClassLoader,
-            cls: Class<*>,
-        ) {
+        override fun scan(loader: ClassLoader, cls: Class<*>) {
             if (
                 Robot::class.java.isAssignableFrom(cls) &&
                     !Modifier.isAbstract(cls.modifiers) &&
@@ -81,6 +83,7 @@ object MetadataService {
                 id = actionId,
                 name = annotation.name.ifEmpty { method.name },
                 description = annotation.description,
+                enableAITool = annotation.enableAITool,
                 parameters = parameters,
                 robotType = robotType,
             )
