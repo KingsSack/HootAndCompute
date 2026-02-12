@@ -27,6 +27,26 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
 
     private var patternId: Int? = null
 
+    // Drives to the launch zone, fires artifacts according to the detected pattern, and leaves
+    override val sequence = sequence {
+        parallel {
+            +robot.drivetrain.path { lineTo(launchPose) }
+            +robot.launcher.enable()
+        }
+
+        for (artifact in patterns[patternId] ?: defaultPattern) {
+            +robot.classifier.releaseArtifact(artifact)
+            wait(1.5)
+        }
+
+        parallel {
+            +robot.launcher.disable()
+            +robot.drivetrain.path { lineTo(finalPose) }
+        }
+
+        instant { blackboard["endPose"] = robot.drivetrain.pose }
+    }
+
     override fun initialize() {
         super.initialize()
         blackboard["allianceColor"] = alliance
@@ -39,31 +59,6 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
         }
 
         robot.visionPortal.stopStreaming()
-    }
-
-    /**
-     * Drives to the launch zone, fires artifacts according to the detected pattern, drives to, and
-     * saves final pose
-     */
-    override fun sequence() = execute {
-        with(robot) {
-            parallel {
-                +drivetrain.path { lineTo(launchPose) }
-                +launcher.enable()
-            }
-
-            for (artifact in patterns[patternId] ?: defaultPattern) {
-                +classifier.releaseArtifact(artifact)
-                wait(1.5)
-            }
-
-            parallel {
-                +launcher.disable()
-                +drivetrain.path { lineTo(finalPose) }
-            }
-
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
     }
 }
 
