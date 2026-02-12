@@ -1,4 +1,4 @@
-package dev.kingssack.volt.util
+package dev.kingssack.volt.util.buttons
 
 import com.qualcomm.robotcore.hardware.Gamepad
 

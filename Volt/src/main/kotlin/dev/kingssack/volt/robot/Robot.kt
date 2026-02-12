@@ -37,7 +37,7 @@ open class Robot(private val hardwareMap: HardwareMap) {
     private val _state = MutableStateFlow<RobotState>(RobotState.Initializing)
     val state = _state.asStateFlow()
 
-    private val attachments = mutableListOf<Attachment>()
+    internal val attachments = mutableListOf<Attachment>()
 
     protected fun registerAttachment(attachment: Attachment) {
         attachments.add(attachment)

@@ -15,9 +15,28 @@ abstract class VoltOpMode<R : Robot>(robotFactory: (HardwareMap) -> R) : LinearO
     /** Optional code to run when the op mode begins. */
     abstract fun begin()
 
+    /** Optional code to run when the op mode ends. */
+    open fun end() {
+        // Default implementation does nothing
+    }
+
     override fun runOpMode() {
-        initialize()
-        waitForStart()
-        begin()
+        with(telemetry) {
+            addData("Status", "Initializing...")
+            update()
+            initialize()
+
+            addData("Status", "Ready")
+            update()
+            waitForStart()
+
+            addData("Status", "Running")
+            update()
+            begin()
+
+            addData("Status", "Finished")
+            update()
+            end()
+        }
     }
 }
