@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Volt Flow Editor</title>
     <!-- Local vendor files for offline support -->
-    <link rel="stylesheet" href="volt/vendor/tailwind.css">
-    <link rel="stylesheet" href="volt/styles.css">
-    <script defer src="volt/vendor/alpine.min.js"></script>
+    <link rel="stylesheet" href="vendor/tailwind.css">
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="vendor/alpine.min.js"></script>
     <!-- PWA manifest -->
-    <link rel="manifest" href="volt/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <style>
         [x-cloak] { display: none !important; }
@@ -18,7 +18,7 @@
         // Register Service Worker for offline support
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('volt/sw.js')
+                navigator.serviceWorker.register('sw.js')
                     .then(reg => console.log('[SW] Registered:', reg.scope))
                     .catch(err => console.log('[SW] Registration failed:', err));
             });
@@ -132,12 +132,21 @@
                 <div class="absolute inset-0 pointer-events-none overflow-visible">
                     <template x-for="conn in connections" :key="`${currentOpMode?.id}-${conn.fromId}-${conn.toId}`">
                         <svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
-                            <path :d="getConnectionPath(conn)" 
-                                  stroke="rgba(99, 102, 241, 0.6)" 
-                                  stroke-width="3"
-                                  fill="none" 
-                                  vector-effect="non-scaling-stroke"
-                                  class="transition-all hover:stroke-indigo-400" />
+                            <g class="pointer-events-auto cursor-pointer" @click.stop="deleteConnection(conn.fromId, conn.toId)">
+                                <!-- Invisible wider hit-area for easier clicking -->
+                                <path :d="getConnectionPath(conn)" 
+                                      stroke="transparent" 
+                                      stroke-width="16"
+                                      fill="none" 
+                                      vector-effect="non-scaling-stroke" />
+                                <!-- Visible connection path -->
+                                <path :d="getConnectionPath(conn)" 
+                                      stroke="rgba(99, 102, 241, 0.6)" 
+                                      stroke-width="3"
+                                      fill="none" 
+                                      vector-effect="non-scaling-stroke"
+                                      class="transition-all hover:stroke-indigo-400" />
+                            </g>
                         </svg>
                     </template>
                 </div>
@@ -349,7 +358,7 @@
     <!-- Generated Code Modal -->
     <div x-show="showCodeModal" class="fixed inset-0 z-110 flex items-center justify-center bg-black/80 backdrop-blur-sm" x-cloak x-transition>
         <div class="bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[85vh]" @click.away="closeCodeModal()">
-            <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gradient-to-r from-green-600/20 to-emerald-600/20">
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-linear-to-r from-green-600/20 to-emerald-600/20">
                 <div>
                     <h2 class="text-xl font-bold flex items-center">
                         <svg class="w-6 h-6 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
@@ -398,6 +407,6 @@
         </template>
     </div>
 
-    <script src="volt/app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
