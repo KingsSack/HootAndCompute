@@ -18,6 +18,12 @@ abstract class Pigeon(
 ) : AutonomousMode<Gabe<MecanumDriveWithPP>>({ GabePP(it, initialPose) }) {
     private lateinit var endPose: Pose
 
+    // Leaves the launch line
+    override val sequence = sequence {
+        +robot.drivetrain.path { lineTo(endPose) }
+        instant { blackboard["endPose"] = robot.drivetrain.pose }
+    }
+
     override fun initialize() {
         super.initialize()
         endPose =
@@ -27,14 +33,6 @@ abstract class Pigeon(
                 StartingPosition.RAMP -> Pose(15.0, 105.0, 0.0.toRadians()).maybeFlip(alliance)
             }
         blackboard["allianceColor"] = alliance
-    }
-
-    /** Drives off the launch line and saves pose */
-    override fun sequence() = execute {
-        with(robot) {
-            +drivetrain.path { lineTo(endPose) }
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
     }
 }
 

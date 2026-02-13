@@ -1,14 +1,12 @@
-package dev.kingssack.volt.util
+package dev.kingssack.volt.util.buttons
 
 import com.qualcomm.robotcore.util.ElapsedTime
 
 /**
  * Handles button state updates and provides methods for detecting various button events.
  *
- * @property doubleTapThreshold The maximum time (in milliseconds) between two presses to register a
- *   double tap.
- * @property debounceThreshold The minimum time (in milliseconds) between state changes to register
- *   a new state.
+ * @param doubleTapThreshold the maximum time (ms) between two presses to count as a double tap
+ * @param debounceThreshold the minimum time (ms) between state changes to prevent bouncing
  */
 class ButtonHandler(
     private val doubleTapThreshold: Double = 300.0,

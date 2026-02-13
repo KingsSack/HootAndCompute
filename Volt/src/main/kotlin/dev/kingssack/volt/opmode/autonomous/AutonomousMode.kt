@@ -21,22 +21,13 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
 
+    abstract val sequence : VoltActionBuilder<R>.() -> Unit
+
+    protected fun sequence(block: VoltActionBuilder<R>.() -> Unit) = block
+
     override fun begin() {
-        sequence()
-    }
-
-    /** Define the autonomous sequence using DSL. */
-    protected abstract fun sequence()
-
-    /** Execute the autonomous sequence. */
-    protected fun execute(block: VoltActionBuilder<R>.() -> Unit) {
-        val action = VoltActionBuilder(robot).apply(block).build()
+        val action = VoltActionBuilder(robot).apply(sequence).build()
         runAction(action)
-
-        with(telemetry) {
-            addData("Status", "Autonomous Complete")
-            update()
-        }
     }
 
     private fun runAction(action: Action) {

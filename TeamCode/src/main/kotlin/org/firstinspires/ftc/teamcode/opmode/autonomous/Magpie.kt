@@ -26,6 +26,23 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
 
     private var patternId: Int? = null
 
+    // Fires artifacts according to the detected pattern and leaves
+    override val sequence = sequence {
+        +robot.launcher.enable()
+
+        for (artifact in patterns[patternId] ?: defaultPattern) {
+            +robot.classifier.releaseArtifact(artifact)
+            wait(1.5)
+        }
+
+        parallel {
+            +robot.launcher.disable()
+            +robot.drivetrain.path { lineTo(finalPose) }
+        }
+
+        instant { blackboard["endPose"] = robot.drivetrain.pose }
+    }
+
     override fun initialize() {
         super.initialize()
         blackboard["allianceColor"] = alliance
@@ -38,25 +55,6 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
         }
 
         robot.visionPortal.stopStreaming()
-    }
-
-    /** Fires artifacts according to the detected pattern, drives to, and saves final pose */
-    override fun sequence() = execute {
-        with(robot) {
-            +launcher.enable()
-
-            for (artifact in patterns[patternId] ?: defaultPattern) {
-                +classifier.releaseArtifact(artifact)
-                wait(1.5)
-            }
-
-            parallel {
-                +launcher.disable()
-                +drivetrain.path { lineTo(finalPose) }
-            }
-
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
     }
 }
 

@@ -14,10 +14,10 @@ import java.lang.System.nanoTime
  * Builder for creating complex action sequences for a [Robot]
  *
  * @param R The type of Robot the actions will operate on
- * @property robot The robot instance the actions will control
+ * @param robot The robot instance the actions will control
  */
 @VoltBuilderDsl
-class VoltActionBuilder<R : Robot>(val robot: R) {
+class VoltActionBuilder<R : Robot>(private val robot: R) {
     private val _actions = mutableListOf<Action>()
 
     private fun addAction(action: Action) {
@@ -33,6 +33,7 @@ class VoltActionBuilder<R : Robot>(val robot: R) {
         }
     }
 
+    /** Adds an [Action] to the current sequence. */
     operator fun Action.unaryPlus() {
         addAction(this)
     }

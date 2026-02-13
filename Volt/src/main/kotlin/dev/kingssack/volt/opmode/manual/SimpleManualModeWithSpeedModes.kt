@@ -1,13 +1,13 @@
 package dev.kingssack.volt.opmode.manual
 
-import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
-import dev.kingssack.volt.util.GamepadAnalogInput
-import dev.kingssack.volt.util.GamepadButton
+import dev.kingssack.volt.util.buttons.ControlScope
+import dev.kingssack.volt.util.buttons.GamepadAnalogInput
+import dev.kingssack.volt.util.buttons.GamepadButton
 import java.util.EnumMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
@@ -21,6 +21,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @property x the x-axis input from the gamepad
  * @property y the y-axis input from the gamepad
  * @property rx the rotation input from the gamepad
+ * @property extraControls the additional control mappings for the manual mode
  */
 abstract class SimpleManualModeWithSpeedModes<
     T : MecanumDrivetrain,
@@ -72,31 +73,47 @@ abstract class SimpleManualModeWithSpeedModes<
     var y = 0.0
     var rx = 0.0
 
-    init {
-        onButtonReleased(GamepadButton.Y1) {
-            +InstantAction { currentSpeedMode = SpeedMode.TURBO }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.TURBO]!!, speedModes[SpeedMode.TURBO]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(255.0, 0.0, 0.0, 300) }
+    abstract val extraControls: ControlScope<R>.() -> Unit
+
+    override val controls = controls {
+        extraControls
+
+        GamepadButton.Y1.onTap {
+            instant {
+                currentSpeedMode = SpeedMode.TURBO
+                gamepad1.rumble(speedModes[SpeedMode.TURBO]!!, speedModes[SpeedMode.TURBO]!!, 300)
+                gamepad1.setLedColor(255.0, 0.0, 0.0, 300)
+            }
         }
-        onButtonReleased(GamepadButton.B1) {
-            +InstantAction { currentSpeedMode = SpeedMode.NORMAL }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.NORMAL]!!, speedModes[SpeedMode.NORMAL]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(0.0, 0.0, 255.0, 300) }
+        GamepadButton.B1.onTap {
+            instant {
+                currentSpeedMode = SpeedMode.NORMAL
+                gamepad1.rumble(speedModes[SpeedMode.NORMAL]!!, speedModes[SpeedMode.NORMAL]!!, 300)
+                gamepad1.setLedColor(0.0, 0.0, 255.0, 300)
+            }
         }
-        onButtonReleased(GamepadButton.A1) {
-            +InstantAction { currentSpeedMode = SpeedMode.PRECISE }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.PRECISE]!!, speedModes[SpeedMode.PRECISE]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(0.0, 255.0, 0.0, 300) }
+        GamepadButton.A1.onTap {
+            instant {
+                currentSpeedMode = SpeedMode.PRECISE
+                gamepad1.rumble(
+                    speedModes[SpeedMode.PRECISE]!!,
+                    speedModes[SpeedMode.PRECISE]!!,
+                    300,
+                )
+                gamepad1.setLedColor(0.0, 255.0, 0.0, 300)
+            }
         }
-        onButtonReleased(GamepadButton.X1) {
-            +InstantAction { currentSpeedMode = SpeedMode.SLOW }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(255.0, 255.0, 0.0, 300) }
+        GamepadButton.X1.onTap {
+            instant {
+                currentSpeedMode = SpeedMode.SLOW
+                gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300)
+                gamepad1.setLedColor(255.0, 255.0, 0.0, 300)
+            }
         }
 
-        onAnalog(GamepadAnalogInput.LEFT_STICK_X1) { value -> x = -value.toDouble() }
-        onAnalog(GamepadAnalogInput.LEFT_STICK_Y1) { value -> y = -value.toDouble() }
-        onAnalog(GamepadAnalogInput.RIGHT_STICK_X1) { value -> rx = -value * params.turnScale }
+        GamepadAnalogInput.LEFT_STICK_X1.onChange { value -> x = -value.toDouble() }
+        GamepadAnalogInput.LEFT_STICK_Y1.onChange { value -> y = -value.toDouble() }
+        GamepadAnalogInput.RIGHT_STICK_X1.onChange { value -> rx = -value * params.turnScale }
     }
 
     /**
