@@ -102,6 +102,7 @@ abstract class ManualMode<R : Robot>(
     override fun initialize() {
         super.initialize()
         initializeInputMappings()
+        ControlScope(this).apply(controls)
     }
 
     override fun begin() {
