@@ -2,7 +2,7 @@
     "name": "Volt Flow Editor",
     "short_name": "Volt Flow",
     "description": "Visual OpMode builder for FTC robotics",
-    "start_url": "/",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#030712",
     "theme_color": "#4f46e5",

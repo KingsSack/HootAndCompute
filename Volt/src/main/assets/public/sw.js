@@ -1,13 +1,13 @@
 // Service Worker for Volt Flow Editor - Offline Support
-const CACHE_NAME = 'volt-flow-editor-v2';
+const CACHE_NAME = 'volt-flow-editor-v4';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/app.js',
-    '/styles.css',
-    '/vendor/alpine.min.js',
-    '/vendor/tailwind.css',
-    '/manifest.json'
+    './',
+    'index.html',
+    'app.js',
+    'styles.css',
+    'vendor/alpine.min.js',
+    'vendor/tailwind.css',
+    'manifest.json'
 ];
 
 // Install event - cache all static assets
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
             .catch(() => {
                 // Return a fallback for navigation requests
                 if (event.request.mode === 'navigate') {
-                    return caches.match('/index.html');
+                    return caches.match('index.html');
                 }
             })
     );
