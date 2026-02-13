@@ -70,7 +70,7 @@ function app() {
 
         async fetchRobots() {
             try {
-                const response = await fetch('/volt/api/robots');
+                const response = await fetch('api/robots');
                 if (response.ok) {
                     const robots = await response.json();
                     this.availableRobots = robots.map(robot => robot.simpleName);
@@ -90,7 +90,7 @@ function app() {
             this.actionsLoading = true;
             this.actionsError = null;
             try {
-                const response = await fetch('/volt/api/actions');
+                const response = await fetch('api/actions');
                 if (response.ok) {
                     const actions = await response.json();
                     this.dynamicActions = actions.map(action => ({
@@ -260,7 +260,7 @@ function app() {
         },
 
         addNodeAt(type, x, y, template = null) {
-            const id = (typeof window !== 'undefined' && window.crypto && typeof window.crypto.randomUUID === 'function');
+            const id = crypto.randomUUID();
             const newNode = {
                 id: id,
                 type: type,
@@ -312,6 +312,22 @@ function app() {
         // --- Connection Management ---
         onPortMouseDown(e, nodeId, type) {
             e.preventDefault();
+
+            // If clicking an input port that already has a connection, unplug it
+            if (type === 'input') {
+                const existingConn = this.connections.find(c => c.toId === nodeId);
+                if (existingConn) {
+                    this.activeConnection = {
+                        fromId: existingConn.fromId,
+                        fromType: 'output',
+                        fromPos: this.getPointForPort(existingConn.fromId, 'output'),
+                        to: this.screenToCanvas(e.clientX, e.clientY)
+                    };
+                    this.deleteConnection(existingConn.fromId, existingConn.toId);
+                    return;
+                }
+            }
+
             const portPos = this.getPointForPort(nodeId, type);
             this.activeConnection = {
                 fromId: nodeId,
@@ -359,6 +375,10 @@ function app() {
                 fromId,
                 toId
             });
+        },
+
+        deleteConnection(fromId, toId) {
+            this.connections = this.connections.filter(c => c.fromId !== fromId || c.toId !== toId);
         },
 
         getConnectionPath(conn) {
@@ -422,6 +442,10 @@ function app() {
             setTimeout(() => {
                 const toast = this.toasts.find(t => t.id === id);
                 if (toast) toast.show = false;
+                // Remove from array after fade animation completes
+                setTimeout(() => {
+                    this.toasts = this.toasts.filter(t => t.id !== id);
+                }, 300);
             }, 3000);
         },
 
@@ -456,7 +480,7 @@ function app() {
                 // Transform frontend nodes/connections to backend FlowGraph format
                 const flowGraph = this.buildFlowGraph();
 
-                const response = await fetch(`/volt/api/generate?id=${this.currentOpMode.id}`, {
+                const response = await fetch(`api/generate?id=${this.currentOpMode.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
