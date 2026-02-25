@@ -1,3 +1,21 @@
+task buildFlowEditor(type: Exec) {
+    description - 'Build the Volt Flow Editor SvelteKit frontend'
+    workingDir = file('src/main/assets/flow-editor')
+
+    commandLine 'sh', '-c', 'npm ci --ignore-scripts 2>/dev/null || npm install && npm run build'
+
+    inputs.dir('src/main/assets/flow-editor/src')
+    inputs.file('src/main/assets/flow-editor/package.json')
+    inputs.file('src/main/assets/flow-editor/package-lock.json')
+    inputs.file('src/main/assets/flow-editor/svelte.config.js')
+    inputs.file('src/main/assets/flow-editor/vite-config.ts')
+    outputs.dir('src/main/assets/public')
+}
+
+tasks.matching { it.build == 'preBuild' }.configureEach {
+    dependsOn buildFlowEditor
+}
+
 buildscript {
     ext.min_sdk_version = "11.1.0"
     ext.min_rr_ftc_version = "0.1.23"
