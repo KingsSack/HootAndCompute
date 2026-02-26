@@ -1,7 +1,6 @@
-import { resolve } from '$app/paths';
 import type { RobotMetadata, ActionMetadata, FlowGraph, OpModeMetadata } from '$lib/types';
 
-const API_BASE = resolve(`/api`);
+const API_BASE = '/volt/api';
 
 async function fetcher<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
