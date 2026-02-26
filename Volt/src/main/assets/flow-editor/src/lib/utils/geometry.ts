@@ -1,4 +1,4 @@
-import type { Data, FlowGraphNode, Position, Viewport } from '$lib/types';
+import type { FlowGraphNode, Position, Viewport } from '$lib/types';
 
 export function calculateBezier(x1: number, y1: number, x2: number, y2: number): string {
   const dx = Math.abs(x2 - x1) * 0.5;

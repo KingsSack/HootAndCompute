@@ -101,7 +101,7 @@
           <input
             type="checkbox"
             class="h-4 w-4 rounded border-gray-700 bg-gray-900 text-indigo-600 focus:ring-indigo-500"
-            bind:checked={node.data.parameters[key]}
+            bind:checked={node.data.parameters[key] as boolean}
           />
           <span class="text-xs text-gray-400">Enabled</span>
         </div>

@@ -80,6 +80,7 @@
 
         <div class="space-y-2">
           {#each filterNodes(category.nodes) as node (node.label)}
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
               draggable="true"
               ondragstart={(e) => handleDragStart(e, node)}

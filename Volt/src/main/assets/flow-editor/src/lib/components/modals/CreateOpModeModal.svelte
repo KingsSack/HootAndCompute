@@ -2,13 +2,13 @@
   import { editorState } from '$lib/states/editor.svelte';
   import { opModeState } from '$lib/states/opmode.svelte';
   import { uiState } from '$lib/states/ui.svelte';
-  import type { OpModeType } from '$lib/types';
+  import type { OpModeType, Parameter } from '$lib/types';
   import { fly } from 'svelte/transition';
 
   let newOpModeName = $state('');
   let newOpModeType = $state<OpModeType>('AutonomousMode');
   let selectedRobot = $state('');
-  const constructorParamValues = $state<any>();
+  const constructorParamValues = $state<Parameter>({});
 
   let selectedRobotMetadata = $derived.by(() => {
     const metadata = editorState.availableRobots.find(
@@ -35,6 +35,7 @@
       <div class="space-y-5 p-6">
         <!-- OpMode Name -->
         <div class="space-y-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class="text-xs font-bold tracking-wider text-gray-400 uppercase">
             OpMode Name
           </label>
@@ -48,6 +49,7 @@
 
         <!-- OpMode Type -->
         <div class="space-y-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class="text-xs font-bold tracking-wider text-gray-400 uppercase">Type</label>
           <div class="grid grid-cols-2 gap-3">
             <button
@@ -106,6 +108,7 @@
         <!-- Robot Selection -->
         {#if editorState.availableRobots.length > 0}
           <div class="space-y-2">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
             <label class="text-xs font-bold tracking-wider text-gray-400 uppercase">Robot</label>
             <select
               class="w-full rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
@@ -121,11 +124,13 @@
         <!-- Constructor Parameters -->
         {#if selectedRobotMetadata && selectedRobotMetadata.constructorParams && selectedRobotMetadata.constructorParams.length > 0}
           <div class="space-y-3 border-t border-gray-800 pt-2">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
             <label class="text-xs font-bold tracking-wider text-gray-400 uppercase">
               Robot Configuration
             </label>
             {#each selectedRobotMetadata?.constructorParams as param (param.name)}
               <div class="space-y-1">
+                <!-- svelte-ignore a11y_label_has_associated_control -->
                 <label class="text-[10px] text-gray-500 uppercase">{param.name}</label>
                 <input
                   type="text"

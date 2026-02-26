@@ -27,8 +27,9 @@
   } = $props();
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="pointer-events-auto absolute min-w-[220px] rounded-2xl border-2 bg-gray-900/80 shadow-2xl backdrop-blur-xl select-none hover:shadow-indigo-500/10 {flowGraphState.selectedNode ===
+  class="pointer-events-auto absolute min-w-55 rounded-2xl border-2 bg-gray-900/80 shadow-2xl backdrop-blur-xl select-none hover:shadow-indigo-500/10 {flowGraphState.selectedNode ===
   node
     ? 'border-indigo-500 ring-4 ring-indigo-500/10'
     : 'border-gray-800 hover:border-gray-700'}"
