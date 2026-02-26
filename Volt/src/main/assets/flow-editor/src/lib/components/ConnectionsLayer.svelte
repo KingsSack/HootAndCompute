@@ -38,7 +38,7 @@
           stroke-width="3"
           fill="none"
           vector-effect="non-scaling-stroke"
-          class="transition-all hover:stroke-indigo-400"
+          class="transition-colors hover:stroke-indigo-400"
         />
       </g>
     </svg>
