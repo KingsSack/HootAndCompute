@@ -49,6 +49,9 @@
         x: e.clientX - editorState.viewport.panX,
         y: e.clientY - editorState.viewport.panY
       };
+
+      flowGraphState.selectedNode = null;
+
       e.preventDefault();
     }
   }
