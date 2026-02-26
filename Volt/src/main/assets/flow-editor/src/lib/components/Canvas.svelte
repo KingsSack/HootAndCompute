@@ -1,7 +1,7 @@
 <script lang="ts">
   import { editorState } from '$lib/states/editor.svelte';
   import { flowGraphState } from '$lib/states/flowgraph.svelte';
-  import type { NodeTemplate, Position } from '$lib/types';
+  import type { FlowGraphNode, NodeTemplate, Position } from '$lib/types';
   import { getPortPosition, screenToCanvas } from '$lib/utils/geometry';
   import CanvasNode from './CanvasNode.svelte';
   import ConnectionsLayer from './ConnectionsLayer.svelte';
@@ -86,8 +86,9 @@
     if (flowGraphState.activeConnection) {
       const pos = screenToCanvas(e.clientX, e.clientY, canvasContainer, editorState.viewport);
       const targetNode = flowGraphState.nodes.find((n) => {
-        const dx = pos.x - n.position.x;
-        const dy = pos.y - (n.position.y + 60);
+        const portPos = getPortPosition(n, 'input');
+        const dx = pos.x - portPos.x;
+        const dy = pos.y - portPos.y;
         return dx >= -20 && dx <= 10 && dy >= -20 && dy <= 20;
       });
 
@@ -110,17 +111,18 @@
   }
 
   function startDraggingNode(id: string, nodePos: Position, e: MouseEvent) {
+    if (flowGraphState.activeConnection) return;
     const pos = screenToCanvas(e.clientX, e.clientY, canvasContainer, editorState.viewport);
     flowGraphState.startDrag(id, pos.x - nodePos.x, pos.y - nodePos.y);
   }
 
-  function onPortDrag(id: string, nodePos: Position, portType: 'input' | 'output', e: MouseEvent) {
+  function onPortDrag(node: FlowGraphNode, portType: 'input' | 'output', e: MouseEvent) {
     if (portType === 'input') {
-      const existingConn = flowGraphState.connections.find((c) => c.sourceNode === id);
+      const existingConn = flowGraphState.connections.find((c) => c.sourceNode === node.id);
       if (existingConn) {
         flowGraphState.activeConnection = {
           fromId: existingConn.sourceNode,
-          fromPos: getPortPosition(nodePos, 'input'),
+          fromPos: getPortPosition(node, 'input'),
           to: screenToCanvas(e.clientX, e.clientY, canvasContainer, editorState.viewport)
         };
         flowGraphState.deleteConnection(existingConn.id);
@@ -128,9 +130,9 @@
       }
     }
 
-    const portPos = getPortPosition(nodePos, portType);
+    const portPos = getPortPosition(node, portType);
     flowGraphState.activeConnection = {
-      fromId: id,
+      fromId: node.id,
       fromPos: portPos,
       to: portPos
     };
@@ -158,7 +160,7 @@
         ondelete={(id) => flowGraphState.deleteNode(id)}
         onselect={(id) => flowGraphState.selectNode(id)}
         onstartdrag={(id, nodePos, e) => startDraggingNode(id, nodePos, e)}
-        onportdrag={(id, nodePos, portType, e) => onPortDrag(id, nodePos, portType, e)}
+        onportdrag={(node, portType, e) => onPortDrag(node, portType, e)}
       />
     {/each}
   </div>

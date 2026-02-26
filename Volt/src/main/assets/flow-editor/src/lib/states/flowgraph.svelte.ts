@@ -59,6 +59,13 @@ class FlowGraphState {
           trigger: ''
         }
       };
+    } else if (type === 'control') {
+      initialData = {
+        label: label,
+        parameters: {
+          duration: 0.0
+        }
+      };
     } else {
       initialData = {
         label: label,
@@ -77,7 +84,6 @@ class FlowGraphState {
       }
     };
     this.nodes.push(newNode);
-    console.log('Adding node...');
     return newNode;
   }
 

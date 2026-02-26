@@ -23,12 +23,7 @@
     ondelete: (id: string) => void;
     onselect: (id: string) => void;
     onstartdrag: (id: string, nodePos: Position, e: MouseEvent) => void;
-    onportdrag: (
-      id: string,
-      nodePos: Position,
-      portType: 'input' | 'output',
-      e: MouseEvent
-    ) => void;
+    onportdrag: (node: FlowGraphNode, portType: 'input' | 'output', e: MouseEvent) => void;
   } = $props();
 </script>
 
@@ -76,7 +71,7 @@
     <PortHandle
       {node}
       portType="input"
-      onportdrag={(id, nodePos, portType, e) => onportdrag(id, nodePos, portType, e)}
+      onportdrag={(node, portType, e) => onportdrag(node, portType, e)}
     />
   {/if}
 
@@ -84,7 +79,7 @@
     <PortHandle
       {node}
       portType="output"
-      onportdrag={(id, nodePos, portType, e) => onportdrag(id, nodePos, portType, e)}
+      onportdrag={(node, portType, e) => onportdrag(node, portType, e)}
     />
   {/if}
 

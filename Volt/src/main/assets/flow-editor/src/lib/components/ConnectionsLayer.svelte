@@ -8,8 +8,8 @@
     const sourceNode = flowGraphState.nodes.find((n) => n.id === conn.sourceNode);
     const targetNode = flowGraphState.nodes.find((n) => n.id === conn.targetNode);
     if (!sourceNode || !targetNode) return '';
-    const from = getPortPosition(sourceNode.position, 'output');
-    const to = getPortPosition(targetNode.position, 'input');
+    const from = getPortPosition(sourceNode, 'output');
+    const to = getPortPosition(targetNode, 'input');
     return calculateBezier(from.x, from.y, to.x, to.y);
   }
 </script>
