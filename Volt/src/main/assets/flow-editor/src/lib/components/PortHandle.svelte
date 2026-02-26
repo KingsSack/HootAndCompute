@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FlowGraphNode, Position } from '$lib/types';
+  import type { FlowGraphNode } from '$lib/types';
 
   let {
     node,
@@ -8,12 +8,7 @@
   }: {
     node: FlowGraphNode;
     portType: 'input' | 'output';
-    onportdrag: (
-      id: string,
-      nodePos: Position,
-      portType: 'input' | 'output',
-      e: MouseEvent
-    ) => void;
+    onportdrag: (node: FlowGraphNode, portType: 'input' | 'output', e: MouseEvent) => void;
   } = $props();
 </script>
 
@@ -22,7 +17,7 @@
     class={portType === 'input'
       ? 'group pointer-events-auto absolute top-1/2 -left-3 flex h-8 w-8 -translate-y-1/2 cursor-crosshair items-center justify-center'
       : 'group pointer-events-auto absolute top-1/2 -right-3 flex h-8 w-8 -translate-y-1/2 cursor-crosshair items-center justify-center'}
-    onmousedown={(e) => onportdrag(node.id, node.position, portType, e)}
+    onmousedown={(e) => onportdrag(node, portType, e)}
     aria-label="Input Port"
   >
     <div
