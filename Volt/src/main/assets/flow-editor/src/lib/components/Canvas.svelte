@@ -139,6 +139,7 @@
   }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="relative flex-1 cursor-crosshair overflow-hidden bg-gray-950 select-none"
   ondragover={handleDragOver}

@@ -14,10 +14,11 @@
   }
 </script>
 
-<!-- Connections Layer -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="pointer-events-none absolute inset-0 overflow-visible">
   {#each flowGraphState.connections as conn (`${editorState.currentOpMode?.id}-${conn.sourceNode}-${conn.targetNode}`)}
     <svg class="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
       <g
         class="pointer-events-auto cursor-pointer"
         onclick={() => flowGraphState.deleteConnection(conn.id)}
