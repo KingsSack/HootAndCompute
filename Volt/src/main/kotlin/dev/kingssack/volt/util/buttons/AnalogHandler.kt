@@ -9,7 +9,7 @@ import kotlin.math.pow
  * @param deadzone the minimum joystick input to register
  * @param inputExp the input exponential for fine control
  */
-class AnalogHandler(private val deadzone: Float = 0.01f, private val inputExp: Float = 2.0f) {
+class AnalogHandler(private val deadzone: Float = 0.05f, private val inputExp: Float = 2.0f) {
     /**
      * Processes an input with deadzone and exponential scaling.
      *

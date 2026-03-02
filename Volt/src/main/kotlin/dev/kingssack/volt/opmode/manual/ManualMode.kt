@@ -36,7 +36,7 @@ abstract class ManualMode<R : Robot>(
      * @property deadzone the minimum joystick input to register
      * @property inputExp the input exponential for fine control
      */
-    data class ManualParams(val deadzone: Float = 0.1f, val inputExp: Float = 2.0f)
+    data class ManualParams(val deadzone: Float = 0.05f, val inputExp: Float = 2.0f)
 
     private data class EventHandler<R : Robot>(
         val event: ButtonEvent,

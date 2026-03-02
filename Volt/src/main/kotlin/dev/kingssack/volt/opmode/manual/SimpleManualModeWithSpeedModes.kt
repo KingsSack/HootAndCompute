@@ -21,7 +21,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @property x the x-axis input from the gamepad
  * @property y the y-axis input from the gamepad
  * @property rx the rotation input from the gamepad
- * @property extraControls the additional control mappings for the manual mode
  */
 abstract class SimpleManualModeWithSpeedModes<
     T : MecanumDrivetrain,
@@ -73,11 +72,7 @@ abstract class SimpleManualModeWithSpeedModes<
     var y = 0.0
     var rx = 0.0
 
-    abstract val extraControls: ControlScope<R>.() -> Unit
-
     override val controls = controls {
-        extraControls
-
         GamepadButton.Y1.onTap {
             instant {
                 currentSpeedMode = SpeedMode.TURBO

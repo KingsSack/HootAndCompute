@@ -57,4 +57,9 @@ class ControlScope<R : Robot>(private val mode: ManualMode<R>) {
             mode.registerButtonCombo(buttons, block)
         }
     }
+
+    /** Includes multiple control scope blocks in this scope. */
+    fun include(vararg blocks: ControlScope<R>.() -> Unit) {
+        blocks.forEach { it.invoke(this) }
+    }
 }
