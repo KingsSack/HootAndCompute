@@ -3,9 +3,9 @@ package dev.kingssack.volt.opmode.manual
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
+import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.telemetry.ActionTracer
 import dev.kingssack.volt.util.AnalogHandler
@@ -14,6 +14,7 @@ import dev.kingssack.volt.util.GamepadAnalogInput
 import dev.kingssack.volt.util.GamepadButton
 import java.util.*
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
@@ -23,9 +24,23 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @property robot the robot instance
  */
 abstract class ManualMode<R : Robot>(
-    robotFactory: (HardwareMap) -> R,
     private val params: ManualParams = ManualParams(),
-) : VoltOpMode<R>(robotFactory) {
+) : VoltOpMode<R>() {
+    @Suppress("unused")
+    object Register : Registrar() {
+        override fun register(registrationHelper: VoltRegistrationHelper, clazz: Class<VoltOpMode<*>>) {
+            if (clazz.isAnnotationPresent(VoltOpModeMeta::class.java)) {
+                val annotation = clazz.getAnnotation(VoltOpModeMeta::class.java)
+                if (annotation != null) {
+                    registrationHelper.register(clazz.getDeclaredConstructor(),
+                        OpModeMeta.Builder().setName(annotation.name).setGroup(annotation.group).setFlavor(OpModeMeta.Flavor.TELEOP)
+                            .setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build()
+                    )
+                }
+            }
+
+        }
+    }
     /**
      * Configuration object for manual control.
      *
@@ -68,8 +83,7 @@ abstract class ManualMode<R : Robot>(
         }
     }
 
-    override fun initialize() {
-        super.initialize()
+    init {
         initializeInputMappings()
     }
 
@@ -102,7 +116,7 @@ abstract class ManualMode<R : Robot>(
             isButtonDoubleTapped(button)
         }
         processActionType(interactionHandlers[InteractionType.HOLD]!!) { button ->
-            isButtonHeld(button, 500.0)
+            isButtonHeld(button)
         }
 
         instantHoldHandlers.forEach { (button, block) ->
@@ -155,8 +169,9 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @return true if the button was just released, false otherwise
      */
+    @Suppress("unused")
     protected fun isButtonReleased(button: GamepadButton): Boolean {
-        return buttonHandlers[button]?.released() ?: false
+        return buttonHandlers[button]?.released() == true
     }
 
     /**
@@ -165,6 +180,7 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
+    @Suppress("unused")
     protected fun onButtonReleased(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
         interactionHandlers[InteractionType.RELEASE]?.set(button, block)
     }
@@ -175,8 +191,9 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @return true if the button was just tapped, false otherwise
      */
+    @Suppress("unused")
     protected fun isButtonTapped(button: GamepadButton): Boolean {
-        return buttonHandlers[button]?.justPressed() ?: false
+        return buttonHandlers[button]?.justPressed() == true
     }
 
     /**
@@ -185,6 +202,7 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
+    @Suppress("unused")
     protected fun onButtonTapped(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
         interactionHandlers[InteractionType.TAP]?.set(button, block)
     }
@@ -195,8 +213,9 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @return true if the button was just double-tapped, false otherwise
      */
+    @Suppress("unused")
     protected fun isButtonDoubleTapped(button: GamepadButton): Boolean {
-        return buttonHandlers[button]?.doubleTapped() ?: false
+        return buttonHandlers[button]?.doubleTapped() == true
     }
 
     /**
@@ -205,6 +224,7 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
+    @Suppress("unused")
     protected fun onButtonDoubleTapped(
         button: GamepadButton,
         block: VoltActionBuilder<R>.() -> Unit,
@@ -219,8 +239,9 @@ abstract class ManualMode<R : Robot>(
      * @param milliseconds the duration in milliseconds to check for
      * @return true if the button is held for the given duration, false otherwise
      */
-    protected fun isButtonHeld(button: GamepadButton, milliseconds: Double): Boolean {
-        return buttonHandlers[button]?.held(milliseconds) ?: false
+    @Suppress("unused")
+    protected fun isButtonHeld(button: GamepadButton, milliseconds: Double = 500.0): Boolean {
+        return buttonHandlers[button]?.held(milliseconds) == true
     }
 
     /**
@@ -229,6 +250,7 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @param block the action sequence to execute
      */
+    @Suppress("unused")
     protected fun onButtonHeld(button: GamepadButton, block: VoltActionBuilder<R>.() -> Unit) {
         interactionHandlers[InteractionType.HOLD]?.set(button, block)
     }
@@ -239,8 +261,9 @@ abstract class ManualMode<R : Robot>(
      * @param button the button
      * @return true if the button is pressed, false otherwise
      */
+    @Suppress("unused")
     protected fun isButtonPressed(button: GamepadButton): Boolean {
-        return buttonHandlers[button]?.pressed ?: false
+        return buttonHandlers[button]?.pressed == true
     }
 
     /**
@@ -249,6 +272,7 @@ abstract class ManualMode<R : Robot>(
      *
      * @param button the button
      */
+    @Suppress("unused")
     protected fun resetButtonTapCount(button: GamepadButton) {
         buttonHandlers[button]?.reset()
     }
@@ -258,6 +282,7 @@ abstract class ManualMode<R : Robot>(
      *
      * @param input the analog input
      */
+    @Suppress("unused")
     protected fun getAnalogValue(input: GamepadAnalogInput): Float {
         return analogHandlers[input]?.value ?: 0.0f
     }
@@ -268,6 +293,7 @@ abstract class ManualMode<R : Robot>(
      * @param input the analog input
      * @return the raw analog value
      */
+    @Suppress("unused")
     protected fun getRawAnalogValue(input: GamepadAnalogInput): Float {
         return input.get(gamepad1, gamepad2)
     }
@@ -277,6 +303,7 @@ abstract class ManualMode<R : Robot>(
      *
      * @param button the button
      */
+    @Suppress("unused")
     protected fun whileButtonHeld(button: GamepadButton, block: R.() -> Unit) {
         instantHoldHandlers[button] = block
     }
@@ -286,6 +313,7 @@ abstract class ManualMode<R : Robot>(
      *
      * @param input the analog input
      */
+    @Suppress("unused")
     protected fun onAnalog(input: GamepadAnalogInput, block: R.(Float) -> Unit) {
         instantAnalogHandlers[input] = block
     }

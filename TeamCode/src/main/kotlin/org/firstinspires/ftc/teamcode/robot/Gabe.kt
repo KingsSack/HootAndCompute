@@ -13,7 +13,7 @@ import kotlin.math.abs
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
-import org.firstinspires.ftc.teamcode.util.AllianceColor
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 /**
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
