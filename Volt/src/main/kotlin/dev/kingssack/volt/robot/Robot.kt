@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.LED
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor
 import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.attachment.Attachment
+import dev.kingssack.volt.util.telemetry.ActionTracer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -161,21 +162,30 @@ open class Robot(private val hardwareMap: HardwareMap) {
      */
     context(telemetry: Telemetry)
     open fun update() {
-        if (state.value is RobotState.Fault) {
-            telemetry.update()
-            return
-        }
+        with(telemetry) {
+            addLine()
+            ActionTracer.writeTelemetry()
 
-        _state.value = RobotState.Idle
-
-        for (attachment in attachments) {
-            attachment.update()
-
-            if (attachment.isBusy() && state.value == RobotState.Idle) {
-                _state.value = RobotState.Running
+            if (state.value is RobotState.Fault) {
+                telemetry.update()
+                return
             }
-        }
 
-        telemetry.update()
+            addLine()
+            addLine("=== Attachments ===")
+            addLine()
+
+            _state.value = RobotState.Idle
+
+            for (attachment in attachments) {
+                attachment.update()
+
+                if (attachment.isBusy() && state.value == RobotState.Idle) {
+                    _state.value = RobotState.Running
+                }
+            }
+
+            telemetry.update()
+        }
     }
 }
