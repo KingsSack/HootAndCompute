@@ -58,10 +58,8 @@ class Manatee :
         }
     }
 
-    override val extraControls: ControlScope<Gabe<MecanumDriveWithPP>>.() -> Unit = {
-        robot.launcher.controls
-        robot.storage.controls
-        aimingControls
+    override val controls: ControlScope<Gabe<MecanumDriveWithPP>>.() -> Unit = {
+        include(super.controls, robot.launcher.controls, robot.storage.controls, aimingControls)
     }
 
     override fun initialize() {

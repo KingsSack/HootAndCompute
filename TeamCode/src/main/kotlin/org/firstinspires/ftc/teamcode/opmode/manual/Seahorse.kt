@@ -94,12 +94,15 @@ class Seahorse :
         GamepadButton.DPAD_DOWN2.onTap { +robot.fireAllStoredArtifacts(targetVelocity) }
     }
 
-    override val extraControls: ControlScope<Jones<MecanumDriveWithPP>>.() -> Unit = {
-        robot.launcher.controls
-        robot.classifier.controls
-        robot.pusher.controls
-        aimingControls
-        autoFireControls
+    override val controls: ControlScope<Jones<MecanumDriveWithPP>>.() -> Unit = {
+        include(
+            super.controls,
+            robot.launcher.controls,
+            robot.classifier.controls,
+            robot.pusher.controls,
+            aimingControls,
+            autoFireControls,
+        )
     }
 
     override fun initialize() {
