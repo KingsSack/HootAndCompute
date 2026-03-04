@@ -35,9 +35,17 @@ abstract class ManualMode<R : Robot>(
     data class ManualParams(val deadzone: Float = 0.05f, val inputExp: Float = 2.0f)
 
     private val buttonEventsByButton =
-        EnumMap<GamepadButton, MutableList<Pair<Event.ManualEvent.ButtonEvent, VoltActionBuilder<R>.() -> Unit>>>(GamepadButton::class.java)
+        EnumMap<
+            GamepadButton,
+            MutableList<Pair<Event.ManualEvent.ButtonEvent, VoltActionBuilder<R>.() -> Unit>>,
+        >(
+            GamepadButton::class.java
+        )
     private val analogEventsByInput =
-        EnumMap<GamepadAnalogInput, MutableList<Pair<Event.ManualEvent.AnalogEvent, R.(Float) -> Unit>>>(
+        EnumMap<
+            GamepadAnalogInput,
+            MutableList<Pair<Event.ManualEvent.AnalogEvent, R.(Float) -> Unit>>,
+        >(
             GamepadAnalogInput::class.java
         )
     private val instantButtons = EnumMap<GamepadButton, R.() -> Unit>(GamepadButton::class.java)
@@ -183,16 +191,7 @@ abstract class ManualMode<R : Robot>(
             val buttonHandler = buttonHandlers[button] ?: return@forEach
 
             handlers.forEach { (event, action) ->
-                val shouldTrigger =
-                    when (event) {
-                        Event.ManualEvent.ButtonEvent.Tap -> buttonHandler.justPressed()
-                        Event.ManualEvent.ButtonEvent.Release -> buttonHandler.justReleased()
-                        Event.ManualEvent.ButtonEvent.DoubleTap -> buttonHandler.doubleTapped()
-                        is Event.ManualEvent.ButtonEvent.Hold -> buttonHandler.held(event.durationMs)
-                        is Event.ManualEvent.ButtonEvent.Combo -> false
-                    }
-
-                if (shouldTrigger) triggerAction(action)
+                if (event.triggered(buttonHandler)) triggerAction(action)
             }
         }
 
@@ -213,15 +212,7 @@ abstract class ManualMode<R : Robot>(
             val handler = analogHandlers[input] ?: return@forEach
             val value = handler.value
 
-            handlers.forEach { (event, action) ->
-                val shouldTrigger =
-                    when (event) {
-                        Event.ManualEvent.AnalogEvent.Change -> value != 0.0f
-                        is Event.ManualEvent.AnalogEvent.Threshold -> value >= event.min
-                    }
-
-                if (shouldTrigger) robot.action(value)
-            }
+            handlers.forEach { (event, action) -> if (event.triggered(value)) robot.action(value) }
         }
     }
 
