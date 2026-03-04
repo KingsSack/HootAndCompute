@@ -7,7 +7,6 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.buttons.GamepadAnalogInput
 import dev.kingssack.volt.util.buttons.GamepadButton
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Pusher
@@ -104,21 +103,21 @@ class Seahorse :
         robot.drivetrain.startTeleOpDrive()
     }
 
-    context(telemetry: Telemetry)
-    override fun tick() =
+    override fun tick() {
         with(telemetry) {
             addData("Alliance Color", allianceColor)
             addData("Target Velocity", targetVelocity)
             addData("Classifier Position", position % 3 + 1)
-
-            if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
-                gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
-                gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
-            } else {
-                gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
-                gamepad2.stopRumble()
-            }
-
-            super.tick()
         }
+
+        if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
+            gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+            gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
+        } else {
+            gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+            gamepad2.stopRumble()
+        }
+
+        super.tick()
+    }
 }

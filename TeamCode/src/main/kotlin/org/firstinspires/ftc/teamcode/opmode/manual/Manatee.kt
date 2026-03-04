@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.buttons.GamepadButton
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
 import org.firstinspires.ftc.teamcode.robot.Gabe
@@ -30,24 +29,24 @@ class Manatee :
     // --- Controls ---
 
     private fun Launcher.controls() {
-            GamepadButton.RIGHT_BUMPER2.onTap { +enable(targetVelocity) }
-            GamepadButton.RIGHT_BUMPER2.onRelease { +disable() }
-            GamepadButton.DPAD_UP2.onRelease {
-                instant { targetVelocity += modifyScale }
-                if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
-            }
-            GamepadButton.DPAD_DOWN2.onRelease {
-                instant { targetVelocity -= modifyScale }
-                if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
-            }
-            GamepadButton.DPAD_RIGHT2.onRelease { instant { modifyScale *= 10 } }
-            GamepadButton.DPAD_LEFT2.onRelease { instant { modifyScale /= 10 } }
+        GamepadButton.RIGHT_BUMPER2.onTap { +enable(targetVelocity) }
+        GamepadButton.RIGHT_BUMPER2.onRelease { +disable() }
+        GamepadButton.DPAD_UP2.onRelease {
+            instant { targetVelocity += modifyScale }
+            if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
         }
+        GamepadButton.DPAD_DOWN2.onRelease {
+            instant { targetVelocity -= modifyScale }
+            if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
+        }
+        GamepadButton.DPAD_RIGHT2.onRelease { instant { modifyScale *= 10 } }
+        GamepadButton.DPAD_LEFT2.onRelease { instant { modifyScale /= 10 } }
+    }
 
     private fun Storage.controls() {
-            GamepadButton.A2.onTap { +release() }
-            GamepadButton.A2.onRelease { +close() }
-        }
+        GamepadButton.A2.onTap { +release() }
+        GamepadButton.A2.onRelease { +close() }
+    }
 
     private fun aimingControls() {
         GamepadButton.RIGHT_BUMPER1.onTap {
@@ -67,20 +66,20 @@ class Manatee :
         robot.drivetrain.startTeleOpDrive()
     }
 
-    context(telemetry: Telemetry)
-    override fun tick() =
+    override fun tick() {
         with(telemetry) {
             addData("Alliance Color", allianceColor)
             addData("Target Velocity", targetVelocity)
             addData("Modify Scale", modifyScale)
-
-            if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
-                gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
-                gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
-            } else {
-                gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
-            }
-
-            super.tick()
         }
+
+        if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
+            gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+            gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
+        } else {
+            gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+        }
+
+        super.tick()
+    }
 }
