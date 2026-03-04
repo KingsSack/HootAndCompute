@@ -26,26 +26,28 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
 
     private var patternId: Int? = null
 
-    // Fires artifacts according to the detected pattern and leaves
-    override val sequence = sequence {
-        +robot.launcher.enable()
+    override fun defineEvents() {
+        // Fires artifacts according to the detected pattern and leaves
+        onStart {
+            +robot.launcher.enable()
 
-        for (artifact in patterns[patternId] ?: defaultPattern) {
-            +robot.classifier.releaseArtifact(artifact)
-            wait(1.5)
+            for (artifact in patterns[patternId] ?: defaultPattern) {
+                +robot.classifier.releaseArtifact(artifact)
+                wait(1.5)
+            }
+
+            parallel {
+                +robot.launcher.disable()
+                +robot.drivetrain.path { lineTo(finalPose) }
+            }
+
+            instant { blackboard["endPose"] = robot.drivetrain.pose }
         }
-
-        parallel {
-            +robot.launcher.disable()
-            +robot.drivetrain.path { lineTo(finalPose) }
-        }
-
-        instant { blackboard["endPose"] = robot.drivetrain.pose }
     }
 
     override fun initialize() {
-        super.initialize()
         blackboard["allianceColor"] = alliance
+        super.initialize()
 
         while (opModeInInit()) {
             val tags = context(telemetry) { robot.getDetectedAprilTags() }

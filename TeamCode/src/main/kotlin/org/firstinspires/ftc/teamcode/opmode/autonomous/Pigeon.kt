@@ -19,13 +19,14 @@ abstract class Pigeon(
     private lateinit var endPose: Pose
 
     // Leaves the launch line
-    override val sequence = sequence {
-        +robot.drivetrain.path { lineTo(endPose) }
-        instant { blackboard["endPose"] = robot.drivetrain.pose }
+    override fun defineEvents() {
+        onStart {
+            +robot.drivetrain.path { lineTo(endPose) }
+            instant { blackboard["endPose"] = robot.drivetrain.pose }
+        }
     }
 
     override fun initialize() {
-        super.initialize()
         endPose =
             when (startingPosition) {
                 StartingPosition.WALL -> Pose(37.0, 9.0, 90.0.toRadians()).maybeFlip(alliance)
@@ -33,6 +34,7 @@ abstract class Pigeon(
                 StartingPosition.RAMP -> Pose(15.0, 105.0, 0.0.toRadians()).maybeFlip(alliance)
             }
         blackboard["allianceColor"] = alliance
+        super.initialize()
     }
 }
 
