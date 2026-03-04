@@ -138,7 +138,6 @@ abstract class SimpleManualModeWithSpeedModes<
         }
     }
 
-    context(telemetry: Telemetry)
     override fun tick() {
         robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
         telemetry.addData("Speed Mode", currentSpeedMode)
