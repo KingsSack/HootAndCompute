@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
-import dev.kingssack.volt.util.buttons.ControlScope
 import dev.kingssack.volt.util.buttons.GamepadButton
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
@@ -30,8 +29,7 @@ class Manatee :
 
     // --- Controls ---
 
-    private val Launcher.controls
-        get() = controls {
+    private fun Launcher.controls() {
             GamepadButton.RIGHT_BUMPER2.onTap { +enable(targetVelocity) }
             GamepadButton.RIGHT_BUMPER2.onRelease { +disable() }
             GamepadButton.DPAD_UP2.onRelease {
@@ -46,20 +44,22 @@ class Manatee :
             GamepadButton.DPAD_LEFT2.onRelease { instant { modifyScale /= 10 } }
         }
 
-    private val Storage.controls
-        get() = controls {
+    private fun Storage.controls() {
             GamepadButton.A2.onTap { +release() }
             GamepadButton.A2.onRelease { +close() }
         }
 
-    private val aimingControls = controls {
+    private fun aimingControls() {
         GamepadButton.RIGHT_BUMPER1.onTap {
             context(telemetry) { +robot.pointTowardsAprilTag(allianceColor) }
         }
     }
 
-    override val controls: ControlScope<Gabe<MecanumDriveWithPP>>.() -> Unit = {
-        include(super.controls, robot.launcher.controls, robot.storage.controls, aimingControls)
+    override fun defineEvents() {
+        super.defineEvents()
+        robot.launcher.controls()
+        robot.storage.controls()
+        aimingControls()
     }
 
     override fun initialize() {

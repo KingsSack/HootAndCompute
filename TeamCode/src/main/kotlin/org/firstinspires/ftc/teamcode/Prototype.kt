@@ -13,7 +13,7 @@ class Prototype :
     ManualMode<Robot>(
         robotFactory = { hardwareMap -> TestRobot(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0)) }
     ) {
-    override val controls = controls {
+    override fun defineEvents() {
         GamepadButton.A1.onRelease { instant { telemetry.addData("Button", "A1 released") } }
     }
 }
