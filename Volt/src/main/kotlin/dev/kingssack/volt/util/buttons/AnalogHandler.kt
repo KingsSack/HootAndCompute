@@ -10,6 +10,14 @@ import kotlin.math.pow
  * @param inputExp the input exponential for fine control
  */
 class AnalogHandler(private val deadzone: Float = 0.05f, private val inputExp: Float = 2.0f) {
+    private var previousValue = 0.0f
+
+    var value: Float = 0.0f
+        private set
+
+    var changed = false
+        private set
+
     /**
      * Processes an input with deadzone and exponential scaling.
      *
@@ -27,9 +35,9 @@ class AnalogHandler(private val deadzone: Float = 0.05f, private val inputExp: F
         return normalizedInput.pow(inputExp) * if (input < 0.0f) -1.0f else 1.0f
     }
 
-    var value: Float = 0.0f
-
     fun update(input: Float) {
         value = processInput(input)
+        changed = value != previousValue
+        previousValue = value
     }
 }

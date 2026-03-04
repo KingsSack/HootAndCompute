@@ -197,7 +197,7 @@ abstract class ManualMode<R : Robot>(
 
         buttonCombos.forEach { (buttons, action) ->
             val allPressed = buttons.all { buttonHandlers[it]?.pressed == true }
-            val anyJustPressed = buttons.any { buttonHandlers[it]?.justPressed() == true }
+            val anyJustPressed = buttons.any { buttonHandlers[it]?.tappedThisTick == true }
 
             if (allPressed && anyJustPressed) triggerAction(action)
         }
@@ -212,7 +212,7 @@ abstract class ManualMode<R : Robot>(
             val handler = analogHandlers[input] ?: return@forEach
             val value = handler.value
 
-            handlers.forEach { (event, action) -> if (event.triggered(value)) robot.action(value) }
+            handlers.forEach { (event, action) -> if (event.triggered(handler)) robot.action(value) }
         }
     }
 
