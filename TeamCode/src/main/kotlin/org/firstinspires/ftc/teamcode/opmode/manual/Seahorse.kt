@@ -64,11 +64,11 @@ class Seahorse :
     }
 
     private fun aimingControls() {
-        GamepadAnalogInput.RIGHT_TRIGGER1.whenAbove { value ->
+        GamepadAnalogInput.RIGHT_TRIGGER1.onChange { value ->
             context(telemetry) {
                 if (value <= 0.3) {
                     aprilTagAiming.reset()
-                    return@whenAbove
+                    return@onChange
                 }
 
                 val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
