@@ -18,15 +18,6 @@ abstract class Finch(
 ) : AutonomousMode<Gabe<MecanumDriveWithPP>>({ GabePP(it, initialPose) }) {
     private lateinit var launchPose: Pose
 
-    override fun defineEvents() {
-        // Drives to the launch zone and fires preloaded artifacts
-        onStart {
-            +robot.drivetrain.path { lineTo(launchPose) }
-            +robot.fire(3)
-            instant { blackboard["endPose"] = robot.drivetrain.pose }
-        }
-    }
-
     override fun initialize() {
         launchPose =
             when (startingPosition) {
@@ -36,6 +27,15 @@ abstract class Finch(
             }
         blackboard["allianceColor"] = alliance
         super.initialize()
+    }
+
+    override fun defineEvents() {
+        // Drives to the launch zone and fires preloaded artifacts
+        onStart {
+            +robot.drivetrain.path { lineTo(launchPose) }
+            +robot.fire(3)
+            instant { blackboard["endPose"] = robot.drivetrain.pose }
+        }
     }
 }
 

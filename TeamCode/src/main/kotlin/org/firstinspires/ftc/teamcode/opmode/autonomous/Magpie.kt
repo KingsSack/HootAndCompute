@@ -26,6 +26,20 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
 
     private var patternId: Int? = null
 
+    override fun initialize() {
+        blackboard["allianceColor"] = alliance
+        super.initialize()
+
+        while (opModeInInit()) {
+            val tags = context(telemetry) { robot.getDetectedAprilTags() }
+            patternId = tags.firstOrNull { it.id in patterns.keys }?.id
+            telemetry.addData("Pattern ID", patternId ?: "None detected")
+            telemetry.update()
+        }
+
+        robot.visionPortal.stopStreaming()
+    }
+
     override fun defineEvents() {
         // Fires artifacts according to the detected pattern and leaves
         onStart {
@@ -43,20 +57,6 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
 
             instant { blackboard["endPose"] = robot.drivetrain.pose }
         }
-    }
-
-    override fun initialize() {
-        blackboard["allianceColor"] = alliance
-        super.initialize()
-
-        while (opModeInInit()) {
-            val tags = context(telemetry) { robot.getDetectedAprilTags() }
-            patternId = tags.firstOrNull { it.id in patterns.keys }?.id
-            telemetry.addData("Pattern ID", patternId ?: "None detected")
-            telemetry.update()
-        }
-
-        robot.visionPortal.stopStreaming()
     }
 }
 
