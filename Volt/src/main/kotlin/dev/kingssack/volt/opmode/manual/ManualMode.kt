@@ -7,9 +7,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.util.buttons.AnalogEvent
+import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.buttons.AnalogHandler
-import dev.kingssack.volt.util.buttons.ButtonEvent
 import dev.kingssack.volt.util.buttons.ButtonHandler
 import dev.kingssack.volt.util.buttons.GamepadAnalogInput
 import dev.kingssack.volt.util.buttons.GamepadButton
@@ -35,15 +34,10 @@ abstract class ManualMode<R : Robot>(
      */
     data class ManualParams(val deadzone: Float = 0.05f, val inputExp: Float = 2.0f)
 
-    private data class EventHandler<R : Robot>(
-        val event: ButtonEvent,
-        val action: VoltActionBuilder<R>.() -> Unit,
-    )
-
     private val buttonEventsByButton =
-        EnumMap<GamepadButton, MutableList<EventHandler<R>>>(GamepadButton::class.java)
+        EnumMap<GamepadButton, MutableList<Pair<Event.ManualEvent.ButtonEvent, VoltActionBuilder<R>.() -> Unit>>>(GamepadButton::class.java)
     private val analogEventsByInput =
-        EnumMap<GamepadAnalogInput, MutableList<Pair<AnalogEvent, R.(Float) -> Unit>>>(
+        EnumMap<GamepadAnalogInput, MutableList<Pair<Event.ManualEvent.AnalogEvent, R.(Float) -> Unit>>>(
             GamepadAnalogInput::class.java
         )
     private val instantButtons = EnumMap<GamepadButton, R.() -> Unit>(GamepadButton::class.java)
@@ -62,12 +56,12 @@ abstract class ManualMode<R : Robot>(
 
     /** Registers an event handler for when the button is tapped. */
     protected fun GamepadButton.onTap(block: VoltActionBuilder<R>.() -> Unit) {
-        registerButtonEvent(this, ButtonEvent.Tap, block)
+        registerButtonEvent(this, Event.ManualEvent.ButtonEvent.Tap, block)
     }
 
     /** Registers an event handler for when the button is released. */
     protected fun GamepadButton.onRelease(block: VoltActionBuilder<R>.() -> Unit) {
-        registerButtonEvent(this, ButtonEvent.Release, block)
+        registerButtonEvent(this, Event.ManualEvent.ButtonEvent.Release, block)
     }
 
     /**
@@ -80,12 +74,12 @@ abstract class ManualMode<R : Robot>(
         durationMs: Double = 200.0,
         block: VoltActionBuilder<R>.() -> Unit,
     ) {
-        registerButtonEvent(this, ButtonEvent.Hold(durationMs), block)
+        registerButtonEvent(this, Event.ManualEvent.ButtonEvent.Hold(durationMs), block)
     }
 
     /** Registers an event handler for when the button is double-tapped. */
     protected fun GamepadButton.onDoubleTap(block: VoltActionBuilder<R>.() -> Unit) {
-        registerButtonEvent(this, ButtonEvent.DoubleTap, block)
+        registerButtonEvent(this, Event.ManualEvent.ButtonEvent.DoubleTap, block)
     }
 
     /**
@@ -97,12 +91,12 @@ abstract class ManualMode<R : Robot>(
 
     /** Registers an event handler for when the analog input changes. */
     protected fun GamepadAnalogInput.onChange(block: R.(Float) -> Unit) {
-        registerAnalogEvent(this, AnalogEvent.Change, block)
+        registerAnalogEvent(this, Event.ManualEvent.AnalogEvent.Change, block)
     }
 
     /** Registers an event handler for when the analog input goes above a certain threshold. */
     protected fun GamepadAnalogInput.whenAbove(threshold: Float = 0.3f, block: R.(Float) -> Unit) {
-        registerAnalogEvent(this, AnalogEvent.Threshold(threshold), block)
+        registerAnalogEvent(this, Event.ManualEvent.AnalogEvent.Threshold(threshold), block)
     }
 
     /** Registers an event handler for when a combination of buttons is pressed together. */
@@ -120,15 +114,15 @@ abstract class ManualMode<R : Robot>(
 
     private fun registerButtonEvent(
         button: GamepadButton,
-        event: ButtonEvent,
+        event: Event.ManualEvent.ButtonEvent,
         action: VoltActionBuilder<R>.() -> Unit,
     ) {
-        buttonEventsByButton.getOrPut(button) { mutableListOf() }.add(EventHandler(event, action))
+        buttonEventsByButton.getOrPut(button) { mutableListOf() }.add(event to action)
     }
 
     private fun registerAnalogEvent(
         input: GamepadAnalogInput,
-        event: AnalogEvent,
+        event: Event.ManualEvent.AnalogEvent,
         action: R.(Float) -> Unit,
     ) {
         analogEventsByInput.getOrPut(input) { mutableListOf() }.add(event to action)
@@ -191,11 +185,11 @@ abstract class ManualMode<R : Robot>(
             handlers.forEach { (event, action) ->
                 val shouldTrigger =
                     when (event) {
-                        ButtonEvent.Tap -> buttonHandler.justPressed()
-                        ButtonEvent.Release -> buttonHandler.justReleased()
-                        ButtonEvent.DoubleTap -> buttonHandler.doubleTapped()
-                        is ButtonEvent.Hold -> buttonHandler.held(event.durationMs)
-                        is ButtonEvent.Combo -> false
+                        Event.ManualEvent.ButtonEvent.Tap -> buttonHandler.justPressed()
+                        Event.ManualEvent.ButtonEvent.Release -> buttonHandler.justReleased()
+                        Event.ManualEvent.ButtonEvent.DoubleTap -> buttonHandler.doubleTapped()
+                        is Event.ManualEvent.ButtonEvent.Hold -> buttonHandler.held(event.durationMs)
+                        is Event.ManualEvent.ButtonEvent.Combo -> false
                     }
 
                 if (shouldTrigger) triggerAction(action)
@@ -222,8 +216,8 @@ abstract class ManualMode<R : Robot>(
             handlers.forEach { (event, action) ->
                 val shouldTrigger =
                     when (event) {
-                        AnalogEvent.Change -> value != 0.0f
-                        is AnalogEvent.Threshold -> value >= event.min
+                        Event.ManualEvent.AnalogEvent.Change -> value != 0.0f
+                        is Event.ManualEvent.AnalogEvent.Threshold -> value >= event.min
                     }
 
                 if (shouldTrigger) robot.action(value)

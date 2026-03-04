@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.telemetry.ActionTracer
 
 /**
@@ -21,19 +22,11 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
 
-    sealed interface AutoEvent {
-        data object Start : AutoEvent
-    }
-
-    private data class EventHandler<R : Robot>(
-        val event: AutoEvent,
-        val action: VoltActionBuilder<R>.() -> Unit,
-    )
-
-    private val events = mutableListOf<EventHandler<R>>()
+    private val events =
+        mutableListOf<Pair<Event.AutonomousEvent, VoltActionBuilder<R>.() -> Unit>>()
 
     protected fun onStart(block: VoltActionBuilder<R>.() -> Unit) {
-        events.add(EventHandler(AutoEvent.Start, block))
+        events.add(Event.AutonomousEvent.Start to block)
     }
 
     /** Define actions to be triggered by events */
@@ -48,7 +41,8 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     override fun begin() {
         events.forEach { (event, action) ->
             when (event) {
-                AutoEvent.Start -> runAction(VoltActionBuilder(robot).apply(action).build())
+                Event.AutonomousEvent.Start ->
+                    runAction(VoltActionBuilder(robot).apply(action).build())
             }
         }
     }
