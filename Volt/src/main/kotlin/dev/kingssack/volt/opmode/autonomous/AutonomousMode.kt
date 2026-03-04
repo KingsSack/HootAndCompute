@@ -21,13 +21,36 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
 
-    abstract val sequence : VoltActionBuilder<R>.() -> Unit
+    sealed interface AutoEvent {
+        data object Start : AutoEvent
+    }
 
-    protected fun sequence(block: VoltActionBuilder<R>.() -> Unit) = block
+    private data class EventHandler<R : Robot>(
+        val event: AutoEvent,
+        val action: VoltActionBuilder<R>.() -> Unit,
+    )
+
+    private val events = mutableListOf<EventHandler<R>>()
+
+    protected fun onStart(block: VoltActionBuilder<R>.() -> Unit) {
+        events.add(EventHandler(AutoEvent.Start, block))
+    }
+
+    /** Define actions to be triggered by events */
+    abstract fun defineEvents()
+
+    /** Defines autonomous events */
+    override fun initialize() {
+        super.initialize()
+        defineEvents()
+    }
 
     override fun begin() {
-        val action = VoltActionBuilder(robot).apply(sequence).build()
-        runAction(action)
+        events.forEach { (event, action) ->
+            when (event) {
+                AutoEvent.Start -> runAction(VoltActionBuilder(robot).apply(action).build())
+            }
+        }
     }
 
     private fun runAction(action: Action) {
