@@ -11,12 +11,10 @@ import dev.kingssack.volt.util.buttons.AnalogEvent
 import dev.kingssack.volt.util.buttons.AnalogHandler
 import dev.kingssack.volt.util.buttons.ButtonEvent
 import dev.kingssack.volt.util.buttons.ButtonHandler
-import dev.kingssack.volt.util.buttons.ControlScope
 import dev.kingssack.volt.util.buttons.GamepadAnalogInput
 import dev.kingssack.volt.util.buttons.GamepadButton
 import dev.kingssack.volt.util.telemetry.ActionTracer
 import java.util.*
-import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
@@ -24,7 +22,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param R the robot type
  * @property params the configuration object for manual control
  * @property robot the robot instance
- * @property controls the control mappings for the manual mode
  */
 abstract class ManualMode<R : Robot>(
     robotFactory: (HardwareMap) -> R,
@@ -60,12 +57,68 @@ abstract class ManualMode<R : Robot>(
     private var runningActions = mutableListOf<Action>()
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
 
-    abstract val controls: ControlScope<R>.() -> Unit
+    /** Define actions to be triggered by events */
+    abstract fun defineEvents()
 
-    /** Can be used to define control mappings for the manual mode. */
-    protected fun controls(block: ControlScope<R>.() -> Unit) = block
+    /** Registers an event handler for when the button is tapped. */
+    protected fun GamepadButton.onTap(block: VoltActionBuilder<R>.() -> Unit) {
+        registerButtonEvent(this, ButtonEvent.Tap, block)
+    }
 
-    internal fun registerButtonEvent(
+    /** Registers an event handler for when the button is released. */
+    protected fun GamepadButton.onRelease(block: VoltActionBuilder<R>.() -> Unit) {
+        registerButtonEvent(this, ButtonEvent.Release, block)
+    }
+
+    /**
+     * Registers an event handler for when the button is held for a certain duration.
+     *
+     * @param durationMs The duration in milliseconds for which the button must be held to trigger
+     *   the event.
+     */
+    protected fun GamepadButton.onHold(
+        durationMs: Double = 200.0,
+        block: VoltActionBuilder<R>.() -> Unit,
+    ) {
+        registerButtonEvent(this, ButtonEvent.Hold(durationMs), block)
+    }
+
+    /** Registers an event handler for when the button is double-tapped. */
+    protected fun GamepadButton.onDoubleTap(block: VoltActionBuilder<R>.() -> Unit) {
+        registerButtonEvent(this, ButtonEvent.DoubleTap, block)
+    }
+
+    /**
+     * Registers an event handler for when the button is pressed, regardless of how long it's held.
+     */
+    protected fun GamepadButton.whilePressed(block: R.() -> Unit) {
+        registerInstantButton(this, block)
+    }
+
+    /** Registers an event handler for when the analog input changes. */
+    protected fun GamepadAnalogInput.onChange(block: R.(Float) -> Unit) {
+        registerAnalogEvent(this, AnalogEvent.Change, block)
+    }
+
+    /** Registers an event handler for when the analog input goes above a certain threshold. */
+    protected fun GamepadAnalogInput.whenAbove(threshold: Float = 0.3f, block: R.(Float) -> Unit) {
+        registerAnalogEvent(this, AnalogEvent.Threshold(threshold), block)
+    }
+
+    /** Registers an event handler for when a combination of buttons is pressed together. */
+    protected fun combo(vararg buttons: GamepadButton) = ButtonComboBuilder(buttons.toSet())
+
+    inner class ButtonComboBuilder(private val buttons: Set<GamepadButton>) {
+        /**
+         * Registers an event handler for when the specified combination of buttons is pressed
+         * together.
+         */
+        infix fun then(block: VoltActionBuilder<R>.() -> Unit) {
+            registerButtonCombo(buttons, block)
+        }
+    }
+
+    private fun registerButtonEvent(
         button: GamepadButton,
         event: ButtonEvent,
         action: VoltActionBuilder<R>.() -> Unit,
@@ -73,7 +126,7 @@ abstract class ManualMode<R : Robot>(
         buttonEventsByButton.getOrPut(button) { mutableListOf() }.add(EventHandler(event, action))
     }
 
-    internal fun registerAnalogEvent(
+    private fun registerAnalogEvent(
         input: GamepadAnalogInput,
         event: AnalogEvent,
         action: R.(Float) -> Unit,
@@ -81,11 +134,11 @@ abstract class ManualMode<R : Robot>(
         analogEventsByInput.getOrPut(input) { mutableListOf() }.add(event to action)
     }
 
-    internal fun registerInstantButton(button: GamepadButton, action: R.() -> Unit) {
+    private fun registerInstantButton(button: GamepadButton, action: R.() -> Unit) {
         instantButtons[button] = action
     }
 
-    internal fun registerButtonCombo(
+    private fun registerButtonCombo(
         buttons: Set<GamepadButton>,
         action: VoltActionBuilder<R>.() -> Unit,
     ) {
@@ -99,24 +152,25 @@ abstract class ManualMode<R : Robot>(
         }
     }
 
+    /** Initializes inputs and defines manual events */
     override fun initialize() {
         super.initialize()
         initializeInputMappings()
-        ControlScope(this).apply(controls)
+        defineEvents()
     }
 
     override fun begin() {
-        while (opModeIsActive()) context(telemetry) { tick() }
+        while (opModeIsActive()) tick()
     }
 
     /** Tick the manual mode. */
-    context(telemetry: Telemetry)
-    open fun tick() {
-        updateInputState()
-        processEvents()
-        runActions()
-        robot.update()
-    }
+    open fun tick() =
+        context(telemetry) {
+            updateInputState()
+            processEvents()
+            runActions()
+            robot.update()
+        }
 
     private fun updateInputState() {
         GamepadButton.entries.forEach { button ->

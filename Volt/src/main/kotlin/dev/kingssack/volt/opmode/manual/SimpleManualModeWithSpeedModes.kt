@@ -5,7 +5,6 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
-import dev.kingssack.volt.util.buttons.ControlScope
 import dev.kingssack.volt.util.buttons.GamepadAnalogInput
 import dev.kingssack.volt.util.buttons.GamepadButton
 import java.util.EnumMap
@@ -72,7 +71,7 @@ abstract class SimpleManualModeWithSpeedModes<
     var y = 0.0
     var rx = 0.0
 
-    override val controls = controls {
+    override fun defineEvents() {
         GamepadButton.Y1.onTap {
             instant {
                 currentSpeedMode = SpeedMode.TURBO
