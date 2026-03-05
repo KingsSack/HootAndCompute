@@ -38,7 +38,6 @@ abstract class ManualMode<R : Robot>(
                     )
                 }
             }
-
         }
     }
     /**

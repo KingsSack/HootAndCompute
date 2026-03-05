@@ -86,16 +86,19 @@ object VoltOpModeWrapper {
     fun addPostInitListener(listener: (ActiveOpMode<*, *>) -> Unit) {
         postInitListeners.add(listener)
     }
+    /*
     @Suppress("unused")
     private object OpModeStopHook : OnCreateEventLoop, OpModeManagerNotifier.Notifications {
         override fun onCreateEventLoop(context: Context, ftcEventLoop: FtcEventLoop) {
-            val opModeManager = ftcEventLoop.opModeManager
-            opModeManager.registerListener(this)
+            /*val opModeManager = ftcEventLoop.opModeManager
+            opModeManager.registerListener(this)*/
         }
         override fun onOpModePreInit(opMode: OpMode?) {}
 
         override fun onOpModePreStart(opMode: OpMode?) {
-            startOpMode()
+            if (isActive) {
+                startOpMode()
+            }
         }
 
         override fun onOpModePostStop(opMode: OpMode?) {
@@ -103,7 +106,7 @@ object VoltOpModeWrapper {
                 stopOpMode()
             }
         }
-    }
+    }*/
 
     @Suppress("unused")
     class ActiveOpMode <R: Robot, O: VoltOpMode<R>>(
