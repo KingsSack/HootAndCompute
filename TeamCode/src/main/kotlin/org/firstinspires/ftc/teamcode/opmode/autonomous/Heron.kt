@@ -4,6 +4,7 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
@@ -43,24 +44,25 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
 
     override fun defineEvents() {
         // Drives to the launch zone, fires artifacts according to the detected pattern, and leaves
-        onStart {
-            parallel {
-                +robot.drivetrain.path { lineTo(launchPose) }
-                +robot.launcher.enable()
-            }
+        Start then
+            {
+                parallel {
+                    +robot.drivetrain.path { lineTo(launchPose) }
+                    +robot.launcher.enable()
+                }
 
-            for (artifact in patterns[patternId] ?: defaultPattern) {
-                +robot.classifier.releaseArtifact(artifact)
-                wait(1.5)
-            }
+                for (artifact in patterns[patternId] ?: defaultPattern) {
+                    +robot.classifier.releaseArtifact(artifact)
+                    wait(1.5)
+                }
 
-            parallel {
-                +robot.launcher.disable()
-                +robot.drivetrain.path { lineTo(finalPose) }
-            }
+                parallel {
+                    +robot.launcher.disable()
+                    +robot.drivetrain.path { lineTo(finalPose) }
+                }
 
-            instant { blackboard["endPose"] = robot.drivetrain.pose }
-        }
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }
 

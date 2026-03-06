@@ -5,8 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
-import dev.kingssack.volt.util.buttons.GamepadAnalogInput
-import dev.kingssack.volt.util.buttons.GamepadButton
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.buttons.AnalogInput
+import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Pusher
@@ -32,61 +33,68 @@ class Seahorse :
     // --- Controls ---
 
     private fun Launcher.controls() {
-        GamepadButton.RIGHT_BUMPER2.onTap { +enable(targetVelocity) }
-        GamepadButton.LEFT_BUMPER2.onTap { +disable() }
-        GamepadButton.DPAD_LEFT2.onTap {
-            instant { targetVelocity = Jones.launcherLowVelocity }
-            if (currentVelocity > 0.0) +enable(targetVelocity)
-        }
-        GamepadButton.DPAD_UP2.onTap {
-            instant { targetVelocity = Jones.launcherMediumVelocity }
-            if (currentVelocity > 0.0) +enable(targetVelocity)
-        }
-        GamepadButton.DPAD_RIGHT2.onTap {
-            instant { targetVelocity = Jones.launcherTargetVelocity }
-            if (currentVelocity > 0.0) +enable(targetVelocity)
-        }
+        Tap(Button.RIGHT_BUMPER1) then { +enable(targetVelocity) }
+        Tap(Button.RIGHT_BUMPER1) then { +disable() }
+        Tap(Button.DPAD_LEFT2) then
+            {
+                instant { targetVelocity = Jones.launcherLowVelocity }
+                if (currentVelocity > 0.0) +enable(targetVelocity)
+            }
+        Tap(Button.DPAD_UP2) then
+            {
+                instant { targetVelocity = Jones.launcherMediumVelocity }
+                if (currentVelocity > 0.0) +enable(targetVelocity)
+            }
+        Tap(Button.DPAD_RIGHT2) then
+            {
+                instant { targetVelocity = Jones.launcherTargetVelocity }
+                if (currentVelocity > 0.0) +enable(targetVelocity)
+            }
     }
 
     private fun Classifier.controls() {
-        GamepadButton.A2.onTap { +releaseArtifact(Classifier.ReleaseType.NEXT) }
-        GamepadButton.X2.onTap { +releaseArtifact(Classifier.ReleaseType.PURPLE) }
-        GamepadButton.Y2.onTap { +releaseArtifact(Classifier.ReleaseType.GREEN) }
-        GamepadButton.DPAD_DOWN1.onTap {
-            instant { position++ }
-            +goToPos(position % 3 + 1)
-        }
+        Tap(Button.A2) then { +releaseArtifact(Classifier.ReleaseType.NEXT) }
+        Tap(Button.X2) then { +releaseArtifact(Classifier.ReleaseType.PURPLE) }
+        Tap(Button.Y2) then { +releaseArtifact(Classifier.ReleaseType.GREEN) }
+        Tap(Button.DPAD_DOWN1) then
+            {
+                instant { position++ }
+                +goToPos(position % 3 + 1)
+            }
     }
 
     private fun Pusher.controls() {
-        GamepadButton.B2.onTap { +push() }
-        GamepadButton.B2.onRelease { +retract() }
+        Tap(Button.B2) then { +push() }
+        Release(Button.B2) then { +retract() }
     }
 
     private fun aimingControls() {
-        GamepadAnalogInput.RIGHT_TRIGGER1.onChange { value ->
-            context(telemetry) {
-                if (value <= 0.3) {
-                    aprilTagAiming.reset()
-                    return@onChange
-                }
+        Change(AnalogInput.RIGHT_TRIGGER1) then
+            { value ->
+                instant {
+                    context(telemetry) {
+                        if (value <= 0.3) {
+                            robot.aprilTagAiming.reset()
+                            return@instant
+                        }
 
-                val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
-                val tag = getDetectedAprilTags(targetId).firstOrNull()
+                        val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
+                        val tag = robot.getDetectedAprilTags(targetId).firstOrNull()
 
-                rx =
-                    if (tag != null) {
-                        aprilTagAiming.pointTowardsAprilTag(tag)
-                    } else {
-                        aprilTagAiming.reset()
-                        0.0
+                        rx =
+                            if (tag != null) {
+                                robot.aprilTagAiming.pointTowardsAprilTag(tag)
+                            } else {
+                                robot.aprilTagAiming.reset()
+                                0.0
+                            }
                     }
+                }
             }
-        }
     }
 
     private fun autoFireControls() {
-        GamepadButton.DPAD_DOWN2.onTap { +robot.fireAllStoredArtifacts(targetVelocity) }
+        Tap(Button.DPAD_DOWN2) then { +robot.fireAllStoredArtifacts(targetVelocity) }
     }
 
     override fun defineEvents() {

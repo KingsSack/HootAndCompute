@@ -4,6 +4,7 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
@@ -42,21 +43,22 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
 
     override fun defineEvents() {
         // Fires artifacts according to the detected pattern and leaves
-        onStart {
-            +robot.launcher.enable()
+        Start then
+            {
+                +robot.launcher.enable()
 
-            for (artifact in patterns[patternId] ?: defaultPattern) {
-                +robot.classifier.releaseArtifact(artifact)
-                wait(1.5)
+                for (artifact in patterns[patternId] ?: defaultPattern) {
+                    +robot.classifier.releaseArtifact(artifact)
+                    wait(1.5)
+                }
+
+                parallel {
+                    +robot.launcher.disable()
+                    +robot.drivetrain.path { lineTo(finalPose) }
+                }
+
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
             }
-
-            parallel {
-                +robot.launcher.disable()
-                +robot.drivetrain.path { lineTo(finalPose) }
-            }
-
-            instant { blackboard["endPose"] = robot.drivetrain.pose }
-        }
     }
 }
 

@@ -5,7 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
-import dev.kingssack.volt.util.buttons.GamepadButton
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
 import org.firstinspires.ftc.teamcode.robot.Gabe
@@ -29,29 +30,32 @@ class Manatee :
     // --- Controls ---
 
     private fun Launcher.controls() {
-        GamepadButton.RIGHT_BUMPER2.onTap { +enable(targetVelocity) }
-        GamepadButton.RIGHT_BUMPER2.onRelease { +disable() }
-        GamepadButton.DPAD_UP2.onRelease {
-            instant { targetVelocity += modifyScale }
-            if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
-        }
-        GamepadButton.DPAD_DOWN2.onRelease {
-            instant { targetVelocity -= modifyScale }
-            if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
-        }
-        GamepadButton.DPAD_RIGHT2.onRelease { instant { modifyScale *= 10 } }
-        GamepadButton.DPAD_LEFT2.onRelease { instant { modifyScale /= 10 } }
+        Release(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
+        Release(Button.RIGHT_BUMPER2) then { +disable() }
+        Release(Button.DPAD_UP2) then
+            {
+                instant { targetVelocity += modifyScale }
+                if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
+            }
+        Release(Button.DPAD_DOWN2) then
+            {
+                instant { targetVelocity -= modifyScale }
+                if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
+            }
+        Release(Button.DPAD_RIGHT2) then { instant { modifyScale *= 10 } }
+        Release(Button.DPAD_LEFT2) then { instant { modifyScale /= 10 } }
     }
 
     private fun Storage.controls() {
-        GamepadButton.A2.onTap { +release() }
-        GamepadButton.A2.onRelease { +close() }
+        Tap(Button.A2) then { +release() }
+        Release(Button.A2) then { +close() }
     }
 
     private fun aimingControls() {
-        GamepadButton.RIGHT_BUMPER1.onTap {
-            context(telemetry) { +robot.pointTowardsAprilTag(allianceColor) }
-        }
+        Tap(Button.RIGHT_BUMPER1) then
+            {
+                context(telemetry) { +robot.pointTowardsAprilTag(allianceColor) }
+            }
     }
 
     override fun defineEvents() {

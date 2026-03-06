@@ -4,6 +4,7 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
@@ -31,11 +32,12 @@ abstract class Finch(
 
     override fun defineEvents() {
         // Drives to the launch zone and fires preloaded artifacts
-        onStart {
-            +robot.drivetrain.path { lineTo(launchPose) }
-            +robot.fire(3)
-            instant { blackboard["endPose"] = robot.drivetrain.pose }
-        }
+        Start then
+            {
+                +robot.drivetrain.path { lineTo(launchPose) }
+                +robot.fire(3)
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }
 
