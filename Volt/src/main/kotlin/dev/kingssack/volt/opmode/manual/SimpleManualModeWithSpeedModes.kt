@@ -5,10 +5,10 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
-import dev.kingssack.volt.util.buttons.GamepadAnalogInput
-import dev.kingssack.volt.util.buttons.GamepadButton
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.buttons.AnalogInput
+import dev.kingssack.volt.util.buttons.Button
 import java.util.EnumMap
-import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * An abstract class that defines the methods for running a manual mode with speed modes for a robot
@@ -72,42 +72,57 @@ abstract class SimpleManualModeWithSpeedModes<
     var rx = 0.0
 
     override fun defineEvents() {
-        GamepadButton.Y1.onTap {
-            instant {
-                currentSpeedMode = SpeedMode.TURBO
-                gamepad1.rumble(speedModes[SpeedMode.TURBO]!!, speedModes[SpeedMode.TURBO]!!, 300)
-                gamepad1.setLedColor(255.0, 0.0, 0.0, 300)
+        Tap(Button.Y1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.TURBO
+                    gamepad1.rumble(
+                        speedModes[SpeedMode.TURBO]!!,
+                        speedModes[SpeedMode.TURBO]!!,
+                        300,
+                    )
+                    gamepad1.setLedColor(255.0, 0.0, 0.0, 300)
+                }
             }
-        }
-        GamepadButton.B1.onTap {
-            instant {
-                currentSpeedMode = SpeedMode.NORMAL
-                gamepad1.rumble(speedModes[SpeedMode.NORMAL]!!, speedModes[SpeedMode.NORMAL]!!, 300)
-                gamepad1.setLedColor(0.0, 0.0, 255.0, 300)
+        Tap(Button.B1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.NORMAL
+                    gamepad1.rumble(
+                        speedModes[SpeedMode.NORMAL]!!,
+                        speedModes[SpeedMode.NORMAL]!!,
+                        300,
+                    )
+                    gamepad1.setLedColor(0.0, 0.0, 255.0, 300)
+                }
             }
-        }
-        GamepadButton.A1.onTap {
-            instant {
-                currentSpeedMode = SpeedMode.PRECISE
-                gamepad1.rumble(
-                    speedModes[SpeedMode.PRECISE]!!,
-                    speedModes[SpeedMode.PRECISE]!!,
-                    300,
-                )
-                gamepad1.setLedColor(0.0, 255.0, 0.0, 300)
+        Tap(Button.A1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.PRECISE
+                    gamepad1.rumble(
+                        speedModes[SpeedMode.PRECISE]!!,
+                        speedModes[SpeedMode.PRECISE]!!,
+                        300,
+                    )
+                    gamepad1.setLedColor(0.0, 255.0, 0.0, 300)
+                }
             }
-        }
-        GamepadButton.X1.onTap {
-            instant {
-                currentSpeedMode = SpeedMode.SLOW
-                gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300)
-                gamepad1.setLedColor(255.0, 255.0, 0.0, 300)
+        Tap(Button.X1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.SLOW
+                    gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300)
+                    gamepad1.setLedColor(255.0, 255.0, 0.0, 300)
+                }
             }
-        }
 
-        GamepadAnalogInput.LEFT_STICK_X1.onChange { value -> x = -value.toDouble() }
-        GamepadAnalogInput.LEFT_STICK_Y1.onChange { value -> y = -value.toDouble() }
-        GamepadAnalogInput.RIGHT_STICK_X1.onChange { value -> rx = -value * params.turnScale }
+        Change(AnalogInput.LEFT_STICK_X1) then { value -> instant { x = -value.toDouble() } }
+        Change(AnalogInput.LEFT_STICK_Y1) then { value -> instant { y = -value.toDouble() } }
+        Change(AnalogInput.RIGHT_STICK_X1) then
+            { value ->
+                instant { rx = -value * params.turnScale }
+            }
     }
 
     /**

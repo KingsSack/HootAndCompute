@@ -14,8 +14,8 @@ import dev.kingssack.volt.util.telemetry.ActionTracer
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
  *
+ * @param robotFactory a function that creates a [robot] instance from a HardwareMap
  * @param R the type of robot
- * @property robot the robot instance
  */
 abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     VoltOpMode<R>(robotFactory) {
@@ -25,11 +25,12 @@ abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     private val events =
         mutableListOf<Pair<Event.AutonomousEvent, VoltActionBuilder<R>.() -> Unit>>()
 
-    protected fun onStart(block: VoltActionBuilder<R>.() -> Unit) {
-        events.add(Event.AutonomousEvent.Start to block)
+    /** Maps an action to an event */
+    protected infix fun Event.AutonomousEvent.then(block: VoltActionBuilder<R>.() -> Unit) {
+        events.add(this to block)
     }
 
-    /** Define actions to be triggered by events */
+    /** A place to define actions to be triggered by events */
     abstract fun defineEvents()
 
     /** Defines autonomous events */
