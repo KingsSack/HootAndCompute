@@ -173,8 +173,6 @@ class Launcher(
                 minVelocityDelta = currentDelta
             }
 
-            addLine(">>STATUS<<")
-            addData("Status", if (isAtSpeed) "✓ READY" else "⏳ SPINNING UP")
             addData("Overheating", if (isOverheating) "⚠ OVERHEATING" else "✓ NORMAL")
             addData(
                 "Power",
@@ -182,7 +180,6 @@ class Launcher(
             )
 
             addLine()
-            addLine(">>VELOCITIES<<")
             addData("Target", "%.1f".format(currentVelocity))
             addData("Left Motor", "%.1f".format(leftMotor.velocity))
             addData("Left Error", "%.1f".format(leftMotor.velocity - currentVelocity))
@@ -198,20 +195,23 @@ class Launcher(
                     ),
             )
 
-            addLine()
             if (isSpinningUp) {
-                addLine(">>TIMINGS<<")
                 val currentSpinUpTime = System.currentTimeMillis() - spinUpStartTime
+                addLine()
                 addData("Spin-Up", "%dms (in progress)".format(currentSpinUpTime))
                 addData("Avg Spin-Up", "%.0fms".format(averageSpinUpTime))
             } else if (lastSpinUpTime > 0) {
-                addLine(">>TIMINGS<<")
+                addLine()
                 addData("Last Spin-Up", "%dms".format(lastSpinUpTime))
                 addData("Avg Spin-Up", "%.0fms".format(averageSpinUpTime))
             }
 
             addLine()
-            addLine(">>SENSOR<<")
             addData("Measured Distance", distanceSensor.getDistance(DistanceUnit.INCH))
         }
+
+    override fun stop() {
+        super.stop()
+        setVelocity(0.0)
+    }
 }
