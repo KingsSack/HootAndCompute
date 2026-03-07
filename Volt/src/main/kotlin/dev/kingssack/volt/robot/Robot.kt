@@ -33,11 +33,14 @@ sealed interface RobotState {
 }
 
 /** Represents a robot with attachments. */
-open class Robot(private val hardwareMap: HardwareMap) {
+open class Robot(
+    private val hardwareMap: HardwareMap,
+    private val tracer: ActionTracer = ActionTracer,
+) {
     private val _state = MutableStateFlow<RobotState>(RobotState.Initializing)
     val state = _state.asStateFlow()
 
-    private val attachments = mutableListOf<Attachment>()
+    internal val attachments = mutableListOf<Attachment>()
 
     protected fun registerAttachment(attachment: Attachment) {
         attachments.add(attachment)
@@ -164,7 +167,7 @@ open class Robot(private val hardwareMap: HardwareMap) {
     open fun update() {
         with(telemetry) {
             addLine()
-            ActionTracer.writeTelemetry()
+            tracer.writeTelemetry()
 
             if (state.value is RobotState.Fault) {
                 telemetry.update()
@@ -179,6 +182,7 @@ open class Robot(private val hardwareMap: HardwareMap) {
 
             for (attachment in attachments) {
                 attachment.update()
+                addLine()
 
                 if (attachment.isBusy() && state.value == RobotState.Idle) {
                     _state.value = RobotState.Running

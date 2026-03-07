@@ -4,6 +4,7 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
@@ -19,7 +20,6 @@ abstract class Finch(
     private lateinit var launchPose: Pose
 
     override fun initialize() {
-        super.initialize()
         launchPose =
             when (startingPosition) {
                 StartingPosition.WALL -> Pose(64.0, 100.0, 140.0.toRadians()).maybeFlip(alliance)
@@ -27,15 +27,17 @@ abstract class Finch(
                 StartingPosition.RAMP -> TODO("RAMP starting position not implemented")
             }
         blackboard["allianceColor"] = alliance
+        super.initialize()
     }
 
-    /** Drives to launch zone, fires, and saves pose */
-    override fun sequence() = execute {
-        with(robot) {
-            +drivetrain.path { lineTo(launchPose) }
-            +fire(3)
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
+    override fun defineEvents() {
+        // Drives to the launch zone and fires preloaded artifacts
+        Start then
+            {
+                +robot.drivetrain.path { lineTo(launchPose) }
+                +robot.fire(3)
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }
 

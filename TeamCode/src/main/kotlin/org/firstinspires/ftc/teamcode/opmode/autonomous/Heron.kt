@@ -4,6 +4,7 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
@@ -28,8 +29,8 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
     private var patternId: Int? = null
 
     override fun initialize() {
-        super.initialize()
         blackboard["allianceColor"] = alliance
+        super.initialize()
 
         while (opModeInInit()) {
             val tags = context(telemetry) { robot.getDetectedAprilTags() }
@@ -41,29 +42,27 @@ abstract class Heron(private val alliance: AllianceColor, private val initialPos
         robot.visionPortal.stopStreaming()
     }
 
-    /**
-     * Drives to the launch zone, fires artifacts according to the detected pattern, drives to, and
-     * saves final pose
-     */
-    override fun sequence() = execute {
-        with(robot) {
-            parallel {
-                +drivetrain.path { lineTo(launchPose) }
-                +launcher.enable()
-            }
+    override fun defineEvents() {
+        // Drives to the launch zone, fires artifacts according to the detected pattern, and leaves
+        Start then
+            {
+                parallel {
+                    +robot.drivetrain.path { lineTo(launchPose) }
+                    +robot.launcher.enable()
+                }
 
-            for (artifact in patterns[patternId] ?: defaultPattern) {
-                +classifier.releaseArtifact(artifact)
-                wait(1.5)
-            }
+                for (artifact in patterns[patternId] ?: defaultPattern) {
+                    +robot.classifier.releaseArtifact(artifact)
+                    wait(1.5)
+                }
 
-            parallel {
-                +launcher.disable()
-                +drivetrain.path { lineTo(finalPose) }
-            }
+                parallel {
+                    +robot.launcher.disable()
+                    +robot.drivetrain.path { lineTo(finalPose) }
+                }
 
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }
 

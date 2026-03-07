@@ -4,6 +4,7 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.AllianceColor
@@ -19,7 +20,6 @@ abstract class Pigeon(
     private lateinit var endPose: Pose
 
     override fun initialize() {
-        super.initialize()
         endPose =
             when (startingPosition) {
                 StartingPosition.WALL -> Pose(37.0, 9.0, 90.0.toRadians()).maybeFlip(alliance)
@@ -27,14 +27,16 @@ abstract class Pigeon(
                 StartingPosition.RAMP -> Pose(15.0, 105.0, 0.0.toRadians()).maybeFlip(alliance)
             }
         blackboard["allianceColor"] = alliance
+        super.initialize()
     }
 
-    /** Drives off the launch line and saves pose */
-    override fun sequence() = execute {
-        with(robot) {
-            +drivetrain.path { lineTo(endPose) }
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
+    override fun defineEvents() {
+        // Leaves the launch line
+        Start then
+            {
+                +robot.drivetrain.path { lineTo(endPose) }
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }
 
