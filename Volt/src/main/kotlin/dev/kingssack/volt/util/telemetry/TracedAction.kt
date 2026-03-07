@@ -34,14 +34,14 @@ class TracedAction(
     override fun run(p: TelemetryPacket): Boolean {
         if (!initialized) {
             startTime = System.nanoTime()
-            trace.markRunning(this)
+            trace.markRunning()
             initialized = true
         }
 
         val running = inner.run(p)
         if (!running) {
             endTime = System.nanoTime()
-            trace.markCompleted(this)
+            trace.markCompleted()
         }
         return running
     }
