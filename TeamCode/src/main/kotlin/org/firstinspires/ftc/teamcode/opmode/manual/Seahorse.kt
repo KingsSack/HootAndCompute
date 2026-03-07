@@ -33,8 +33,8 @@ class Seahorse :
     // --- Controls ---
 
     private fun Launcher.controls() {
-        Tap(Button.RIGHT_BUMPER1) then { +enable(targetVelocity) }
-        Tap(Button.RIGHT_BUMPER1) then { +disable() }
+        Tap(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
+        Tap(Button.LEFT_BUMPER2) then { +disable() }
         Tap(Button.DPAD_LEFT2) then
             {
                 instant { targetVelocity = Jones.launcherLowVelocity }

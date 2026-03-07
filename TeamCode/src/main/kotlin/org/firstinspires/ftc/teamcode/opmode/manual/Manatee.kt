@@ -31,7 +31,7 @@ class Manatee :
 
     private fun Launcher.controls() {
         Release(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
-        Release(Button.RIGHT_BUMPER2) then { +disable() }
+        Release(Button.LEFT_BUMPER2) then { +disable() }
         Release(Button.DPAD_UP2) then
             {
                 instant { targetVelocity += modifyScale }
