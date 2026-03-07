@@ -14,7 +14,7 @@ const config = {
     paths: {
       base: '/volt'
     },
-    appDir: '_app'
+    appDir: 'app'
   },
   compilerOptions: {
     experimental: {
