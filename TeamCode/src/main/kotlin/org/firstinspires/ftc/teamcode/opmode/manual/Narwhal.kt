@@ -7,7 +7,8 @@ import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 
 @TeleOp(name = "Narwhal", group = "Default")
-class Narwhal : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, Gabe<MecanumDriveWithPP>>({ GabePP(it) }) {
+class Narwhal :
+    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, Gabe<MecanumDriveWithPP>>({ GabePP(it) }) {
     override fun initialize() {
         super.initialize()
         robot.drivetrain.startTeleOpDrive()

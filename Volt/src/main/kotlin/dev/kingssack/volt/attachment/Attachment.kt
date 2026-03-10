@@ -104,9 +104,8 @@ abstract class Attachment(val name: String) {
 
     /** Updates the telemetry with the current state of the attachment. */
     context(telemetry: Telemetry)
-    open fun update() {
+    open fun update() =
         with(telemetry) {
-            addLine()
             addLine("$name-->")
             addData("State", state.value)
             (state.value as? AttachmentState.Fault)?.let { fault ->
@@ -120,7 +119,6 @@ abstract class Attachment(val name: String) {
                 }
             } ?: run { lastFaultHash = null }
         }
-    }
 
     /** Stops the attachment and resets its state to Idle. */
     open fun stop() {

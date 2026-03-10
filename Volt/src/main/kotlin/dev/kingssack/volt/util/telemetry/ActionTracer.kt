@@ -9,7 +9,8 @@ object ActionTracer {
     private val trace = mutableListOf<TracedAction>()
     private val running = ConcurrentHashMap.newKeySet<TracedAction>()
 
-    fun markRunning(action: TracedAction) {
+    context(action: TracedAction)
+    fun markRunning() {
         trace.add(action)
         if (trace.size > MAX_TRACE_SIZE) {
             trace.removeAt(0)
@@ -18,12 +19,13 @@ object ActionTracer {
         running.add(action)
     }
 
-    fun markCompleted(action: TracedAction) {
+    context (action: TracedAction)
+    fun markCompleted() {
         running.remove(action)
     }
 
     context(telemetry: Telemetry)
-    fun writeTelemetry() {
+    fun writeTelemetry(): Unit =
         with(telemetry) {
             addLine("=== Running Actions ===")
             addLine()
@@ -39,7 +41,6 @@ object ActionTracer {
                     }
             }
         }
-    }
 
     context(packet: TelemetryPacket)
     fun writePacket() {

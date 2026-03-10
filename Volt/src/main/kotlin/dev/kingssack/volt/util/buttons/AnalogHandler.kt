@@ -1,9 +1,23 @@
-package dev.kingssack.volt.util
+package dev.kingssack.volt.util.buttons
 
 import kotlin.math.abs
 import kotlin.math.pow
 
-class AnalogHandler(private val deadzone: Float = 0.1f, private val inputExp: Float = 2.0f) {
+/**
+ * Handles analog input with deadzone and exponential scaling.
+ *
+ * @param deadzone the minimum joystick input to register
+ * @param inputExp the input exponential for fine control
+ */
+class AnalogHandler(private val deadzone: Float = 0.05f, private val inputExp: Float = 2.0f) {
+    private var previousValue = 0.0f
+
+    var value: Float = 0.0f
+        private set
+
+    var changed = false
+        private set
+
     /**
      * Processes an input with deadzone and exponential scaling.
      *
@@ -21,9 +35,9 @@ class AnalogHandler(private val deadzone: Float = 0.1f, private val inputExp: Fl
         return normalizedInput.pow(inputExp) * if (input < 0.0f) -1.0f else 1.0f
     }
 
-    var value: Float = 0.0f
-
     fun update(input: Float) {
         value = processInput(input)
+        changed = value != previousValue
+        previousValue = value
     }
 }

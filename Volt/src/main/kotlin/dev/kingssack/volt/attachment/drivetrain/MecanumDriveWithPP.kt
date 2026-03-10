@@ -76,6 +76,10 @@ class MecanumDriveWithPP(
         private val builder = follower.pathBuilder()
         private var lastPose = startPose
 
+        /**
+         * Adds a linear segment to the path from the [lastPose] to the [endPose]. The heading will
+         * be interpolated linearly between the start and end poses.
+         */
         fun lineTo(endPose: Pose): FollowerActionBuilder {
             builder.addPath(BezierLine(lastPose, endPose))
             builder.setLinearHeadingInterpolation(lastPose.heading, endPose.heading)
@@ -83,6 +87,11 @@ class MecanumDriveWithPP(
             return this
         }
 
+        /**
+         * Adds a cubic Bézier curve segment to the path defined by the [lastPose], [controlPose1],
+         * [controlPose2], and the [endPose]. The heading will be interpolated linearly between the
+         * start and end poses.
+         */
         fun splineTo(endPose: Pose, controlPose1: Pose, controlPose2: Pose): FollowerActionBuilder {
             builder.addPath(BezierCurve(lastPose, controlPose1, controlPose2, endPose))
             builder.setLinearHeadingInterpolation(lastPose.heading, endPose.heading)

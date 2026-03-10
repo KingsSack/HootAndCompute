@@ -8,34 +8,43 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.telemetry.ActionTracer
 
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
  *
+ * @param robotFactory a function that creates a [robot] instance from a HardwareMap
  * @param R the type of robot
- * @property robot the robot instance
  */
 abstract class AutonomousMode<R : Robot>(robotFactory: (HardwareMap) -> R) :
     VoltOpMode<R>(robotFactory) {
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
 
-    override fun begin() {
-        sequence()
+    private val events =
+        mutableListOf<Pair<Event.AutonomousEvent, VoltActionBuilder<R>.() -> Unit>>()
+
+    /** Maps an action to an event */
+    protected infix fun Event.AutonomousEvent.then(block: VoltActionBuilder<R>.() -> Unit) {
+        events.add(this to block)
     }
 
-    /** Define the autonomous sequence using DSL. */
-    protected abstract fun sequence()
+    /** A place to define actions to be triggered by events */
+    abstract fun defineEvents()
 
-    /** Execute the autonomous sequence. */
-    protected fun execute(block: VoltActionBuilder<R>.() -> Unit) {
-        val action = VoltActionBuilder(robot).apply(block).build()
-        runAction(action)
+    /** Defines autonomous events */
+    override fun initialize() {
+        super.initialize()
+        defineEvents()
+    }
 
-        with(telemetry) {
-            addData("Status", "Autonomous Complete")
-            update()
+    override fun begin() {
+        events.forEach { (event, action) ->
+            when (event) {
+                Event.AutonomousEvent.Start ->
+                    runAction(VoltActionBuilder(robot).apply(action).build())
+            }
         }
     }
 
