@@ -3,7 +3,6 @@ package dev.kingssack.volt.ai
 import com.acmerobotics.roadrunner.Action
 import dev.kingssack.volt.annotations.AIParam
 import dev.kingssack.volt.annotations.VoltAction
-import dev.kingssack.volt.service.MetadataService
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
@@ -58,8 +57,9 @@ object ActionRegistry {
 
         val args =
             registered.function.valueParameters
-                .map { parameter ->
-                    params[parameter.name]?.let { value ->
+                .mapNotNull { parameter ->
+                    val name = parameter.name ?: return@mapNotNull null
+                    params[name]?.let { value ->
                         convertParameter(value, parameter.type.toString())
                     }
                 }
