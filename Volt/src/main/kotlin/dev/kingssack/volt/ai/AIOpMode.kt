@@ -7,9 +7,9 @@ import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
 import java.util.concurrent.ConcurrentLinkedQueue
 
-abstract class AIOpMode<R: Robot>(
+abstract class AIOpMode<R : Robot>(
     robotFactory: (HardwareMap) -> R,
-    private val serverPort: Int = 8081
+    private val serverPort: Int = 8081,
 ) : VoltOpMode<R>(robotFactory) {
     private lateinit var aiServer: AIServer
     private val pendingActions = ConcurrentLinkedQueue<Action>()
@@ -30,6 +30,14 @@ abstract class AIOpMode<R: Robot>(
     }
 
     override fun begin() {
+        try {
+            aiServer.start()
+        } catch (e: Exception) {
+            telemetry.addData("Status", "Failed to start AI server: ${e.message}")
+            telemetry.update()
+            return
+        }
+
         aiServer.setActionCallback { actionId, params -> executeAction(actionId, params) }
         while (opModeIsActive()) {
             telemetry.addData("Status", "Agent is running")
