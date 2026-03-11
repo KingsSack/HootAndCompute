@@ -7,13 +7,11 @@
 
   let newOpModeName = $state('');
   let newOpModeType = $state<OpModeType>('AutonomousMode');
-  let selectedRobot = $state('');
+  let selectedRobotId = $state('');
   const constructorParamValues = $state<Parameter>({});
 
   let selectedRobotMetadata = $derived.by(() => {
-    const metadata = editorState.availableRobots.find(
-      (robot) => robot.simpleName === selectedRobot
-    );
+    const metadata = editorState.availableRobots.find((robot) => robot.id === selectedRobotId);
     if (metadata) return metadata;
     else return null;
   });
@@ -112,10 +110,10 @@
             <label class="text-xs font-bold tracking-wider text-gray-400 uppercase">Robot</label>
             <select
               class="w-full rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500"
-              bind:value={selectedRobot}
+              bind:value={selectedRobotId}
             >
-              {#each editorState.availableRobots as robot (robot.simpleName)}
-                <option value={robot.simpleName}>{robot.simpleName}</option>
+              {#each editorState.availableRobots as robot (robot.id)}
+                <option value={robot.id}>{robot.name}</option>
               {/each}
             </select>
           </div>
@@ -152,7 +150,7 @@
           Cancel
         </button>
         <button
-          onclick={() => opModeState.createOpMode(newOpModeName, newOpModeType, selectedRobot)}
+          onclick={() => opModeState.createOpMode(newOpModeName, newOpModeType, selectedRobotId)}
           class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all hover:bg-indigo-500"
         >
           Create OpMode

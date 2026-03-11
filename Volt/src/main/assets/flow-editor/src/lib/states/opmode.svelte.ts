@@ -10,7 +10,8 @@ class OpModeState {
       const result = await apiClient.createOpMode({
         name: name.trim(),
         type,
-        robotId
+        robotId,
+        constructorParams: {}
       });
       uiState.closeCreateModal();
       await editorState.loadOpMode(result.id);

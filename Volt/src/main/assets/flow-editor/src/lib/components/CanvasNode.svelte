@@ -1,7 +1,7 @@
 <script lang="ts">
   import { colors, icons } from '$lib';
   import { flowGraphState } from '$lib/states/flowgraph.svelte';
-  import type { FlowGraphNode, Position } from '$lib/types';
+  import type { Node, Position } from '$lib/types';
   import ParameterEditor from './ParameterEditor.svelte';
   import PortHandle from './PortHandle.svelte';
 
@@ -19,11 +19,11 @@
     onstartdrag,
     onportdrag
   }: {
-    node: FlowGraphNode;
+    node: Node;
     ondelete: (id: string) => void;
     onselect: (id: string) => void;
     onstartdrag: (id: string, nodePos: Position, e: MouseEvent) => void;
-    onportdrag: (node: FlowGraphNode, portType: 'input' | 'output', e: MouseEvent) => void;
+    onportdrag: (node: Node, portType: 'input' | 'output', e: MouseEvent) => void;
   } = $props();
 </script>
 
@@ -50,7 +50,7 @@
       <!-- </div> -->
     </div>
     <span class="min-w-0 flex-1 truncate text-sm font-bold tracking-tight">
-      {node.data.label}
+      {node.label}
     </span>
     <button
       onclick={() => ondelete(node.id)}
@@ -68,7 +68,7 @@
     </button>
   </div>
 
-  {#if node.type === 'control' || node.type === 'action' || node.type === 'end'}
+  {#if node.type === 'Action'}
     <PortHandle
       {node}
       portType="input"
@@ -76,7 +76,7 @@
     />
   {/if}
 
-  {#if node.type === 'control' || node.type === 'action' || node.type === 'start' || node.type === 'button_trigger' || node.type === 'analog_trigger' || node.type === 'while_pressed'}
+  {#if node.type === 'Action' || node.type === 'Event'}
     <PortHandle
       {node}
       portType="output"

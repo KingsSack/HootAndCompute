@@ -1,14 +1,14 @@
 <script lang="ts">
-  import type { FlowGraphNode } from '$lib/types';
+  import type { Node } from '$lib/types';
 
   let {
     node,
     portType,
     onportdrag
   }: {
-    node: FlowGraphNode;
+    node: Node;
     portType: 'input' | 'output';
-    onportdrag: (node: FlowGraphNode, portType: 'input' | 'output', e: MouseEvent) => void;
+    onportdrag: (node: Node, portType: 'input' | 'output', e: MouseEvent) => void;
   } = $props();
 </script>
 

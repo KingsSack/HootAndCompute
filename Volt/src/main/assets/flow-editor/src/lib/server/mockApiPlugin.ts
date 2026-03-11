@@ -1,7 +1,7 @@
-import type { Plugin, ViteDevServer } from 'vite';
-import type { IncomingMessage, ServerResponse } from 'http';
-import type { OpModeMetadata, RobotMetadata, ActionMetadata } from '../types';
 import { randomUUID } from 'crypto';
+import type { IncomingMessage, ServerResponse } from 'http';
+import type { Plugin, ViteDevServer } from 'vite';
+import type { ActionMetadata, EventMetadata, OpModeDefinition, RobotMetadata } from '../types';
 
 // --- Mock Data ---
 
@@ -41,18 +41,39 @@ const mockActions: ActionMetadata[] = [
   }
 ];
 
+const mockEvents: EventMetadata[] = [
+  {
+    id: 'com.example.event.Event.AutonomousEvent.Start',
+    name: 'Start',
+    opModeType: 'AutonomousMode',
+    parameters: []
+  },
+  {
+    id: 'com.example.event.Event.ManualEvent.Tap',
+    name: 'Tap',
+    opModeType: 'ManualMode',
+    parameters: [
+      {
+        name: 'button',
+        type: 'Button',
+        defaultValue: ''
+      }
+    ]
+  }
+];
+
 const mockRobots: RobotMetadata[] = [
   {
-    simpleName: 'MecanumBot',
-    qualifiedName: 'com.example.robot.MecanumBot',
+    id: 'com.example.robot.MecanumBot',
+    name: 'MecanumBot',
     actions: mockActions,
     constructorParams: [],
     typeSignature: 'com.example.robot.MecanumBot',
     factoryExpression: 'MecanumBot(it)'
   },
   {
-    simpleName: 'PushBot',
-    qualifiedName: 'com.example.robot.PushBot',
+    id: 'com.example.robot.PushBot',
+    name: 'PushBot',
     actions: mockActions.filter((a) => a.id.startsWith('motor')),
     constructorParams: [],
     typeSignature: 'com.example.robot.PushBot',
@@ -60,20 +81,22 @@ const mockRobots: RobotMetadata[] = [
   }
 ];
 
-const mockOpModes: OpModeMetadata[] = [
+const mockOpModes: OpModeDefinition[] = [
   {
     id: randomUUID(),
     name: 'Sample Auto',
     type: 'AutonomousMode',
-    robotId: 'MecanumBot',
-    flowGraph: { nodes: [], connections: [] }
+    robotId: 'com.example.robot.MecanumBot',
+    flowGraph: { nodes: [], connections: [] },
+    constructorParams: {}
   },
   {
     id: randomUUID(),
     name: 'Sample TeleOp',
     type: 'ManualMode',
-    robotId: 'MecanumBot',
-    flowGraph: { nodes: [], connections: [] }
+    robotId: 'com.example.robot.MecanumBot',
+    flowGraph: { nodes: [], connections: [] },
+    constructorParams: {}
   }
 ];
 
@@ -119,36 +142,66 @@ export function mockApi(): Plugin {
         // --- Routes ---
 
         if (pathname === '/robots' && method === 'GET') {
+          const id = url.searchParams.get('id');
+          if (id) {
+            const robot = mockRobots.find((r) => r.id === id);
+            if (robot) return sendJson(robot);
+            return sendJson({ error: 'Robot not found' }, 404);
+          }
+
           return sendJson(mockRobots);
         }
 
-        if (pathname.startsWith('/robots/') && method === 'GET') {
-          const id = pathname.split('/')[2];
-          const robot = mockRobots.find((r) => r.simpleName === id);
-          if (robot) return sendJson(robot);
+        if (pathname === '/robots/actions' && method === 'GET') {
+          const id = url.searchParams.get('id');
+          if (!id) return sendJson({ error: 'Missing id' }, 400);
+
+          const robot = mockRobots.find((r) => r.id === id);
+          if (robot) return sendJson(robot.actions);
           return sendJson({ error: 'Robot not found' }, 404);
         }
 
-        if (pathname === '/actions' && method === 'GET') {
+        if (pathname === '/editor-capabilities' && method === 'GET') {
+          const opModeType = url.searchParams.get('opModeType');
+          if (!opModeType) return sendJson({ error: 'Missing opModeType' });
+
           const robotId = url.searchParams.get('robotId');
-          if (robotId) {
-            const robot = mockRobots.find((r) => r.simpleName === robotId);
-            if (robot) return sendJson(robot.actions);
-            return sendJson([], 200);
-          }
-          return sendJson(mockActions);
+          if (!robotId) return sendJson({ error: 'Missing robotId' });
+
+          const robot = mockRobots.find((robot) => robot.id === robotId);
+          if (!robot) return sendJson({ error: 'Robot not found' });
+
+          const events = mockEvents.filter((event) => event.opModeType === opModeType);
+
+          return sendJson({ actions: robot.actions, events });
         }
 
-        if (pathname.startsWith('/actions/') && method === 'GET') {
-          const actionClass = pathname.split('/')[2];
-          const action = mockActions.find(
-            (a) => a.id === actionClass || a.declaringClass === actionClass
-          );
+        if (pathname === '/actions' && method === 'GET') {
+          const id = url.searchParams.get('id');
+          if (!id) return sendJson({ error: 'Missing id' }, 400);
+
+          const action = mockActions.find((a) => a.id === id);
           if (action) return sendJson(action);
           return sendJson({ error: 'Action not found' }, 404);
         }
 
+        if (pathname === '/events' && method === 'GET') {
+          const id = url.searchParams.get('id');
+          if (!id) return sendJson({ error: 'Missing id' }, 400);
+
+          const event = mockEvents.find((e) => e.id === id);
+          if (event) return sendJson(event);
+          return sendJson({ error: 'Event not found' }, 404);
+        }
+
         if (pathname === '/opmodes' && method === 'GET') {
+          const id = url.searchParams.get('id');
+          if (id) {
+            const opmode = mockOpModes.find((m) => m.id === id);
+            if (opmode) return sendJson(opmode);
+            return sendJson({ error: 'OpMode not found' }, 404);
+          }
+
           return sendJson(mockOpModes.map((m) => ({ ...m, flowGraph: undefined })));
         }
 
@@ -164,15 +217,10 @@ export function mockApi(): Plugin {
           });
         }
 
-        if (pathname.startsWith('/opmodes/') && method === 'GET') {
-          const id = pathname.split('/')[2];
-          const opmode = mockOpModes.find((m) => m.id === id);
-          if (opmode) return sendJson(opmode);
-          return sendJson({ error: 'OpMode not found' }, 404);
-        }
+        if (pathname === '/opmodes' && method === 'PUT') {
+          const id = url.searchParams.get('id');
+          if (!id) return sendJson({ error: 'Missing id' }, 400);
 
-        if (pathname.startsWith('/opmodes/') && method === 'PUT') {
-          const id = pathname.split('/')[2];
           return readBody().then((data) => {
             const index = mockOpModes.findIndex((m) => m.id === id);
             if (index !== -1) {
@@ -184,27 +232,25 @@ export function mockApi(): Plugin {
           });
         }
 
-        if (pathname.startsWith('/opmodes/') && method === 'DELETE') {
-          const id = pathname.split('/')[2];
+        if (pathname === '/opmodes' && method === 'DELETE') {
+          const id = url.searchParams.get('id');
+          if (!id) return sendJson({ error: 'Missing id' }, 400);
+
           const index = mockOpModes.findIndex((m) => m.id === id);
           if (index !== -1) {
             mockOpModes.splice(index, 1);
-            res.writeHead(204);
-            res.end();
-            return;
+            return sendJson({ success: true });
           }
           return sendJson({ error: 'OpMode not found' }, 404);
         }
 
         if (pathname === '/generate' && method === 'POST') {
-          return readBody().then((graph) => {
+          return readBody().then((_graph) => {
             const mockCode = `HHEHEHE`;
-            sendJson(mockCode);
+            sendJson({ code: mockCode });
           });
         }
 
-        // If no mock route matched, you might want to call next() or return 404
-        // We'll return 404 as we expect this to catch all /volt/api requests if proxy is off.
         sendJson({ error: 'Mock Route Not Found', path: pathname }, 404);
       });
     }

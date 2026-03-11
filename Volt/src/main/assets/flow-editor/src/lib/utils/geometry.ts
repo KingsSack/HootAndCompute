@@ -1,4 +1,4 @@
-import type { FlowGraphNode, Position, Viewport } from '$lib/types';
+import type { Node, Position, Viewport } from '$lib/types';
 
 export function calculateBezier(x1: number, y1: number, x2: number, y2: number): string {
   const dx = Math.abs(x2 - x1) * 0.5;
@@ -18,10 +18,10 @@ export function screenToCanvas(
   };
 }
 
-export function getPortPosition(node: FlowGraphNode, portType: 'input' | 'output'): Position {
+export function getPortPosition(node: Node, portType: 'input' | 'output'): Position {
   const x = portType === 'output' ? node.position.x + 220 : node.position.x;
 
-  const paramCount = Object.keys(node.data.parameters || {}).length;
+  const paramCount = Object.keys(node.parameters || {}).length;
   const height = paramCount === 0 ? 120 : 73 + 67 * paramCount;
 
   const y = node.position.y + height / 2;

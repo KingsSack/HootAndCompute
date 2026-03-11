@@ -11,7 +11,7 @@
     return nodes.filter(
       (n) =>
         n.label.toLowerCase().includes(nodeSearch.toLowerCase()) ||
-        n.description.toLowerCase().includes(nodeSearch.toLowerCase())
+        n.description?.toLowerCase().includes(nodeSearch.toLowerCase())
     );
   }
 
@@ -72,46 +72,70 @@
       </div>
     {/if}
 
-    {#each sidebarState.categories as category (category.name)}
-      <div>
-        <h3 class="mb-3 px-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-          {category.name}
-        </h3>
+    <div>
+      <h3 class="mb-3 px-2 text-xs font-bold tracking-wider text-gray-500 uppercase">Actions</h3>
 
-        <div class="space-y-2">
-          {#each filterNodes(category.nodes) as node (node.label)}
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="space-y-2">
+        {#each filterNodes(sidebarState.actions) as node (node.label)}
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div
+            draggable="true"
+            ondragstart={(e) => handleDragStart(e, node)}
+            class="group flex cursor-grab items-center rounded-xl border border-gray-700 bg-gray-800 p-3 transition-colors select-none active:cursor-grabbing"
+          >
             <div
-              draggable="true"
-              ondragstart={(e) => handleDragStart(e, node)}
-              class="group flex cursor-grab items-center rounded-xl border border-gray-700 bg-gray-800 p-3 transition-colors select-none active:cursor-grabbing"
+              class="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {colors[
+                node.type
+              ]}"
             >
-              <div
-                class="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {colors[
-                  node.type
-                ]}"
-              >
-                <svg
-                  class="h-5 w-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {@html icons[node.type]}
-                </svg>
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium">{node.label}</p>
-                <p class="truncate text-[10px] text-gray-500">{node.description}</p>
-              </div>
+              <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {@html icons[node.type]}
+              </svg>
             </div>
-          {/each}
-        </div>
-
-        {#if filterNodes(category.nodes).length === 0 && nodeSearch}
-          <div class="py-4 text-center text-xs text-gray-600 italic">No matching nodes</div>
-        {/if}
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-medium">{node.label}</p>
+              <p class="truncate text-[10px] text-gray-500">{node.description}</p>
+            </div>
+          </div>
+        {/each}
       </div>
-    {/each}
+
+      {#if filterNodes(sidebarState.actions).length === 0 && nodeSearch}
+        <div class="py-4 text-center text-xs text-gray-600 italic">No matching nodes</div>
+      {/if}
+    </div>
+
+    <div>
+      <h3 class="mb-3 px-2 text-xs font-bold tracking-wider text-gray-500 uppercase">Events</h3>
+
+      <div class="space-y-2">
+        {#each filterNodes(sidebarState.events) as node (node.label)}
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div
+            draggable="true"
+            ondragstart={(e) => handleDragStart(e, node)}
+            class="group flex cursor-grab items-center rounded-xl border border-gray-700 bg-gray-800 p-3 transition-colors select-none active:cursor-grabbing"
+          >
+            <div
+              class="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {colors[
+                node.type
+              ]}"
+            >
+              <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {@html icons[node.type]}
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-medium">{node.label}</p>
+              <p class="truncate text-[10px] text-gray-500">{node.description}</p>
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      {#if filterNodes(sidebarState.events).length === 0 && nodeSearch}
+        <div class="py-4 text-center text-xs text-gray-600 italic">No matching nodes</div>
+      {/if}
+    </div>
   </div>
 </aside>

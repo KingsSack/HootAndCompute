@@ -1,6 +1,20 @@
-import type { RobotMetadata, ActionMetadata, FlowGraph, OpModeMetadata } from '$lib/types';
+import type {
+  ActionMetadata,
+  Capabilities,
+  EventMetadata,
+  FlowGraph,
+  GeneratedCode,
+  OpModeDefinition,
+  OpModeType,
+  RobotMetadata
+} from '$lib/types';
 
 const API_BASE = '/volt/api';
+
+function withQuery(endpoint: string, params: Record<string, string>): string {
+  const searchParams = new URLSearchParams(params);
+  return `${endpoint}?${searchParams.toString()}`;
+}
 
 async function fetcher<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -20,21 +34,31 @@ async function fetcher<T>(endpoint: string, options?: RequestInit): Promise<T> {
 }
 
 export const apiClient = {
-  getOpModes: () => fetcher<OpModeMetadata[]>('/opmodes'),
-  getOpMode: (id: string) => fetcher<OpModeMetadata>(`/opmodes/${id}`),
-  createOpMode: (data: Omit<OpModeMetadata, 'id' | 'flowGraph'>) =>
+  getOpModes: () => fetcher<OpModeDefinition[]>('/opmodes'),
+  getOpMode: (id: string) => fetcher<OpModeDefinition>(withQuery('/opmodes', { id })),
+  createOpMode: (data: Omit<OpModeDefinition, 'id' | 'flowGraph'>) =>
     fetcher<{ id: string }>('/opmodes', { method: 'POST', body: JSON.stringify(data) }),
-  updateOpMode: (id: string, data: OpModeMetadata) =>
-    fetcher<OpModeMetadata>(`/opmodes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteOpMode: (id: string) => fetcher<void>(`/opmodes/${id}`, { method: 'DELETE' }),
+  updateOpMode: (id: string, data: OpModeDefinition) =>
+    fetcher<OpModeDefinition>(withQuery('/opmodes', { id }), {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+  deleteOpMode: (id: string) => fetcher<void>(withQuery('/opmodes', { id }), { method: 'DELETE' }),
 
   getRobots: () => fetcher<RobotMetadata[]>('/robots'),
-  getRobot: (id: string) => fetcher<RobotMetadata>(`/robots/${id}`),
-  getActions: (robotId: string) => fetcher<ActionMetadata[]>(`/actions?robotId=${robotId}`),
-  getActionDetails: (actionClass: string) => fetcher<ActionMetadata>(`/actions/${actionClass}`),
+  getRobot: (id: string) => fetcher<RobotMetadata>(withQuery('/robots', { id })),
+
+  getEditorCapabilities: (opModeType: OpModeType, robotId: string) =>
+    fetcher<Capabilities>(withQuery('/editor-capabilities', { opModeType, robotId })),
+
+  getActionDetails: (id: string) => fetcher<ActionMetadata>(withQuery('/actions', { id })),
+  getEventDetails: (id: string) => fetcher<EventMetadata>(withQuery('/events', { id })),
 
   // validateGraph: (graph: FlowGraph) =>
   //   fetcher<ValidationResult>('/validate', { method: 'POST', body: JSON.stringify(graph) }),
-  generateCode: (graph: FlowGraph) =>
-    fetcher<string>('/generate', { method: 'POST', body: JSON.stringify(graph) })
+  generateCode: (graph: FlowGraph, opModeId: string) =>
+    fetcher<GeneratedCode>(withQuery('/generate', { id: opModeId }), {
+      method: 'POST',
+      body: JSON.stringify(graph)
+    })
 };

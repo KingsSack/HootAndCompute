@@ -24,92 +24,38 @@ class FlowEditorApiHandler : WebHandler {
         private val opModes = ConcurrentHashMap<String, OpModeDefinition>()
     }
 
-    /** Configuration for an OpMode definition */
-    data class OpModeDefinition(
-        val id: String = UUID.randomUUID().toString(),
-        val name: String,
-        val type: String, // "AutonomousMode" or "ManualMode"
-        val robotType: String,
-        val version: String = "1.0",
-        val lastModified: Long = System.currentTimeMillis(),
-        val flowGraph: FlowGraph,
-        val generatedCode: String? = null,
-        val metadata: OpModeMetadata = OpModeMetadata(),
-    )
-
-    /** Flow graph structure containing nodes and connections */
-    data class FlowGraph(val nodes: List<Node>, val connections: List<Connection>)
-
-    /** Node structure in the flow graph */
-    data class Node(
-        val id: String,
-        val type: String, // "start", "action", "control", "end"
-        val actionClass: String? = null, // For action nodes
-        val position: Position,
-        val data: NodeData,
-        val ports: Ports,
-    )
-
-    /** Connection structure in the flow graph */
-    data class Connection(
-        val id: String,
-        val sourceNode: String,
-        val sourcePort: String,
-        val targetNode: String,
-        val targetPort: String,
-    )
-
-    /** Position coordinates */
-    data class Position(val x: Double, val y: Double)
-
-    /** Node data containing label and parameters */
-    data class NodeData(val label: String, val parameters: Map<String, Any?> = emptyMap())
-
-    /** Ports definition for a node */
-    data class Ports(val inputs: List<String>, val outputs: List<String>)
-
-    /** OpMode metadata */
-    data class OpModeMetadata(
-        val author: String = "Unknown",
-        val description: String = "",
-        val tags: List<String> = emptyList(),
-    )
-
     override fun getResponse(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         val uri = session.uri.removePrefix("/volt")
         val method = session.method
 
         Log.d(TAG, "Handling request: $method $uri")
 
-        return when ( // OpMode Management Endpoints
-        method) {
-            NanoHTTPD.Method.GET if uri == "/api/opmodes" -> handleGetOpModes()
-            NanoHTTPD.Method.GET if uri.startsWith("/api/opmodes/") -> handleGetOpMode(uri)
+        return when (method) {
+            NanoHTTPD.Method.GET if uri == "/api/opmodes" ->
+                if (session.getQueryParameter("id") != null) handleGetOpMode(session)
+                else handleGetOpModes()
 
             NanoHTTPD.Method.POST if uri == "/api/opmodes" -> handleCreateOpMode(session)
-            NanoHTTPD.Method.PUT if uri.startsWith("/api/opmodes/") ->
-                handleUpdateOpMode(uri, session)
+            NanoHTTPD.Method.PUT if uri == "/api/opmodes" -> handleUpdateOpMode(session)
+            NanoHTTPD.Method.DELETE if uri == "/api/opmodes" -> handleDeleteOpMode(session)
 
-            NanoHTTPD.Method.DELETE if uri.startsWith("/api/opmodes/") -> handleDeleteOpMode(uri)
+            NanoHTTPD.Method.GET if uri == "/api/robots" ->
+                if (session.getQueryParameter("id") != null) handleGetRobot(session)
+                else handleGetRobots()
+            NanoHTTPD.Method.GET if uri == "/api/robots/actions" -> handleGetRobotActions(session)
 
-            // Robot Discovery Endpoints
-            NanoHTTPD.Method.GET if uri == "/api/robots" -> handleGetRobots()
-            NanoHTTPD.Method.GET if uri.startsWith("/api/robots/") -> handleGetRobot(uri)
+            NanoHTTPD.Method.GET if uri == "/api/editor-capabilities" ->
+                handleGetEditorCapabilities(session)
 
-            // Action Discovery Endpoints
-            NanoHTTPD.Method.GET if uri == "/api/actions" -> handleGetActions(session)
-            NanoHTTPD.Method.GET if uri.startsWith("/api/actions/") -> handleGetAction(uri)
+            NanoHTTPD.Method.GET if uri == "/api/actions" -> handleGetAction(session)
+            NanoHTTPD.Method.GET if uri == "/api/events" -> handleGetEvent(session)
 
-            // Validation Endpoint
             NanoHTTPD.Method.POST if uri == "/api/validate" -> handleValidate(session)
 
-            // Code Generation Endpoint
             NanoHTTPD.Method.POST if uri == "/api/generate" -> handleGenerateCode(session)
             else -> createErrorResponse("Not found", NanoHTTPD.Response.Status.NOT_FOUND)
         }
     }
-
-    // MARK: - OpMode Management
 
     /** Handle GET /api/opmodes */
     private fun handleGetOpModes(): NanoHTTPD.Response {
@@ -119,17 +65,20 @@ class FlowEditorApiHandler : WebHandler {
                     "id" to opMode.id,
                     "name" to opMode.name,
                     "type" to opMode.type,
-                    "robotType" to opMode.robotType,
-                    "version" to opMode.version,
-                    "lastModified" to opMode.lastModified,
+                    "robotId" to opMode.robotId,
                 )
             }
         return createJsonResponse(gson.toJson(opModeList))
     }
 
-    /** Handle GET /api/opmodes/:id */
-    private fun handleGetOpMode(uri: String): NanoHTTPD.Response {
-        val id = uri.substringAfterLast("/")
+    /** Handle GET /api/opmodes?id=:id */
+    private fun handleGetOpMode(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
+        val id =
+            session.getQueryParameter("id")
+                ?: return createErrorResponse(
+                    "Missing id",
+                    NanoHTTPD.Response.Status.BAD_REQUEST,
+                )
         val opMode =
             opModes[id]
                 ?: return createErrorResponse(
@@ -141,36 +90,25 @@ class FlowEditorApiHandler : WebHandler {
 
     /** Handle POST /api/opmodes */
     private fun handleCreateOpMode(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
-        val requestBody =
-            parseRequestBody<String>(session)
-                ?: return createErrorResponse(
-                    "Invalid request body",
-                    NanoHTTPD.Response.Status.BAD_REQUEST,
-                )
-
         try {
-            val opModeConfig = gson.fromJson(requestBody, OpModeCreationConfig::class.java)
+            val opModeConfig =
+                parseRequestBody<OpModeCreationConfig>(session)
+                    ?: return createErrorResponse(
+                        "Invalid request body",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
             val opModeId = UUID.randomUUID().toString()
 
-            // Create a new OpMode with the default flow graph (just a Start node)
-            val startNode =
-                Node(
-                    id = "start_node_${opModeId}",
-                    type = "start",
-                    position = Position(0.0, 0.0),
-                    data = NodeData(label = "Start"),
-                    ports = Ports(inputs = emptyList(), outputs = listOf("output_1")),
-                )
-
-            val flowGraph = FlowGraph(nodes = listOf(startNode), connections = emptyList())
+            val flowGraph = FlowGraph(nodes = emptyList(), connections = emptyList())
 
             val opMode =
                 OpModeDefinition(
                     id = opModeId,
                     name = opModeConfig.name,
                     type = opModeConfig.type,
-                    robotType = opModeConfig.robotType,
+                    robotId = opModeConfig.robotId,
                     flowGraph = flowGraph,
+                    constructorParams = opModeConfig.constructorParams,
                 )
 
             opModes[opModeId] = opMode
@@ -185,27 +123,36 @@ class FlowEditorApiHandler : WebHandler {
         }
     }
 
-    /** Handle PUT /api/opmodes/:id */
-    private fun handleUpdateOpMode(
-        uri: String,
-        session: NanoHTTPD.IHTTPSession,
-    ): NanoHTTPD.Response {
-        val id = uri.substringAfterLast("/")
-        val requestBody =
-            parseRequestBody<String>(session)
-                ?: return createErrorResponse(
-                    "Invalid request body",
-                    NanoHTTPD.Response.Status.BAD_REQUEST,
-                )
-
+    /** Handle PUT /api/opmodes?id=:id */
+    private fun handleUpdateOpMode(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         try {
-            val opModeUpdate =
-                gson.fromJson(requestBody, OpModeDefinition::class.java).copy(id = id)
+            val id =
+                session.getQueryParameter("id")
+                    ?: return createErrorResponse(
+                        "Missing id",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
+            val existingOpMode =
+                opModes[id]
+                    ?: return createErrorResponse(
+                        "OpMode not found",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
+            val updatedOpMode =
+                parseRequestBody<OpModeDefinition>(session)
+                    ?: return createErrorResponse(
+                        "Invalid request body",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
 
-            // Update the OpMode
-            opModes[id] = opModeUpdate.copy(lastModified = System.currentTimeMillis())
+            val persistedOpMode =
+                updatedOpMode.copy(
+                    id = existingOpMode.id,
+                    generatedCode = updatedOpMode.generatedCode ?: existingOpMode.generatedCode,
+                )
+            opModes[id] = persistedOpMode
 
-            return createJsonResponse(gson.toJson(mapOf("success" to true)))
+            return createJsonResponse(gson.toJson(persistedOpMode))
         } catch (e: Exception) {
             Log.e(TAG, "Error updating OpMode", e)
             return createErrorResponse(
@@ -215,21 +162,24 @@ class FlowEditorApiHandler : WebHandler {
         }
     }
 
-    /** Handle DELETE /api/opmodes/:id */
-    private fun handleDeleteOpMode(uri: String): NanoHTTPD.Response {
-        val id = uri.substringAfterLast("/")
+    /** Handle DELETE /api/opmodes?id=:id */
+    private fun handleDeleteOpMode(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
+        val id =
+            session.getQueryParameter("id")
+                ?: return createErrorResponse(
+                    "Missing id",
+                    NanoHTTPD.Response.Status.BAD_REQUEST,
+                )
         if (opModes.remove(id) != null) {
             return createJsonResponse(gson.toJson(mapOf("success" to true)))
         }
         return createErrorResponse("OpMode not found", NanoHTTPD.Response.Status.NOT_FOUND)
     }
 
-    // MARK: - Robot Discovery
-
     /** Handle GET /api/robots */
     private fun handleGetRobots(): NanoHTTPD.Response {
         return try {
-            val (robots, _) = MetadataService.getAllMetadata()
+            val robots = MetadataService.getRobots()
             createJsonResponse(gson.toJson(robots))
         } catch (e: Exception) {
             Log.e(TAG, "Error getting robots", e)
@@ -240,26 +190,24 @@ class FlowEditorApiHandler : WebHandler {
         }
     }
 
-    /** Handle GET /api/robots/:name */
-    private fun handleGetRobot(uri: String): NanoHTTPD.Response {
+    /** Handle GET /api/robots?id=:id */
+    private fun handleGetRobot(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         return try {
-            val robotName = uri.substringAfterLast("/")
-            val (robots, _) = MetadataService.getAllMetadata()
+            val id =
+                session.getQueryParameter("id")
+                    ?: return createErrorResponse(
+                        "Missing id",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
 
             val robot =
-                robots.find { it.simpleName == robotName }
+                MetadataService.getRobotById(id)
                     ?: return createErrorResponse(
                         "Robot not found",
                         NanoHTTPD.Response.Status.NOT_FOUND,
                     )
 
-            // For now, just return the basic metadata
-            // In a full implementation, we'd return detailed hardware configuration
-            createJsonResponse(
-                gson.toJson(
-                    mapOf("name" to robot.simpleName, "qualifiedName" to robot.qualifiedName)
-                )
-            )
+            createJsonResponse(gson.toJson(robot))
         } catch (e: Exception) {
             Log.e(TAG, "Error getting robot", e)
             createErrorResponse(
@@ -269,26 +217,74 @@ class FlowEditorApiHandler : WebHandler {
         }
     }
 
-    /** Handle GET /api/actions */
-    @Suppress("unused")
-    private fun handleGetActions(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
+    /** Handle GET /api/robots/actions?id=:id */
+    private fun handleGetRobotActions(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         return try {
-            val (_, actions) = MetadataService.getAllMetadata()
-            createJsonResponse(gson.toJson(actions))
+            val id =
+                session.getQueryParameter("id")
+                    ?: return createErrorResponse(
+                        "Missing id",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
+
+            val robot =
+                MetadataService.getRobotById(id)
+                    ?: return createErrorResponse(
+                        "Robot not found",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
+
+            createJsonResponse(gson.toJson(robot.actions))
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting actions", e)
+            Log.e(TAG, "Error getting robot actions", e)
+            createErrorResponse("Error: ${e.message}", NanoHTTPD.Response.Status.INTERNAL_ERROR)
+        }
+    }
+
+    /** Handle GET /api/editor-capabilities */
+    private fun handleGetEditorCapabilities(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
+        return try {
+            val opModeType =
+                session.parameters["opModeType"]?.get(0)
+                    ?: return createErrorResponse(
+                        "Missing opModeType",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
+            val robotId =
+                session.parameters["robotId"]?.get(0)
+                    ?: return createErrorResponse(
+                        "Missing robotId",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
+
+            val robot =
+                MetadataService.getRobotById(robotId)
+                    ?: return createErrorResponse(
+                        "Robot not found",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
+            val events = MetadataService.getEvents().filter { it.opModeType == opModeType }
+
+            createJsonResponse(gson.toJson(Capabilities(robot.actions, events)))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting editor capabilities", e)
             createErrorResponse(
-                "Error getting actions: ${e.message}",
+                "Error getting editor capabilities: ${e.message}",
                 NanoHTTPD.Response.Status.INTERNAL_ERROR,
             )
         }
     }
 
-    /** Handle GET /api/actions/:id */
-    private fun handleGetAction(uri: String): NanoHTTPD.Response {
+    /** Handle GET /api/actions?id=:id */
+    private fun handleGetAction(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         return try {
-            val actionId = uri.substringAfterLast("/")
-            val (_, actions) = MetadataService.getAllMetadata()
+            val actionId =
+                session.getQueryParameter("id")
+                    ?: return createErrorResponse(
+                        "Missing id",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
+            val actions = MetadataService.getActions()
 
             val action =
                 actions.find { it.id == actionId }
@@ -297,7 +293,6 @@ class FlowEditorApiHandler : WebHandler {
                         NanoHTTPD.Response.Status.NOT_FOUND,
                     )
 
-            // Return detailed metadata
             createJsonResponse(gson.toJson(action))
         } catch (e: Exception) {
             Log.e(TAG, "Error getting action", e)
@@ -308,18 +303,44 @@ class FlowEditorApiHandler : WebHandler {
         }
     }
 
+    /** Handle GET /api/events?id=:id */
+    private fun handleGetEvent(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
+        return try {
+            val eventId =
+                session.getQueryParameter("id")
+                    ?: return createErrorResponse(
+                        "Missing id",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
+            val events = MetadataService.getEvents()
+
+            val event =
+                events.find { it.id == eventId }
+                    ?: return createErrorResponse(
+                        "Event not found",
+                        NanoHTTPD.Response.Status.NOT_FOUND,
+                    )
+
+            createJsonResponse(gson.toJson(event))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting event", e)
+            createErrorResponse(
+                "Error getting event: ${e.message}",
+                NanoHTTPD.Response.Status.INTERNAL_ERROR,
+            )
+        }
+    }
+
     /** Handle POST /api/validate */
     private fun handleValidate(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
-        val requestBody =
-            parseRequestBody<String>(session)
-                ?: return createErrorResponse(
-                    "Invalid request body",
-                    NanoHTTPD.Response.Status.BAD_REQUEST,
-                )
-
         try {
-            val flowGraph = gson.fromJson(requestBody, FlowGraph::class.java)
-            val validationResult = validateFlowGraph(flowGraph)
+            val flowGraph =
+                parseRequestBody<FlowGraph>(session)
+                    ?: return createErrorResponse(
+                        "Invalid request body",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
+            val validationResult = validateFlowGraph(flowGraph, null)
 
             return if (validationResult.isValid) {
                 createJsonResponse(gson.toJson(mapOf("valid" to true)))
@@ -346,35 +367,34 @@ class FlowEditorApiHandler : WebHandler {
 
     /** Handle POST /api/generate */
     private fun handleGenerateCode(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
-        val requestBody =
-            parseRequestBody<String>(session)
-                ?: return createErrorResponse(
-                    "Invalid request body",
-                    NanoHTTPD.Response.Status.BAD_REQUEST,
-                )
-
         try {
-            val flowGraph = gson.fromJson(requestBody, FlowGraph::class.java)
+            val flowGraph =
+                parseRequestBody<FlowGraph>(session)
+                    ?: return createErrorResponse(
+                        "Invalid request body",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
             val opModeId = session.parameters["id"]?.firstOrNull() ?: ""
-            val opMode = if (opModeId.isNotEmpty()) opModes[opModeId] else null
+            val opMode =
+                if (opModeId.isNotEmpty()) opModes[opModeId]
+                else
+                    return createErrorResponse(
+                        "Missing OpMode ID",
+                        NanoHTTPD.Response.Status.BAD_REQUEST,
+                    )
+            if (opMode == null) {
+                return createErrorResponse("OpMode not found", NanoHTTPD.Response.Status.NOT_FOUND)
+            }
 
-            // Validate first
-            val validationResult = validateFlowGraph(flowGraph)
+            val validationResult = validateFlowGraph(flowGraph, opMode.type)
             if (!validationResult.isValid) {
                 return createJsonResponse(
                     gson.toJson(mapOf("success" to false, "errors" to validationResult.errors))
                 )
             }
-
-            // Generate code
-            val generatedCode = generateCodeFromFlowGraph(flowGraph, opMode)
-
-            // Update the OpMode with generated code if we have an ID
-            if (opMode != null) {
-                val updatedOpMode = opMode.copy(generatedCode = generatedCode)
-                opModes[opMode.id] = updatedOpMode
-            }
-
+            val robotMeta = MetadataService.getRobotById(opMode.robotId)
+            val generatedCode = CodeGenerator(flowGraph, opMode, robotMeta).generate()
+            opModes[opMode.id] = opMode.copy(generatedCode = generatedCode)
             return createJsonResponse(gson.toJson(mapOf("code" to generatedCode)))
         } catch (e: Exception) {
             Log.e(TAG, "Error generating code", e)
@@ -431,17 +451,26 @@ class FlowEditorApiHandler : WebHandler {
     }
 
     /** Validate a flow graph */
-    private fun validateFlowGraph(flowGraph: FlowGraph): ValidationResult {
+    private fun validateFlowGraph(flowGraph: FlowGraph, opModeType: String?): ValidationResult {
         val errors = mutableListOf<String>()
         val warnings = mutableListOf<String>()
 
-        // Check that there's exactly one start node
-        val startNodes = flowGraph.nodes.count { it.type == "start" }
-        if (startNodes != 1) {
-            errors.add("Flow graph must have exactly one start node, found $startNodes")
+        // Mode-specific validation
+        if (opModeType == "ManualMode") {
+            val events = flowGraph.nodes.count { it.type == "Event" }
+            if (events == 0) errors.add("Flow must have at least one event node")
+
+            if (flowGraph.nodes.any { it.type == "Event" && it.id == "" }) {
+                errors.add("Manual flow should not have Start/End nodes")
+            }
+        } else {
+            val startNodes = flowGraph.nodes.count { it.type == "start" }
+            if (startNodes != 1) {
+                errors.add("Autonomous flow must have at least one start node, found $startNodes")
+            }
         }
 
-        // Check for cycles
+        // Check for cycles (only relevant for action chains, not across triggers)
         try {
             checkForCycles(flowGraph)
         } catch (e: CycleDetectedException) {
@@ -466,19 +495,21 @@ class FlowEditorApiHandler : WebHandler {
         return ValidationResult(errors, warnings)
     }
 
-    /** Check for cycles in the flow graph */
     private fun checkForCycles(flowGraph: FlowGraph) {
         val visited = mutableSetOf<String>()
         val visiting = mutableSetOf<String>()
 
         flowGraph.nodes.forEach { node ->
-            if (node.type == "start") {
+            if (
+                node.type == "start" ||
+                    node.type.endsWith("_trigger") ||
+                    node.type == "while_pressed"
+            ) {
                 visitNode(node.id, flowGraph, visited, visiting)
             }
         }
     }
 
-    /** Depth-first search to detect cycles */
     private fun visitNode(
         nodeId: String,
         flowGraph: FlowGraph,
@@ -495,7 +526,6 @@ class FlowEditorApiHandler : WebHandler {
 
         visiting.add(nodeId)
 
-        // Find outgoing connections
         val outgoingConnections = flowGraph.connections.filter { it.sourceNode == nodeId }
 
         outgoingConnections.forEach { connection ->
@@ -509,123 +539,23 @@ class FlowEditorApiHandler : WebHandler {
     /** Exception thrown when a cycle is detected */
     private class CycleDetectedException(message: String) : Exception(message)
 
-    /** Generate Kotlin code from a flow graph */
-    private fun generateCodeFromFlowGraph(flowGraph: FlowGraph, opMode: OpModeDefinition?): String {
-        val builder = StringBuilder()
-
-        // Start building the Kotlin class
-        if (opMode != null) {
-            builder.appendLine("package org.firstinspires.ftc.teamcode.generated")
-            builder.appendLine()
-            builder.appendLine("/**")
-            builder.appendLine(" * Generated OpMode: ${opMode.name}")
-            if (opMode.metadata.description.isNotEmpty()) {
-                builder.appendLine(" * ${opMode.metadata.description}")
-            }
-            builder.appendLine(" */")
-
-            // Choose the right annotation based on type
-            val annotation =
-                when (opMode.type) {
-                    "AutonomousMode" -> "@Autonomous(name = \"${opMode.name}\", group = \"Volt\")"
-                    "ManualMode" -> "@TeleOp(name = \"${opMode.name}\", group = \"Volt\")"
-                    else -> "@OpMode(name = \"${opMode.name}\")"
-                }
-            builder.appendLine(annotation)
-            // Build the class declaration
-            var name =
-                opMode.name.replace(Regex("[^A-Za-z0-9 ]"), "").split(" ").joinToString("") { word
-                    ->
-                    word.replaceFirstChar { it.uppercaseChar() }
-                }
-            if (name.first().isDigit()) name = "_$name"
-            builder.appendLine(
-                "class $name : ${opMode.type}<${opMode.robotType}>({ hardwareMap -> ${opMode.robotType}(hardwareMap) }) {"
-            )
-            builder.appendLine()
+    private fun findReachableNodes(
+        startId: String,
+        outgoing: Map<String, List<Connection>>,
+    ): Set<String> {
+        val visited = mutableSetOf<String>()
+        val queue = ArrayDeque<String>()
+        queue.add(startId)
+        while (queue.isNotEmpty()) {
+            val id = queue.removeFirst()
+            if (id in visited) continue
+            visited.add(id)
+            outgoing[id]?.forEach { queue.add(it.targetNode) }
         }
-
-        // Generate the sequence based on the flow graph
-        if (flowGraph.nodes.isEmpty()) {
-            builder.appendLine("    override fun runOpMode() {")
-            builder.appendLine("        telemetry.addData(\"Status\", \"Ready\")")
-            builder.appendLine("        telemetry.update()")
-            builder.appendLine("    }")
-            return builder.toString()
-        }
-
-        // Find start node and build execution flow
-        val startNode = flowGraph.nodes.find { it.type == "start" }
-        if (startNode != null) {
-            // Build the execution sequence
-            builder.appendLine("    override fun runOpMode() {")
-            builder.appendLine("        telemetry.addData(\"Status\", \"Initializing\")")
-            builder.appendLine("        telemetry.update()")
-
-            // Build a map of nodes by ID for quick lookup
-            val nodeMap = flowGraph.nodes.associateBy { it.id }
-
-            // Build a map of outgoing connections for each node
-            val outgoingConnections = flowGraph.connections.groupBy { it.sourceNode }
-
-            // Traverse the graph in execution order using BFS
-            val visited = mutableSetOf<String>()
-            val queue = ArrayDeque<String>()
-            queue.add(startNode.id)
-
-            while (queue.isNotEmpty()) {
-                val currentNodeId = queue.removeFirst()
-
-                if (currentNodeId in visited) continue
-                visited.add(currentNodeId)
-
-                val node = nodeMap[currentNodeId] ?: continue
-
-                // Generate code for this node
-                when (node.type) {
-                    "action" -> {
-                        if (node.actionClass != null) {
-                            val actionName = node.data.label.replace(" ".toRegex(), "")
-                            builder.appendLine("        // ${node.data.label}")
-                            builder.appendLine("        execute { +robot.${actionName}() }")
-                        }
-                    }
-                    "control" -> {
-                        builder.appendLine("        // Control flow: ${node.data.label}")
-                    }
-                    else -> {}
-                }
-
-                // Add connected nodes to the queue (in order of their connections)
-                outgoingConnections[currentNodeId]?.forEach { connection ->
-                    if (connection.targetNode !in visited) {
-                        queue.add(connection.targetNode)
-                    }
-                }
-            }
-
-            builder.appendLine()
-            builder.appendLine("        telemetry.addData(\"Status\", \"Complete\")")
-            builder.appendLine("        telemetry.update()")
-            builder.appendLine("    }")
-        }
-
-        // Close the class
-        if (opMode != null) {
-            builder.appendLine("}")
-        }
-
-        return builder.toString()
+        return visited
     }
 
-    // MARK: - Helper Classes
-
-    /** OpMode creation configuration */
-    data class OpModeCreationConfig(val name: String, val type: String, val robotType: String)
-
-    /** Validation result */
-    data class ValidationResult(val errors: List<String>, val warnings: List<String>) {
-        val isValid: Boolean
-            get() = errors.isEmpty()
+    private fun NanoHTTPD.IHTTPSession.getQueryParameter(name: String): String? {
+        return parameters[name]?.firstOrNull()?.takeIf { it.isNotBlank() }
     }
 }

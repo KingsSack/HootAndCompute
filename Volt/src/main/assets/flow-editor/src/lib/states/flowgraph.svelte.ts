@@ -1,22 +1,21 @@
 import { apiClient } from '$lib/services/api';
 import type {
-  FlowGraphConnection,
-  FlowGraph,
-  FlowGraphNode,
-  Position,
-  Data,
   ActiveConnection,
+  Connection,
+  FlowGraph,
+  Node,
   NodeType,
-  Parameter
+  Parameter,
+  Position
 } from '$lib/types';
 import { generateId } from '$lib/utils/id';
 
 class FlowGraphState {
-  nodes = $state<FlowGraphNode[]>([]);
-  connections = $state<FlowGraphConnection[]>([]);
+  nodes = $state<Node[]>([]);
+  connections = $state<Connection[]>([]);
 
-  selectedNode = $state<FlowGraphNode | null>(null);
-  selectedConnection = $state<FlowGraphConnection | null>(null);
+  selectedNode = $state<Node | null>(null);
+  selectedConnection = $state<Connection | null>(null);
 
   activeConnection = $state<ActiveConnection | null>(null);
 
@@ -38,51 +37,50 @@ class FlowGraphState {
 
   // === Node Management ===
 
-  async addNode(type: NodeType, label: string, position: Position, actionClass?: string) {
-    let initialData: Data;
-    if (type === 'action' && actionClass) {
-      const action = await apiClient.getActionDetails(actionClass);
+  async addNode(type: NodeType, label: string, position: Position, id: string) {
+    let newNode: Node;
+    if (type === 'Action') {
+      const action = await apiClient.getActionDetails(id);
 
       const parameters = action.parameters.reduce((acc: Parameter, p) => {
         acc[p.name] = p.defaultValue ?? '';
         return acc;
       }, {});
 
-      initialData = {
-        label: label,
-        parameters
-      };
-    } else if (type === 'button_trigger' || type === 'analog_trigger' || type === 'while_pressed') {
-      initialData = {
-        label: label,
-        parameters: {
-          trigger: ''
-        }
-      };
-    } else if (type === 'control') {
-      initialData = {
-        label: label,
-        parameters: {
-          duration: 0.0
+      newNode = {
+        id: generateId(),
+        label,
+        type,
+        actionId: id,
+        parameters: parameters,
+        position,
+        ports: {
+          inputs: [],
+          outputs: []
         }
       };
     } else {
-      initialData = {
-        label: label,
-        parameters: {}
+      const event = await apiClient.getEventDetails(id);
+
+      const parameters = event.parameters.reduce((acc: Parameter, p) => {
+        acc[p.name] = p.defaultValue ?? '';
+        return acc;
+      }, {});
+
+      newNode = {
+        id: generateId(),
+        label,
+        type,
+        eventId: id,
+        parameters: parameters,
+        position,
+        ports: {
+          inputs: [],
+          outputs: []
+        }
       };
     }
 
-    const newNode: FlowGraphNode = {
-      id: generateId(),
-      type,
-      position,
-      data: initialData,
-      ports: {
-        inputs: [],
-        outputs: []
-      }
-    };
     this.nodes.push(newNode);
     return newNode;
   }
@@ -92,9 +90,9 @@ class FlowGraphState {
     if (node) node.position = { x, y };
   }
 
-  updateNodeData(id: string, dataUpdates: Data) {
+  updateNodeParams(id: string, paramUpdates: Parameter) {
     const node = this.nodes.find((n) => n.id === id);
-    if (node) node.data = { ...node.data, ...dataUpdates };
+    if (node) node.parameters = { ...node.parameters, ...paramUpdates };
   }
 
   deleteNode(id: string) {
@@ -131,7 +129,7 @@ class FlowGraphState {
     );
     if (exists) return null;
 
-    const newConnection: FlowGraphConnection = {
+    const newConnection: Connection = {
       id: generateId(),
       sourceNode: sourceId,
       sourcePort: 'output_0',

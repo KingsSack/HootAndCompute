@@ -1,10 +1,10 @@
 <script lang="ts">
   import { editorState } from '$lib/states/editor.svelte';
   import { flowGraphState } from '$lib/states/flowgraph.svelte';
-  import type { FlowGraphConnection } from '$lib/types';
+  import type { Connection } from '$lib/types';
   import { calculateBezier, getPortPosition } from '$lib/utils/geometry';
 
-  function getConnectionPath(conn: FlowGraphConnection) {
+  function getConnectionPath(conn: Connection) {
     const sourceNode = flowGraphState.nodes.find((n) => n.id === conn.sourceNode);
     const targetNode = flowGraphState.nodes.find((n) => n.id === conn.targetNode);
     if (!sourceNode || !targetNode) return '';

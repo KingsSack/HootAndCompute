@@ -1,14 +1,21 @@
-import type { Viewport, RobotMetadata, OpModeMetadata, ActionMetadata } from '$lib/types';
 import { apiClient } from '$lib/services/api';
+import type {
+  ActionMetadata,
+  EventMetadata,
+  OpModeDefinition,
+  RobotMetadata,
+  Viewport
+} from '$lib/types';
 import { flowGraphState } from './flowgraph.svelte';
 import { sidebarState } from './sidebar.svelte';
 import { uiState } from './ui.svelte';
 
 class EditorState {
-  currentOpMode = $state<OpModeMetadata | null>(null);
-  availableOpModes = $state<OpModeMetadata[]>([]);
+  currentOpMode = $state<OpModeDefinition | null>(null);
+  availableOpModes = $state<OpModeDefinition[]>([]);
   availableRobots = $state<RobotMetadata[]>([]);
   availableActions = $state<ActionMetadata[]>([]);
+  availableEvents = $state<EventMetadata[]>([]);
 
   isLoading = $state(false);
   isGenerating = $state(false);
@@ -34,10 +41,19 @@ class EditorState {
     try {
       this.currentOpMode = await apiClient.getOpMode(id);
       if (this.currentOpMode.id) {
-        this.availableActions = await apiClient.getActions(this.currentOpMode.robotId);
+        const capabilities = await apiClient.getEditorCapabilities(
+          this.currentOpMode.type,
+          this.currentOpMode.robotId
+        );
+        this.availableActions = capabilities.actions;
+        this.availableEvents = capabilities.events;
       }
 
-      sidebarState.initSidebar(this.currentOpMode?.type, this.availableActions);
+      sidebarState.initSidebar(
+        this.currentOpMode?.type,
+        this.availableActions,
+        this.availableEvents
+      );
 
       flowGraphState.loadGraph(this.currentOpMode?.flowGraph);
     } catch (error) {
@@ -66,7 +82,11 @@ class EditorState {
 
     this.isGenerating = true;
     try {
-      this.generatedCode = await apiClient.generateCode(currentGraph);
+      if (!this.currentOpMode?.id) {
+        uiState.addToast('No OpMode selected', 'error');
+        return;
+      }
+      this.generatedCode = (await apiClient.generateCode(currentGraph, this.currentOpMode.id)).code;
       uiState.openCodeModal();
     } catch (error) {
       console.error('Code generation failed:', error);

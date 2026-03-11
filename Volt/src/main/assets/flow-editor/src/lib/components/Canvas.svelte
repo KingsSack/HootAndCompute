@@ -1,7 +1,7 @@
 <script lang="ts">
   import { editorState } from '$lib/states/editor.svelte';
   import { flowGraphState } from '$lib/states/flowgraph.svelte';
-  import type { FlowGraphNode, NodeTemplate, Position } from '$lib/types';
+  import type { Node, NodeTemplate, Position } from '$lib/types';
   import { getPortPosition, screenToCanvas } from '$lib/utils/geometry';
   import CanvasNode from './CanvasNode.svelte';
   import ConnectionsLayer from './ConnectionsLayer.svelte';
@@ -35,7 +35,7 @@
       const template: NodeTemplate = JSON.parse(data);
       const pos = screenToCanvas(e.clientX, e.clientY, canvasContainer, editorState.viewport);
 
-      flowGraphState.addNode(template.type, template.label, pos, template.actionClass);
+      flowGraphState.addNode(template.type, template.label, pos, template.id);
     }
   }
 
@@ -119,7 +119,7 @@
     flowGraphState.startDrag(id, pos.x - nodePos.x, pos.y - nodePos.y);
   }
 
-  function onPortDrag(node: FlowGraphNode, portType: 'input' | 'output', e: MouseEvent) {
+  function onPortDrag(node: Node, portType: 'input' | 'output', e: MouseEvent) {
     if (portType === 'input') {
       const existingConn = flowGraphState.connections.find((c) => c.sourceNode === node.id);
       if (existingConn) {

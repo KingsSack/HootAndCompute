@@ -1,16 +1,17 @@
 // === API Response Types ===
 
-export interface OpModeMetadata {
+export interface OpModeDefinition {
   id: string;
   name: string;
   type: OpModeType;
   robotId: string;
   flowGraph?: FlowGraph;
+  constructorParams: Parameter;
 }
 
 export interface RobotMetadata {
-  simpleName: string;
-  qualifiedName: string;
+  id: string;
+  name: string;
   actions: ActionMetadata[];
   constructorParams: ParameterMetadata[];
   typeSignature: string;
@@ -27,30 +28,41 @@ export interface ActionMetadata {
   accessPath: string;
 }
 
+export interface EventMetadata {
+  id: string;
+  name: string;
+  opModeType: OpModeType;
+  parameters: ParameterMetadata[];
+}
+
 export interface ParameterMetadata {
   name: string;
   type: string;
   defaultValue: string | null;
 }
 
+export interface Capabilities {
+  actions: ActionMetadata[];
+  events: EventMetadata[];
+}
+
 export interface FlowGraph {
-  nodes: FlowGraphNode[];
-  connections: FlowGraphConnection[];
+  nodes: Node[];
+  connections: Connection[];
 }
 
-export interface FlowGraphNode {
+export interface Node {
   id: string;
+  label: string;
   type: NodeType;
-  actionClass?: string;
+  actionId?: string;
+  eventId?: string;
+  parameters: Parameter;
   position: Position;
-  data: Data;
-  ports: {
-    inputs: string[];
-    outputs: string[];
-  };
+  ports: Ports;
 }
 
-export interface FlowGraphConnection {
+export interface Connection {
   id: string;
   sourceNode: string;
   sourcePort: string;
@@ -58,18 +70,22 @@ export interface FlowGraphConnection {
   targetPort: string;
 }
 
-// === UI Types ===
-
-export interface NodeCategory {
-  name: string;
-  nodes: NodeTemplate[];
+export interface Ports {
+  inputs: string[];
+  outputs: string[];
 }
 
+export interface GeneratedCode {
+  code: string;
+}
+
+// === UI Types ===
+
 export interface NodeTemplate {
-  type: NodeType;
+  id: string;
   label: string;
-  description: string;
-  actionClass?: string;
+  description?: string;
+  type: NodeType;
 }
 
 export interface Viewport {
@@ -93,25 +109,13 @@ export interface Toast {
 
 // === Other ===
 
-export type NodeType =
-  | 'start'
-  | 'end'
-  | 'action'
-  | 'control'
-  | 'button_trigger'
-  | 'analog_trigger'
-  | 'while_pressed';
-
 export type OpModeType = 'AutonomousMode' | 'ManualMode';
+
+export type NodeType = 'Action' | 'Event';
 
 export interface Position {
   x: number;
   y: number;
-}
-
-export interface Data {
-  label: string;
-  parameters: Parameter;
 }
 
 export type Parameter = Record<string, string | number | boolean>;
