@@ -73,7 +73,7 @@ class AIServer(port: Int = 8081) : NanoWSD(port) {
                     "type" to "result",
                     "action_id" to actionId,
                     "success" to result.success,
-                    "messages" to result.message,
+                    "message" to result.message,
                     "data" to result.data,
                 )
             send(gson.toJson(response))
