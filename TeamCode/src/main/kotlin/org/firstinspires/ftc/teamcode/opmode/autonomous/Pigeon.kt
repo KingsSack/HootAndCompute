@@ -9,8 +9,8 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Suppress("unused")
 @VoltOpModeMeta("Pigeon", "Competition", "Manatee")
-abstract class Pigeon :
-    MultiDualAutonomousMode<GabePP, StartingPosition>(StartingPosition::class.java) {
+class Pigeon :
+    MultiDualAutonomousMode<GabePP, StartingPosition>() {
 
     private val endPose: Pose = sw(when (type) {
         StartingPosition.WALL -> Pose(37.0, 9.0, 90.0.toRadians())

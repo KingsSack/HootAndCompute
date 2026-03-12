@@ -1,35 +1,16 @@
 package dev.kingssack.volt.opmode.autonomous
 
-import com.pedropathing.geometry.Pose
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import java.lang.reflect.ParameterizedType
 
-abstract class MultiDualAutonomousMode<R : Robot, E: Enum<*>>(val enumClass: Class<E>) : DualAutonomousMode<R>() {
+abstract class MultiDualAutonomousMode<R : Robot, E: Enum<*>>() : DualAutonomousMode<R>() {
     @Suppress("unused")
     object Register : Registrar() {
 
         override fun register(registrationHelper: VoltRegistrationHelper, clazz: Class<VoltOpMode<*>>) {
-            class Ro(hardwareMap: HardwareMap) : Robot(hardwareMap) {
-
-            }
-            registrationHelper.register( {
-                object : AutonomousMode<Ro>() {
-                    /** Define the autonomous sequence using DSL. */
-                    override fun sequence() {
-                        TODO("Not yet implemented")
-                    }
-
-                    override val robot: Ro
-                        get() = TODO("Not yet implemented")
-
-                }
-            }, OpModeMeta.Builder().setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setName("error: ${clazz.simpleName}").build())
             if (clazz.isAnnotationPresent(VoltOpModeMeta::class.java)) {
                 val annotation = clazz.getAnnotation(VoltOpModeMeta::class.java)
                 if (annotation != null) {

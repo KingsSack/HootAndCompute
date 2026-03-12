@@ -62,10 +62,6 @@ abstract class VoltOpMode<R : Robot> {
             h.register(meta, InternalOpMode { c.newInstance() } )
         }
         fun <R: Robot> register(c: () -> VoltOpMode<R>, meta: OpModeMeta) {
-            h.register(OpModeMeta.Builder().setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setName("testtesttest").build(), object : OpMode() {
-                override fun init() {}
-                override fun loop() {}
-            })
             h.register(meta, InternalOpMode(c))
         }
     }
@@ -84,16 +80,14 @@ abstract class VoltOpMode<R : Robot> {
                 if (VoltOpMode::class.java.isAssignableFrom(cls) && !Modifier.isAbstract(cls.modifiers)) {
                     var c = cls
                     while (c !== VoltOpMode::class.java) {
-                        val registrar = cls.fields.firstOrNull { Registrar::class.java.isAssignableFrom(it.type) && Modifier.isStatic(it.modifiers) }?.get(null) as? Registrar?
+                        val registrar = (c.declaredClasses.firstOrNull { Registrar::class.java.isAssignableFrom(it) && it.fields.any { it.name==="INSTANCE" } }?.getDeclaredField("INSTANCE")?.get(null)) as? Registrar?
                         if (registrar !== null) {
                             registrar.register(registrationHelper, cls as Class<VoltOpMode<*>>)
-                            throw Throwable(registrar.javaClass.simpleName)
-                            break
+                            return
                         }
                         c = c.superclass as Class<*>
                     }
                 }
-                // due to type erasure, casting is necessary here
             } catch (e : Throwable) {
                 VoltLogs.log("error registering opmodes: ${e.message.toString()}")
                 registrationHelper.register(OpModeMeta.Builder().setFlavor(OpModeMeta.Flavor.AUTONOMOUS).setName("error: $e").build(), object : OpMode() {
