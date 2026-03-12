@@ -1,8 +1,6 @@
 package dev.kingssack.volt.web
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import dev.kingssack.volt.service.MetadataService
 import fi.iki.elonen.NanoHTTPD
@@ -258,7 +256,9 @@ class FlowEditorApiHandler : WebHandler {
             // For now, just return the basic metadata
             // In a full implementation, we'd return detailed hardware configuration
             createJsonResponse(
-                gson.toJson(mapOf("name" to robot.simpleName, "qualifiedName" to robot.qualifiedName))
+                gson.toJson(
+                    mapOf("name" to robot.simpleName, "qualifiedName" to robot.qualifiedName)
+                )
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error getting robot", e)
@@ -533,10 +533,12 @@ class FlowEditorApiHandler : WebHandler {
                 }
             builder.appendLine(annotation)
             // Build the class declaration
-            var name = opMode.name.replace("-".toRegex(), "_").replace("^[A-z0-9_]".toRegex(), "")
-            if (name.substring(0, 1).matches("[0-9]".toRegex())) {
-                name = "_$name"
-            }
+            var name =
+                opMode.name.replace(Regex("[^A-Za-z0-9 ]"), "").split(" ").joinToString("") { word
+                    ->
+                    word.replaceFirstChar { it.uppercaseChar() }
+                }
+            if (name.first().isDigit()) name = "_$name"
             builder.appendLine(
                 "class $name : ${opMode.type}<${opMode.robotType}>({ hardwareMap -> ${opMode.robotType}(hardwareMap) }) {"
             )
