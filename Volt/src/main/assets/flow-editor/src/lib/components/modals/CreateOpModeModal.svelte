@@ -52,10 +52,10 @@
           <div class="grid grid-cols-2 gap-3">
             <button
               onclick={() => (newOpModeType = 'AutonomousMode')}
-              class="rounded-xl border-2 p-4 text-left transition-all"
-              class:classname={newOpModeType === 'AutonomousMode'
+              class="rounded-xl border-2 p-4 text-left transition-all
+              {newOpModeType === 'AutonomousMode'
                 ? 'border-indigo-500 bg-indigo-500/10'
-                : 'border-gray-700 hover:border-gray-600'}
+                : 'border-gray-700 hover:border-gray-600'}"
             >
               <div class="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-green-600">
                 <svg
@@ -77,8 +77,8 @@
             </button>
             <button
               onclick={() => (newOpModeType = 'ManualMode')}
-              class="rounded-xl border-2 p-4 text-left transition-all {newOpModeType ===
-              'ManualMode'
+              class="rounded-xl border-2 p-4 text-left transition-all
+              {newOpModeType === 'ManualMode'
                 ? 'border-indigo-500 bg-indigo-500/10'
                 : 'border-gray-700 hover:border-gray-600'}"
             >

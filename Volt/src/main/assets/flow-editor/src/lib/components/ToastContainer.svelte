@@ -11,10 +11,10 @@
         transition:fade
       >
         <div
-          class="flex h-8 w-8 items-center justify-center rounded-full"
-          class:classname={toast.type === 'success'
+          class="flex h-8 w-8 items-center justify-center rounded-full
+          {toast.type === 'success'
             ? 'bg-green-500/20 text-green-500'
-            : 'bg-red-500/20 text-red-500'}
+            : 'bg-red-500/20 text-red-500'}"
         >
           {#if toast.type === 'success'}
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
