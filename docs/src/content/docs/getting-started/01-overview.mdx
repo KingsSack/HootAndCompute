@@ -1,0 +1,59 @@
+---
+title: Overview
+description: Learn about Project Volt
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What is Volt?
+
+Volt is an open-source software library developed in Kotlin for FIRST Tech Challenge teams.
+It offers a new object-oriented approach to building modular and readable FTC software.
+
+<CardGrid stagger>
+    <Card title="Built on RoadRunner" icon="rocket">
+        Extends RoadRunner [Actions](../../concepts/01-actions) for a **modular and readable** codebase.
+    </Card>
+    <Card title="Unified Event System" icon="random">
+        Uses [Events](../../concepts/02-events) to trigger [Actions](../../concepts/01-actions) in **both** Autonomous **and** TeleOp [OpModes](../../guides/03-opmodes).
+    </Card>
+    <Card title="Modular Architecutre" icon="puzzle">
+        Structured around **three core concepts**: [OpModes](../../guides/03-opmodes), [Robots](../../guides/01-robots), and [Attachments](../../guides/02-attachments).
+    </Card>
+    <Card title="Visual Flow Editor" icon="laptop">
+        Includes a [Web UI](../../concepts/05-volt-flow-editor) for building Action flows with **zero coding knowledge** required.
+    </Card>
+</CardGrid>
+
+## Why should you use Volt?
+
+Volt adds structure and readability to your codebase, making it easier to develop quickly, collaborate, and debug.
+Volt allows you to write complex robot behaviors as highly readable, composable actions:
+
+```kotlin
+// A quick taste of Volt's Action DSL in Kotlin
+val scoreSample = voltAction {
+    +intake.grab()
+    +lift.toHighBasket()
+    wait(0.5)
+    +outtake.drop()
+    parallel {
+        +lift.toHome()
+        +drivetrain.path { lineTo(Pose(20.0, 20.0, 0.0) }
+    }
+}
+```
+
+## Kotlin vs Java
+
+Volt is built to be Kotlin-first. It takes advantage of **advanced Kotlin features** to improve readability and composability.
+Volt also works in Java, with increased complexity.
+
+## Prerequisites
+
+Before getting started with Volt, it is recommend that your team has basic familiarity with:
+
+- **Kotlin/Java**: Basic syntax and concepts
+- **FTC SDK**: Hardware configuration and programming
+- **RoadRunner/PedroPathing**: For advanced autonomous pathing and localization
+- **FTC Dashboard/Panels**: For live configuration and logging
