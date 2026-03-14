@@ -60,7 +60,7 @@ class CodeGenerator(
         imports.add("import ${robotMeta?.id ?: "dev.kingssack.volt.robot.Robot"}")
 
         val eventFamily = if (isManual) "ManualEvent" else "AutonomousEvent"
-        imports.add("import dev.kingssack.volt.util.event.Event.$eventFamily.*")
+        imports.add("import dev.kingssack.volt.util.Event.$eventFamily.*")
 
         if (isManual) {
             imports.add("import dev.kingssack.volt.util.buttons.AnalogInput")
