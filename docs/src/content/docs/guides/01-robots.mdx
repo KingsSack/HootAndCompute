@@ -5,20 +5,20 @@ description: Learn to create your first Robot with Volt.
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
-The `Robot` class is the heart of your robot's code. It serves as a centralized container for all your hardware devices and subsystems (attachments), providing a clean structure and powerful features to simplify your code.
+The `Robot` class is the heart of your robot's code. It serves as a centralized container
+for all your hardware devices and subsystems ([Attachments](../02-attachments)), providing a clean
+structure and powerful features to simplify your code.
 
-## Guide
-
-This guide will walk you through the process of setting up your own `Robot`.
+## Steps
 
 You should create a new `Robot` class for each type of physical robot you've built.
 
 ### 1. Create Your `Robot` Class
 
 First, create a new class that inherits from the abstract `Robot` class.
-This class requires a `HardwareMap` (from an OpMode) to be passed to its constructor.
+This class requires an FTC `HardwareMap` to be passed to its constructor.
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
@@ -71,7 +71,7 @@ Here are some of the available helper functions:
 - `colorSensor(name: String)` for `NormalizedColorSensor`
 - `analogInput(name: String)` for `AnalogInput`
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
@@ -100,10 +100,10 @@ import dev.kingssack.volt.robot.Robot;
 
 public class MyRobot extends Robot {
     // Motors
-    private DcMotor motor1;
+    private final DcMotor motor1;
 
     // Sensors
-    private IMU imu;
+    private final IMU imu;
 
     public MyRobot(hardwareMap: HardwareMap) {
         super(hardwareMap);
@@ -117,31 +117,27 @@ public class MyRobot extends Robot {
 
 </Tabs>
 
-### 3. Adding Attachments
+### 3. Adding [Attachments](../02-attachments)
 
 In Volt, subsystems like an intake mechanism, shooter,
-or arm are called `Attachment`s. The `Robot` class is designed to manage these attachments automatically.
+or arm are called [Attachments](../02-attachments). The `Robot` class is designed to manage these attachments automatically.
 
-To add an `Attachment`, simply declare it as a property within your `Robot` class.
-The base `Robot` class will automatically detect all properties of type `Attachment` and add them to a list,
-used to manage them.
+To add [Attachments](../02-attachments), use the provided `attachment` builder function.
 
 Let's add an attachment to control our `DcMotor`:
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
-```kotlin {8-9}
+```kotlin {6-7}
 class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
-    // Motor
     private val motor1 by motor("m1")
 
-    // Sensors
     private val imu by imu("imu")
 
     // Attachments
-    val exampleAttachment = DcMotorAttachment("Example", motor1, 0.5, 1000)
+    val exampleAttachment = attachment { DcMotorAttachment("Example", motor1, 0.5, 1000) }
 }
 ```
 
@@ -149,22 +145,28 @@ class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
 
 <TabItem label="Java">
 
-```java
+```java {6-7} {13-21}
 public class MyRobot extends Robot {
-    // Motors
-    private DcMotor motor1;
+    private final DcMotor motor1;
 
-    // Sensors
-    private IMU imu;
+    private final IMU imu;
 
     // Attachments
-    public DcMotorAttachment exampleAttachment;
+    public final DcMotorAttachment exampleAttachment;
 
     public MyRobot(hardwareMap: HardwareMap) {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
-        exampleAttachment = new DcMotorAttachment("Example", motor1, 0.5, 1000, 0, DcMotorSimple.Direction.FORWARD);
+        exampleAttachment = attachment(() -> new DcMotorAttachment(
+                    "Example",
+                    motor1,
+                    0.5,
+                    1000,
+                    0,
+                    DcMotorSimple.Direction.FORWARD
+            );
+        );
     }
 }
 ```
@@ -179,38 +181,36 @@ The `Robot` class manages its state through a `StateFlow` of type `RobotState`.
 This allows you to reactively observe the robot's status from your OpModes. The possible states are:
 
 - `Initializing`: The `Robot` has not finished initializing.
-- `Initialized`: The `Robot` has finished initializing, and all attachments have been discovered.
-- `Idle`: No attachments are busy.
-- `Running`: At least one attachment reports that it is busy.
+- `Initialized`: The `Robot` has finished initializing, and all [Attachments](../02-attachments) have been discovered.
+- `Idle`: No [Attachments](../02-attachments) are busy.
+- `Running`: At least one [Attachment](../02-attachments) reports that it is busy.
 - `Fault(val error: Throwable)`: An error has occurred.
 
 ### 5. The `update()` Method
 
-The `update()` method is called every tick while an OpMode is running.
+The `update()` method is called every tick while an [OpMode](../03-opmodes) is running.
 
-### 6. Adding `Action`s
+### 6. Adding [Actions](../../concepts/01-actions)
 
-The `Robot` class can also declare `Action`s. These can be complex sequences controlling your `Action`s or anything else.
+The `Robot` class can also declare [Actions](../../concepts/01-actions).
+These can be complex sequences controlling your [Actions](../../concepts/01-actions) or anything else.
 
 For example let's add a `score` sequence:
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
-```kotlin {11-15}
+```kotlin {8-12}
 class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
-    // Motor
     private val motor1 by motor("m1")
 
-    // Sensors
     private val imu by imu("imu")
 
-    // Attachments
-    val exampleAttachment = DcMotorAttachment("Example", motor1, 0.5, 1000)
+    val exampleAttachment = attachment { DcMotorAttachment("Example", motor1, 0.5, 1000) }
 
     // Actions
-    fun score() = voltAction(this) {
+    fun score() = voltAction {
         +motor1.goTo(0.6, 200)
         +motor1.goTo(0.5, 0)
     }
@@ -221,31 +221,39 @@ class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
 
 <TabItem label="Java">
 
-```java {18-25}
+```java {23-33}
 public class MyRobot extends Robot {
-    // Motors
-    private DcMotor motor1;
+    private final DcMotor motor1;
 
-    // Sensors
-    private IMU imu;
+    private final IMU imu;
 
-    // Attachments
-    public DcMotorAttachment exampleAttachment;
+    public final DcMotorAttachment exampleAttachment;
 
     public MyRobot(hardwareMap: HardwareMap) {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
-        exampleAttachment = new DcMotorAttachment("Example", motor1, 0.5, 1000, 0, DcMotorSimple.Direction.FORWARD);
+        exampleAttachment = attachment(() -> new DcMotorAttachment(
+                    "Example",
+                    motor1,
+                    0.5,
+                    1000,
+                    0,
+                    DcMotorSimple.Direction.FORWARD
+            );
+        );
     }
 
     // Actions
     public Action score() {
-        return VoltActionBuilderKt.voltAction(this, (VoltActionBuilder<? super Robot> builder) -> {
-            builder.unaryPlus(motor.goTo(0.6, 200));
-            builder.unaryPlus(motor.goTo(0.5, 0));
-            return kotlin.Unit.INSTANCE;
-        });
+        return VoltActionBuilderKt.voltAction(
+                this,
+                builder -> {
+                    builder.unaryPlus(motor.goTo(0.6, 200));
+                    builder.unaryPlus(motor.goTo(0.5, 0));
+                    return Unit.INSTANCE;
+                }
+        );
     }
 }
 ```
@@ -256,7 +264,7 @@ public class MyRobot extends Robot {
 
 ## Result
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
@@ -272,9 +280,9 @@ class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
     private val motor1 by motor("m1")
     private val imu by imu("imu")
 
-    val exampleAttachment = DcMotorAttachment("Example", motor1, 0.5, 1000)
+    val exampleAttachment = attachment { DcMotorAttachment("Example", motor1, 0.5, 1000) }
 
-    fun score() = voltAction(this) {
+    fun score() = voltAction {
         +motor1.goTo(0.6, 200)
         +motor1.goTo(0.5, 0)
     }
@@ -296,26 +304,39 @@ import dev.kingssack.volt.attachment.DcMotorAttachment;
 import dev.kingssack.volt.core.VoltActionBuilder;  
 import dev.kingssack.volt.core.VoltActionBuilderKt;  
 import dev.kingssack.volt.robot.Robot;
+import kotlin.Unit;
 
 public class MyRobot extends Robot {
-    private DcMotor motor1;
-    private IMU imu;
+    private final DcMotor motor1;
+    private final IMU imu;
 
-    public DcMotorAttachment exampleAttachment;
+    public final DcMotorAttachment exampleAttachment;
 
     public MyRobot(hardwareMap: HardwareMap) {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
-        exampleAttachment = new DcMotorAttachment("Example", motor1, 0.5, 1000, 0, DcMotorSimple.Direction.FORWARD);
+        exampleAttachment = attachment(() -> {
+            return new DcMotorAttachment(
+                    "Example",
+                    motor1,
+                    0.5,
+                    1000,
+                    0,
+                    DcMotorSimple.Direction.FORWARD
+            );
+        });
     }
 
     public Action score() {
-        return VoltActionBuilderKt.voltAction(this, (VoltActionBuilder<? super Robot> builder) -> {
-            builder.unaryPlus(motor.goTo(0.6, 200));
-            builder.unaryPlus(motor.goTo(0.5, 0));
-            return kotlin.Unit.INSTANCE;
-        });
+        return VoltActionBuilderKt.voltAction(
+                this,
+                builder -> {
+                    builder.unaryPlus(motor.goTo(0.6, 200));
+                    builder.unaryPlus(motor.goTo(0.5, 0));
+                    return Unit.INSTANCE;
+                }
+        );
     }
 }
 ```

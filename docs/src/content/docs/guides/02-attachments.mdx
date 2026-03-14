@@ -5,32 +5,44 @@ description: Learn to create your first Attachment with Volt.
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-An `Attachment` represents a distinct subsystem of your `Robot`, such as an intake, a claw, or an arm. The `Attachment` base class provides a powerful structure for managing state, creating `Action`s, and displaying telemetry, all of which are automatically handled by your `Robot` class.
+An `Attachment` represents a distinct subsystem of your [Robots](../01-robots), such as an intake, a claw, or an arm. The `Attachment` base class provides a powerful structure for managing state, creating [Actions](../../concepts/01-actions), and displaying telemetry, all of which are automatically handled by the `Robot` class.
 
-An `Attachment` can be shared by multiple `Robot`s.
+:::note
 
-## Guide
+[Attachments](../02-attachments) can be shared by multiple [Robots](../01-robots).
 
-This guide will walk you through the process of setting up your own `Attachment`.
+:::
 
-There should be one `Attachment` per "interaction" your `Robot` can perform.
+## Steps
 
-:::caution
+There should be one `Attachment` per physical attachment/subsystem your team has built.
+Ideally, it operates independently from your other subsystems.
+
+:::caution[Important]
 
 This page goes over creating your own `Attachment` from the abstract base class, which isn't always necessary.
 
-See [Built-In Attachments](../05-built-in-attachments) to learn more.
+See [Using Built-In Attachments](../05-built-in-attachments) to learn more.
 
 :::
 
 ### 1. Create Your `Attachment` Class
 
-First, create a new class that inherits `Attachment`.
-The constructor requires a `name` for the attachment, which is used as an identifier and for logging telemetry.
-This `name` should be unique for each `Attachment` you create.
-You should also pass in any hardware devices this subsystem will control.
+First, create a new class that inherits `Attachment`. The `Attachment` constructor
+requires a `name` for the attachment, which is used as an identifier and for 
+logging telemetry. This `name` should be unique for each `Attachment` you create.
 
-<Tabs>
+This class will need to recieve a reference to all the hardware it will control.
+ Examples of other hardware include:
+
+- `DcMotor`
+- `Servo`
+- `CRServo`
+- And more
+
+In this example, we'll create an `Attachment` called "Claw" controlling a `Servo` called `claw`:
+
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
@@ -52,7 +64,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import dev.kingssack.volt.attachment.Attachment;
 
 class Claw extends Attachment {
-    private Servo claw;
+    private final Servo claw;
 
     public Claw(Servo claw) {
         super("Claw");
@@ -69,15 +81,14 @@ class Claw extends Attachment {
 
 ### 2. The `update()` Method
 
-The `Robot` class automatically calls the `update()` method on every registered attachment during each tick of your OpMode.
+The `Robot` class automatically calls the `update()` method on every registered `Attachment` during each tick of your [OpMode](../03-opmodes).
 
-The base `Attachment` already implements `update()`  to add telemetry about the attachment's state
-(`Idle`, `Running`, or `Fault`).
-If you need continuous logic or custom telemetry, you can override this method.
+The base `Attachment` already implements `update()`  to add telemetry about the `Attachment`'s state
+(`Idle`, `Running`, or `Fault`). If you need continuous logic or custom telemetry, you can override this method.
 
 In this example, we'll log the claw's current position:
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
@@ -106,7 +117,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
 class Claw extends Attachment {
-    private Servo claw;
+    private final Servo claw;
 
     public Claw(Servo claw) {
         super("Claw");
@@ -114,7 +125,7 @@ class Claw extends Attachment {
     }
 
     @Override
-    public void update(Telemetry telemetry) {
+    public void update(@NotNull Telemetry telemetry) {
         super.update(telemetry);
         telemetry.addData("Position", claw.getPosition());
     }
@@ -127,7 +138,7 @@ class Claw extends Attachment {
 
 ### 3. State Management
 
-Every `Attachment` has a state, which is managed automatically when using `Action`s. The possible states are:
+Every `Attachment` has a state, which is managed automatically when using [Actions](../../concepts/01-actions). The possible states are:
 
 - `Idle`: The `Attachment` is not executing an `Action`.
 - `Running`: The `Attachment` is executing an `Action`.
@@ -150,17 +161,17 @@ The `action` builder creates an `Action` and automatically manages the attachmen
 
 The builder has three main parts:
 
-- `init { }`: This block runs **once** when the action begins. Use it for setup tasks, like setting a motor's target position of moving a servo.
-- `loop { }` This block runs **until it returns `true`**. The main logic of your `Action` goes here. Return `false` to continue the `Action`, or `true` to complete the  `Action`.
-- `cleanup { }`: This block runs **once** after the `loop` finishes or if an error occurs. Use it to reset hardware to a safe state, like turning off a motor.
+- `init`: This block runs **once** when the action begins. Use it for setup tasks, like setting a motor's target position of moving a servo.
+- `loop` This block runs **until it returns `true`**. The main logic of your `Action` goes here. Return `false` to continue the `Action`, or `true` to complete the  `Action`.
+- `cleanup`: This block runs **once** after the `loop` finishes or if an error occurs. Use it to reset hardware to a safe state, like turning off a motor.
 
 Let's create `open()` and `close()` `Action`s for the `Claw`:
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
-```kotlin {7-32}
+```kotlin {10-32}
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.Servo
 import dev.kingssack.volt.attachment.Attachment
@@ -206,10 +217,11 @@ class Claw(private val claw: Servo) : Attachment("Claw") {
 
 <TabItem label="Java">
 
-```java {8-9} {18-36}
+```java {9-10} {19-51}
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.Servo;
 import dev.kingssack.volt.attachment.Attachment;
+import kotlin.Unit;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
@@ -217,7 +229,7 @@ class Claw extends Attachment {
     private static final double OPEN_POSITION = 0.8;
     private static final double CLOSED_POSITION = 0.3;
 
-    private Servo claw;
+    private final Servo claw;
 
     public Claw(Servo claw) {
         super("Claw");
@@ -225,27 +237,41 @@ class Claw extends Attachment {
     }
 
     public Action open() {
-        return action(() -> {
-            requireReady(); // Require attachment to be idle
-        }, () -> {
-            claw.setPosition(OPEN_POSITION);
-            return true; // Return true because the action is complete
-        }, () -> {
+        return action(builder -> {
+            builder.init(() -> {
+                requireReady(); // Require attachment to be idle
+                return Unit.INSTANCE;
+            });
+            
+            builder.loop(packet -> {
+                claw.setPosition(OPEN_POSITION);
+                return true; // Return true because the action is complete
+            });
+            
             // No cleanup required
+
+            return Unit.INSTANCE;
         });
     }
 
     public Action close() {
-        return action(() -> {
-            requireReady();
-        }, () -> {
-            claw.setPosition(CLOSED_POSITION);
-            return true;
+        return action(builder -> {
+            builder.init(() -> {
+                requireReady();
+                return Unit.INSTANCE;
+            });
+            
+            builder.loop(packet -> {
+                claw.setPosition(CLOSED_POSITION);
+                return true;
+            });
+
+            return Unit.INSTANCE;
         });
     }
 
     @Override
-    public void update(Telemetry telemetry) {
+    public void update(@NotNull Telemetry telemetry) {
         super.update(telemetry);
         telemetry.addData("Position", claw.getPosition());
     }
@@ -256,15 +282,16 @@ class Claw extends Attachment {
 
 </Tabs>
 
-In this example, when the `Action` built by either `open()` or `close()` is executed,
+In this example, when the [Actions](../../concepts/01-actions) built by either `open()` or `close()` is executed,
 the attachment's state to `Running`, execute the logic, and then set the state back to `Idle` upon completion.
 
 ### 5. Using Attachments in Your Robot
 
 Once your `Attachment` is defined, you can instantiate it in your `Robot` class.
-The `Robot` will automatically discover it and handle `update()` method.
+Using the `attachment` builder method, the `Robot` will store it and automatically
+handle the `Attachment`'s `update()` method.
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
@@ -272,7 +299,7 @@ The `Robot` will automatically discover it and handle `update()` method.
 class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
     private val clawServo by servo("cs")
 
-    val claw = Claw(clawServo)
+    val claw = attachment { Claw(clawServo) }
 }
 ```
 
@@ -284,7 +311,7 @@ class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
 public class MyRobot extends Robot {
     private Servo clawServo;
     
-    public Claw claw;
+    public final Claw claw;
 
     public MyRobot(hardwareMap: HardwareMap) {
         super(hardwareMap);
@@ -300,7 +327,7 @@ public class MyRobot extends Robot {
 
 ## Result
 
-<Tabs>
+<Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
@@ -352,6 +379,7 @@ package org.firstinspires.ftc.teamcode.attachment;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.Servo;
 import dev.kingssack.volt.attachment.Attachment;
+import kotlin.Unit;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
@@ -359,7 +387,7 @@ class Claw extends Attachment {
     private static final double OPEN_POSITION = 0.8;
     private static final double CLOSED_POSITION = 0.3;
 
-    private Servo claw;
+    private final Servo claw;
 
     public Claw(Servo claw) {
         super("Claw");
@@ -367,25 +395,39 @@ class Claw extends Attachment {
     }
 
     public Action open() {
-        return action(() -> {
-            requireReady();
-        }, () -> {
-            claw.setPosition(OPEN_POSITION);
-            return true;
+        return action(builder -> {
+            builder.init(() -> {
+                requireReady();
+                return Unit.INSTANCE;
+            });
+
+            builder.loop(packet -> {
+                claw.setPosition(OPEN_POSITION);
+                return true;
+            });
+
+            return Unit.INSTANCE;
         });
     }
 
     public Action close() {
-        return action(() -> {
-            requireReady();
-        }, () -> {
-            claw.setPosition(CLOSED_POSITION);
-            return true;
+        return action(builder -> {
+            builder.init(() -> {
+                requireReady();
+                return Unit.INSTANCE;
+            });
+
+            builder.loop(packet -> {
+                claw.setPosition(CLOSED_POSITION);
+                return true;
+            });
+
+            return Unit.INSTANCE;
         });
     }
 
     @Override
-    public void update(Telemetry telemetry) {
+    public void update(@NotNull Telemetry telemetry) {
         super.update(telemetry);
         telemetry.addData("Position", claw.getPosition());
     }
