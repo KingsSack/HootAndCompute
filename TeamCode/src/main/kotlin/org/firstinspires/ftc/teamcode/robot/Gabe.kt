@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.*
+import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
@@ -85,6 +86,7 @@ abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override va
      *
      * @return an [Action] that fires the specified number of artifacts
      */
+    @VoltAction(name = "Fire Artifacts", description = "Fires a specified number of artifacts")
     fun fire(amount: Int) = voltAction {
         repeat(amount) {
             +launcher.enable()

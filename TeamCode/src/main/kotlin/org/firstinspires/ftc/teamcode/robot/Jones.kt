@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.*
+import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
@@ -141,6 +142,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
      *
      * @return an [Action] that fires all stored artifacts
      */
+    @VoltAction(name = "Fire All Artifacts", description = "Fires all the artifacts stored in the classifier")
     fun fireAllStoredArtifacts(targetVelocity: Double = launcherTargetVelocity) = voltAction {
         +launcher.enable(targetVelocity)
         +classifier.releaseAllArtifacts()

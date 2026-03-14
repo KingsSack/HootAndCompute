@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.util.WebHandlerManager
 import dev.frozenmilk.sinister.sdk.apphooks.WebHandlerRegistrar
 import dev.kingssack.volt.web.FlowEditorApiHandler
 import dev.kingssack.volt.web.StaticAssetHandler
-import dev.kingssack.volt.web.VoltWebServer
 import java.io.IOException
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 
@@ -27,10 +26,12 @@ class Volt {
 
                 // Register each API endpoint explicitly
                 Log.d(TAG, "Registering API handlers")
-                webHandlerManager.register("/volt/api/metadata", VoltWebServer.createMetadataHandler())
                 webHandlerManager.register("/volt/api/opmodes", apiHandler)
                 webHandlerManager.register("/volt/api/robots", apiHandler)
+                webHandlerManager.register("/volt/api/robots/actions", apiHandler)
+                webHandlerManager.register("/volt/api/editor-capabilities", apiHandler)
                 webHandlerManager.register("/volt/api/actions", apiHandler)
+                webHandlerManager.register("/volt/api/events", apiHandler)
                 webHandlerManager.register("/volt/api/validate", apiHandler)
                 webHandlerManager.register("/volt/api/generate", apiHandler)
 
