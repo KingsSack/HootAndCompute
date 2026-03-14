@@ -2,7 +2,7 @@ tasks.register('buildFlowEditor', Exec) {
     description = 'Build the Volt Flow Editor SvelteKit frontend'
     workingDir = file('src/main/assets/flow-editor')
 
-    commandLine 'sh', '-c', 'npm ci --ignore-scripts 2>/dev/null || npm install && npm run build'
+    commandLine 'sh', '-c', '(npm ci --ignore-scripts 2>/dev/null || npm install) && npm run build'
 
     inputs.dir('src/main/assets/flow-editor/src')
     inputs.file('src/main/assets/flow-editor/package.json')
