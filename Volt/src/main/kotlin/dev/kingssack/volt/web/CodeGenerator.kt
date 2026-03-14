@@ -159,7 +159,7 @@ class CodeGenerator(
             }
             "Threshold" -> {
                 val input = eventNode.parameters["input"] ?: "A1"
-                val min = eventNode.parameters["min"] ?: "0.3"
+                val min = eventNode.parameters["min"] ?: "0.3f"
                 "Threshold(AnalogInput.$input, $min)"
             }
             "Combo" -> {
