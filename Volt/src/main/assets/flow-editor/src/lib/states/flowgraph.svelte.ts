@@ -106,8 +106,8 @@ class FlowGraphState {
   }
 
   deleteSelectedNode() {
-    this.nodes = this.nodes.filter((n) => n.id !== this.selectedNode?.id);
-    this.clearSelection();
+    if (!this.selectedNode) return;
+    this.deleteNode(this.selectedNode.id);
   }
 
   startDrag(id: string, offsetX: number, offsetY: number) {
