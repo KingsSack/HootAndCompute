@@ -63,13 +63,13 @@ class ExampleRobot(
 
 ```java
 public class ExampleRobot extends RobotWithMecanumDrivetrain<MecanumDriveWithRR> {
-    public ExampleRobot(hardwareMap: HardwareMap) {
-        super(hardwareMap, MecanumDriveWithRR(hardwareMap));
+    public ExampleRobot(HardwareMap hardwareMap) {
+        super(hardwareMap, new MecanumDriveWithRR(hardwareMap));
     }
     
     public Action driveForwardAction() {
         return drivetrain.trajectory(builder -> {
-            builder.strafeTo(Vector2d(24.0, 0.0));
+            builder.strafeTo(new Vector2d(24.0, 0.0));
             return Unit.INSTANCE;
         });
     }
@@ -132,8 +132,8 @@ class ExampleRobot(
 
 ```java
 public class ExampleRobot extends RobotWithMecanumDrivetrain<MecanumDriveWithPP> {
-    public ExampleRobot(hardwareMap: HardwareMap) {
-        super(hardwareMap, MecanumDriveWithPP(
+    public ExampleRobot(HardwareMap hardwareMap) {
+        super(hardwareMap, new MecanumDriveWithPP(
                 hardwareMap,
                 FollowerConstants(),
                 DriveEncoderConstants(),
@@ -144,7 +144,7 @@ public class ExampleRobot extends RobotWithMecanumDrivetrain<MecanumDriveWithPP>
     
     public Action driveAction() {
         return drivetrain.path(builder -> {
-            builder.lineTo(Pose(24.0, 0.0, 0.0));
+            builder.lineTo(new Pose(24.0, 0.0, 0.0));
             return Unit.INSTANCE;
         });
     }
@@ -193,7 +193,7 @@ public class ExampleDrivetrain extends Drivetrain {
     public DcMotorEx rightBack;
     public DcMotorEx rightFront;
     
-    public ExampleDrivetrain(hardwareMap: HardwareMap) {
+    public ExampleDrivetrain(HardwareMap hardwareMap) {
         super();
         leftFront = hardwareMap.get(DcMotorEx.class, "lf");
         leftBack = hardwareMap.get(DcMotorEx.class, "lr");
