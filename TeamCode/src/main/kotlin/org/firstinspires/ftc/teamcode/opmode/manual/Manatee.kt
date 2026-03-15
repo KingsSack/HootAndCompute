@@ -7,14 +7,13 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.GamepadButton
-import org.firstinspires.ftc.teamcode.robot.Gabe
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 @Suppress("unused")
 @VoltOpModeMeta("Manatee", "Competition")
-class Manatee :
+class Manatee() :
     SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
     override val robot: GabePP = GabePP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
 

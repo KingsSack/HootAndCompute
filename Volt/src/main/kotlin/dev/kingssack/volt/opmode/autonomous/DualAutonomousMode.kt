@@ -29,7 +29,7 @@ abstract class DualAutonomousMode<R : Robot> : AutonomousMode<R>() {
         }
     }
     open val color: AllianceColor = ColorHolder.color!!
-    private object ColorHolder {
+    object ColorHolder {
         var color: AllianceColor? = null
     }
     /**

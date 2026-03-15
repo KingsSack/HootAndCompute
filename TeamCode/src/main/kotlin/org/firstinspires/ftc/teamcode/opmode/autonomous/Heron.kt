@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.robot.JonesPP
 import org.firstinspires.ftc.teamcode.util.toRadians
 @Suppress("Unused")
 @VoltOpModeMeta("Heron", "Competition", "Seahorse")
-class Heron :
+class Heron() :
     DualAutonomousMode<Jones<MecanumDriveWithPP>>() {
     private val initialPose = sw(Pose(63.875, 8.0, 90.0.toRadians()))
     override val robot: Jones<MecanumDriveWithPP> = JonesPP(hardwareMap, initialPose)

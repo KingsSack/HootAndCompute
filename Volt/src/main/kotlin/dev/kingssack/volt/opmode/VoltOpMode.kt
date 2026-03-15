@@ -14,8 +14,11 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import java.lang.reflect.Modifier
 import java.lang.reflect.Constructor
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import java.lang.reflect.InvocationTargetException
+import kotlin.reflect.jvm.javaType
+import kotlin.reflect.jvm.reflect
 
-abstract class VoltOpMode<R : Robot> {
+abstract class VoltOpMode<R : Robot>() {
     protected abstract val robot: R
     val hardwareMap: HardwareMap = OpModeInfoHolder.hardwareMap!!
     val telemetry : Telemetry = OpModeInfoHolder.telemetry!!
@@ -44,6 +47,7 @@ abstract class VoltOpMode<R : Robot> {
     class VoltRegistrationHelper(val h: RegistrationHelper) {
         private class InternalOpMode <R: Robot>(val opModeBuilder: () -> VoltOpMode<R>) : LinearOpMode() {
             override fun runOpMode() {
+                telemetry.update()
                 VoltOpModeWrapper.initializeOpMode()
                 OpModeInfoHolder.blackboard = blackboard
                 OpModeInfoHolder.telemetry = telemetry
@@ -56,13 +60,29 @@ abstract class VoltOpMode<R : Robot> {
                 VoltOpModeWrapper.postInitializeOpMode(opMode, opMode.robot, opMode.javaClass)
                 waitForStart()
                 opMode.begin()
+
             }
         }
         fun register(c: Constructor<VoltOpMode<*>>, meta: OpModeMeta) {
-            h.register(meta, InternalOpMode { c.newInstance() } )
+            h.register(meta, InternalOpMode {
+                // works
+                try {
+                    c.newInstance()
+                } catch (e: InvocationTargetException) {
+
+                    // always catch InvocationTargetExceptions. they will crash the robot otherwise
+                    throw e.cause!!
+                }} )
         }
         fun <R: Robot> register(c: () -> VoltOpMode<R>, meta: OpModeMeta) {
-            h.register(meta, InternalOpMode(c))
+            h.register(meta, InternalOpMode({
+                try {
+                    c()
+                } catch (e: InvocationTargetException) {
+                    // always catch InvocationTargetExceptions. they will crash the robot otherwise
+                    throw e.cause!!
+                }
+            }))
         }
     }
     abstract class Registrar {

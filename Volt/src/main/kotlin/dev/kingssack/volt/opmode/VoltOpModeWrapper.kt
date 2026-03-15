@@ -31,7 +31,7 @@ object VoltOpModeWrapper {
         state = OpModeState.INITIALIZING
     }
     fun <R: Robot, O: VoltOpMode<R>> postInitializeOpMode(opMode: O, robot: R, clazz: Class<O>) {
-        currentOpMode = ActiveOpMode(opMode, robot, clazz)
+        currentOpMode = ActiveOpMode(opMode, robot, clazz);
         isActive = true
             postInitListeners.forEach {
                 try {

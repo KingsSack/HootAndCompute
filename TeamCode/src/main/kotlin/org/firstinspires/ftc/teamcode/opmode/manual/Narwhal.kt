@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.robot.GabePP
 
 @Suppress("unused")
 @VoltOpModeMeta("Narwhal")
-class Narwhal : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
+class Narwhal() : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
     override val robot: GabePP = GabePP(hardwareMap)
 
     init {

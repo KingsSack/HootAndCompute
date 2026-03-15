@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Suppress("unused")
 @VoltOpModeMeta("Finch", OpModeMeta.DefaultGroup, "Manatee")
-class Finch :
+class Finch() :
     MultiDualAutonomousMode<GabePP, FinchStartingPosition>() {
     override val robot: GabePP = GabePP(hardwareMap, sw(if (type == FinchStartingPosition.WALL) Pose(56.0, 9.0, 90.0.toRadians()) else Pose(26.0, 133.0, 142.0.toRadians())))
     private var launchPose: Pose = sw(when (type) {

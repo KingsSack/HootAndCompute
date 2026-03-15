@@ -10,7 +10,7 @@ import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.rr.TestRobot
 
 @VoltOpModeMeta("Prototype", "Prototype")
-class Prototype : ManualMode<Robot>() {
+class Prototype() : ManualMode<Robot>() {
     override val robot: Robot = TestRobot(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0))
 
     init {

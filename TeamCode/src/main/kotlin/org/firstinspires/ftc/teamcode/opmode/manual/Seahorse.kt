@@ -15,7 +15,7 @@ import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 @Suppress("unused")
 @VoltOpModeMeta("Seahorse", "Competition")
-class Seahorse :
+class Seahorse() :
     SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
     override val robot: JonesPP = JonesPP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
     var targetVelocity = Jones.launcherTargetVelocity

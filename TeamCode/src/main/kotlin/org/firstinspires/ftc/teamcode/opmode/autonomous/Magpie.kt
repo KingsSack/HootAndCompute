@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Suppress("unused")
 @VoltOpModeMeta("Magpie", "Competition", "Seahorse")
-class Magpie :
+class Magpie() :
     DualAutonomousMode<JonesPP>() {
     override val robot: JonesPP = JonesPP(hardwareMap, Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians()).mirror())
     private val finalPose: Pose = sw(Pose(56.0, 36.0, 115.0.toRadians()))

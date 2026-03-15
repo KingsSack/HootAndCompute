@@ -28,16 +28,14 @@ abstract class MultiDualAutonomousMode<R : Robot, E: Enum<*>>() : DualAutonomous
             }
         }
         fun <R : Robot, E: Enum<*>> instantiateOpMode(value: E, clazz: Class<VoltOpMode<*>>, color: AllianceColor) : MultiDualAutonomousMode<R, E> {
-            InfoHolder.color = color
+            ColorHolder.color = color
             InfoHolder.type = value
             return (clazz as Class<MultiDualAutonomousMode<R, E>>).getDeclaredConstructor().newInstance()
         }
     }
     private object InfoHolder {
-        var color: AllianceColor? = null
         var type: Enum<*>? = null
     }
-    override val color: AllianceColor = InfoHolder.color!!
 
     val type: E = InfoHolder.type as E
 }

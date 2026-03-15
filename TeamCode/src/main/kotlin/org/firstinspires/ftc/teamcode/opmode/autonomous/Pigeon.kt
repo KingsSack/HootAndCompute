@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @Suppress("unused")
 @VoltOpModeMeta("Pigeon", "Competition", "Manatee")
-class Pigeon :
+class Pigeon() :
     MultiDualAutonomousMode<GabePP, StartingPosition>() {
 
     private val endPose: Pose = sw(when (type) {
