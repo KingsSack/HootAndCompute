@@ -6,9 +6,9 @@ title: What are Actions
 
 > Actions help you define simple behaviors that are easy to combine into large routines.
 
-## Actions in [Volt](../../api/Volt)
+## Actions in Volt
 
-Actions encapsulate all logic that controls your robot. They can be found in three main places:
+Actions encapsulate all logic that controls your [Robot](../../guides/01-robots). They can be found in three main places:
 
 - [Attachments](../../guides/02-attachments)
 - [Robots](../../guides/01-robots)
@@ -52,3 +52,8 @@ fun rampUp(target: Double = targetVelocity): Action = voltAction {
     +enable(target) // After reaching 1/2 of target, enables at target
 }
 ```
+
+## Next Steps
+
+- [Learn how to trigger Actions with Events](../02-events)
+- [Learn more about the VoltActionBuilder](../03-volt-action-builder)
