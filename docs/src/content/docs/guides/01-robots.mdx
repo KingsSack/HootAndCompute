@@ -93,7 +93,7 @@ Let's add a `DcMotor` and an `IMU`:
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 
-class MyRobot(HardwareMap hardwareMap) : Robot(hardwareMap) {
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
     // Motors
     private val motor1 by motor("m1")
 
