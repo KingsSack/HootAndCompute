@@ -26,6 +26,13 @@ See [Using Built-In Attachments](../05-built-in-attachments) to learn more.
 
 :::
 
+:::tip[Prerequisites]
+
+This guide assumes you've [created a Robot class](../01-robots) and understand 
+[Actions](../../concepts/01-actions).
+
+:::
+
 ### 1. Create Your `Attachment` Class
 
 First, create a new class that inherits `Attachment`. The `Attachment` constructor
@@ -313,7 +320,7 @@ public class MyRobot extends Robot {
     
     public final Claw claw;
 
-    public MyRobot(hardwareMap: HardwareMap) {
+    public MyRobot(HardwareMap hardwareMap) {
         super(hardwareMap);
         clawServo = hardwareMap.get(Servo.class, "cs");
         claw = new Claw(clawServo);

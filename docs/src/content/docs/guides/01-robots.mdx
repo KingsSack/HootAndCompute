@@ -13,6 +13,12 @@ structure and powerful features to simplify your code.
 
 You should create a new `Robot` class for each type of physical robot you've built.
 
+:::tip[Prerequisites]
+
+This guide assumes you've successfully [installed Volt](../../getting-started/02-installation).
+
+:::
+
 ### 1. Create Your `Robot` Class
 
 First, create a new class that inherits from the abstract `Robot` class.
@@ -42,7 +48,7 @@ import dev.kingssack.volt.robot.Robot;
 public class MyRobot extends Robot {
     // Your hardware and attachments will be defined here
 
-    public MyRobot(hardwareMap: HardwareMap) {
+    public MyRobot(HardwareMap hardwareMap) {
         super(hardwareMap);
     }
 }
@@ -60,7 +66,7 @@ Instead of calling `hardwareMap.get()` for every device, you can use the helper 
 To define a device, use the `by` keyword followed by the appropriate helper function,
 passing the device name as configured in your robot's hardware configuration.
 
-Here are some of the available helper functions:
+Here are some of the available [Hardware Property Delegates](../../reference/hardware-delegates):
 
 - `motor(name: String)` for `DcMotor`
 - `servo(name: String)` for `Servo`
@@ -71,6 +77,14 @@ Here are some of the available helper functions:
 - `colorSensor(name: String)` for `NormalizedColorSensor`
 - `analogInput(name: String)` for `AnalogInput`
 
+:::note
+
+See a list of all the available helper functions [here](../../reference/hardware-delegates)
+
+:::
+
+Let's add a `DcMotor` and an `IMU`:
+
 <Tabs syncKey="language">
 
 <TabItem label="Kotlin">
@@ -79,7 +93,7 @@ Here are some of the available helper functions:
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.robot.Robot
 
-class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+class MyRobot(HardwareMap hardwareMap) : Robot(hardwareMap) {
     // Motors
     private val motor1 by motor("m1")
 
@@ -105,7 +119,7 @@ public class MyRobot extends Robot {
     // Sensors
     private final IMU imu;
 
-    public MyRobot(hardwareMap: HardwareMap) {
+    public MyRobot(HardwareMap hardwareMap) {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
@@ -154,7 +168,7 @@ public class MyRobot extends Robot {
     // Attachments
     public final DcMotorAttachment exampleAttachment;
 
-    public MyRobot(hardwareMap: HardwareMap) {
+    public MyRobot(HardwareMap hardwareMap) {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
@@ -192,7 +206,7 @@ The `update()` method is called every tick while an [OpMode](../03-opmodes) is r
 
 ### 6. Adding [Actions](../../concepts/01-actions)
 
-The `Robot` class can also declare [Actions](../../concepts/01-actions).
+The `Robot` class can also declare [Actions](../../concepts/01-actions) using the [VoltActionBuilder](../../concepts/03-volt-action-builder).
 These can be complex sequences controlling your [Actions](../../concepts/01-actions) or anything else.
 
 For example let's add a `score` sequence:
@@ -229,7 +243,7 @@ public class MyRobot extends Robot {
 
     public final DcMotorAttachment exampleAttachment;
 
-    public MyRobot(hardwareMap: HardwareMap) {
+    public MyRobot(HardwareMap hardwareMap) {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
@@ -312,7 +326,7 @@ public class MyRobot extends Robot {
 
     public final DcMotorAttachment exampleAttachment;
 
-    public MyRobot(hardwareMap: HardwareMap) {
+    public MyRobot(HardwareMap hardwareMap) {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");

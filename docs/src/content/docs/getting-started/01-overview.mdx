@@ -17,7 +17,7 @@ It offers a new object-oriented approach to building modular and readable FTC so
     <Card title="Unified Event System" icon="random">
         Uses [Events](../../concepts/02-events) to trigger [Actions](../../concepts/01-actions) in **both** Autonomous **and** TeleOp [OpModes](../../guides/03-opmodes).
     </Card>
-    <Card title="Modular Architecutre" icon="puzzle">
+    <Card title="Modular Architecture" icon="puzzle">
         Structured around **three core concepts**: [OpModes](../../guides/03-opmodes), [Robots](../../guides/01-robots), and [Attachments](../../guides/02-attachments).
     </Card>
     <Card title="Visual Flow Editor" icon="laptop">
@@ -39,19 +39,19 @@ val scoreSample = voltAction {
     +outtake.drop()
     parallel {
         +lift.toHome()
-        +drivetrain.path { lineTo(Pose(20.0, 20.0, 0.0) }
+        +drivetrain.path { lineTo(Pose(20.0, 20.0, 0.0)) }
     }
 }
 ```
 
 ## Kotlin vs Java
 
-Volt is built to be Kotlin-first. It takes advantage of **advanced Kotlin features** to improve readability and composability.
+Volt is built to be Kotlin-first. It takes advantage of advanced Kotlin features to **improve readability and composability**.
 Volt also works in Java, with increased complexity.
 
 ## Prerequisites
 
-Before getting started with Volt, it is recommend that your team has basic familiarity with:
+Before getting started with Volt, it is recommend that your team is familiar with:
 
 - **Kotlin/Java**: Basic syntax and concepts
 - **FTC SDK**: Hardware configuration and programming

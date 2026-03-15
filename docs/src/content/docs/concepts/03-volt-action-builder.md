@@ -2,9 +2,14 @@
 title: Volt Action Builder
 ---
 
+> [Actions](../01-actions) are the core execution primitive in Volt — reusable units of robot behavior 
+> with init, loop, and cleanup stages. They originate from 
+> [RoadRunner](https://rr.brott.dev/) and are extended by Volt with tracing and 
+> composition.
+
 `VoltActionBuilder` is the DSL class for composing [Actions](../01-actions) into sequences with timing, parallelism, and control flow.
-It is used by the `then` function in [AutonomousModes](../../guide/04-autonomous-mode) and [ManualModes](../../guide/05-manual-mode)
-and the `voltAction` function in other classes (usually [Robots](../../guide/01-robots)).
+It is used by the `then` function in [AutonomousModes](../../guides/04-autonomous-mode) and [ManualModes](../../guides/05-manual-mode)
+and the `voltAction` function in other classes (usually [Robots](../../guides/01-robots)).
 
 The builder collects actions into a list and produces a single `SequentialAction` when built.
 
@@ -20,7 +25,7 @@ Every action added is automatically wrapped in a `TracedAction` for telemetry. S
 
 Enqueues [Actions](../01-actions) into the current sequence. [Actions](../01-actions) run in the order they are added:
 
-```kotlin
+```kotlin "+"
 +claw.open()
 +claw.close()
 ```
@@ -29,7 +34,7 @@ Enqueues [Actions](../01-actions) into the current sequence. [Actions](../01-act
 
 Inserts a time delay between actions. The argument is in seconds:
 
-```kotlin
+```kotlin {2}
 +claw.open()
 wait(0.5)
 +claw.close()
@@ -39,7 +44,7 @@ wait(0.5)
 
 Runs all child actions simultaneously. The block completes when every child has finished:
 
-```kotlin
+```kotlin {1-4}
 parallel {
     +drivetrain.path { lineTo(launchPose) }
     +launcher.enable()
@@ -52,7 +57,7 @@ parallel {
 
 Runs child actions one after another. This is the explicit form of what the top-level builder does implicitly. It can be used to create a sequential action inside a `parallel` block:
 
-```kotlin
+```kotlin {3-7}
 parallel {
     +drivetrain.path { lineTo(pose) }
     sequence {
@@ -67,7 +72,7 @@ parallel {
 
 Executes a block of code immediately as a one-shot action. Use it for state mutations, telemetry updates, or any synchronous side effect that does not need a loop:
 
-```kotlin
+```kotlin {1}
 instant { targetVelocity = 1500.0 }
 +launcher.enable(targetVelocity)
 ```
@@ -87,7 +92,7 @@ Two actions run back to back:
 
 Insert delays between actions:
 
-```kotlin
+```kotlin {2} {4}
 +claw.open()
 wait(0.5)
 +arm.lower()
@@ -144,7 +149,7 @@ repeat(amount) {
 
 ## `voltAction` Function
 
-While `VoltActionBuilder` is used internally by [Event](../02-events) bindings, you can also use it directly in [Robot](../../guides/01-robots) subclasses to compose attachment actions into higher-level behaviors. The `voltAction` function is the entry point for this:
+While `VoltActionBuilder` is used internally by [Event](../02-events) bindings, you can also use it directly in [Robot](../../guides/01-robots) subclasses to compose [Actions](../01-actions) from [Attachments](../../guides/02-attachments) into higher-level behaviors. The `voltAction` function is the entry point for this:
 
 ```kotlin
 fun fireAllStoredArtifacts(targetVelocity: Double) = voltAction {
@@ -154,17 +159,4 @@ fun fireAllStoredArtifacts(targetVelocity: Double) = voltAction {
 }
 ```
 
-`voltAction` uses Kotlin's `context(robot: R)` parameter, so it has implicit access to the robot instance. It returns a standard RoadRunner `Action` that can itself be enqueued with `+` inside other builders or bound to events:
-
-```kotlin
-fun fire(amount: Int) = voltAction {
-    repeat(amount) {
-        +launcher.enable()
-        +storage.release()
-        wait(0.6)
-        +storage.close()
-        wait(0.4)
-    }
-    +launcher.disable()
-}
-```
+`voltAction` returns a standard RoadRunner `Action` that can itself be enqueued with `+` inside other builders or bound to events.

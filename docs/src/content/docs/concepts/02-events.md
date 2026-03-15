@@ -14,7 +14,6 @@ Events are defined inside the `defineEvents()` method of your [OpMode](../../gui
 Event
 ├── AutonomousEvent
 │   └── Start
-│
 └── ManualEvent
     ├── ButtonEvent
     │   ├── Tap

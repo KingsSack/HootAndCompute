@@ -2,7 +2,19 @@
 title: Action Tracing
 ---
 
+> [Actions](../01-actions) are the core execution primitive in Volt — reusable units of robot behavior 
+> with init, loop, and cleanup stages. They originate from 
+> [RoadRunner](https://rr.brott.dev/) and are extended by Volt with tracing and 
+> composition.
+
 By default, Volt traces all [Actions](../01-actions) added to a [VoltActionBuilder](../03-volt-action-builder). These traces are helpful when debugging and analyzing action flows.
+
+```kotlin
+Start then {
+    +robot.drivetrain.path { lineTo(endPose) } // Action is traced as "Action"
+    instant { blackboard["endPose"] = robot.drivetrain.pose } // Action is traced as "Instant"
+}
+```
 
 ## `TracedAction`
 
@@ -22,7 +34,7 @@ The `ActionTracer` handles all `TracedAction`s. It has methods to mark [Actions]
 
 ### Running Action Telemetry
 
-The `ActionTracer`'s `writeTelemetry` method displays all running [Actions](../01-actions) and their elapsed time in miliseconds.
+The `ActionTracer`'s `writeTelemetry` method displays all running [Actions](../01-actions) and their elapsed time in milliseconds.
 
 An output might look like this:
 
