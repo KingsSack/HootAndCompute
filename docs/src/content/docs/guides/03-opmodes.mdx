@@ -1,0 +1,49 @@
+---
+title: Volt OpModes
+description: Learn about developing OpModes with Volt
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+OpModes in Volt are built on top of the `VoltOpMode` base class.
+
+There are two main types of `VoltOpMode`: [AutonomousModes](../04-autonomous-mode) and [ManualModes](../05-manual-mode).
+
+The purpose of a `VoltOpMode` is to determine when to trigger [Actions](../../concepts/01-actions).
+This goal is accomplished using [Events](../../concepts/02-events).
+
+## Defining [Events](../../concepts/02-events)
+
+In both [AutonomousModes](../04-autonomous-mode) and [ManualModes](../05-manual-mode)
+[Events](../../concepts/02-events) are defined using the `then` method:
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+Event then { /* Build an Action */ }
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+then(Event, builder -> { /* Build an Action */ });
+```
+
+</TabItem>
+
+</Tabs>
+
+The `then` method pairs [Events](../../concepts/02-events) with a [VoltActionBuilder](../../concepts/03-volt-action-builder).
+In this builder, you can build simple or complex sequences of [Actions](../../concepts/01-actions)
+from the ones defined in your [Attachments](../02-attachments) and [Robots](../01-robots).
+
+## Next Steps
+
+- [Create an AutonomousMode](../04-autonomous-mode) to control your [Robot](../01-robots) autonomously
+- [Create a ManualMode](../05-manual-mode) to control your [Robot](../01-robots) with gamepads
+- [Learn more about Events](../../concepts/02-events)
+- [Learn more about the VoltActionBuilder](../../concepts/03-volt-action-builder)

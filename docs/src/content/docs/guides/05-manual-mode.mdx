@@ -1,0 +1,261 @@
+---
+title: Creating your first Manual Mode
+description: Learn to create your first Manual Mode with Volt.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+A `ManualMode` is a `VoltOpMode` that allows you to perform actions using gamepads.
+
+## Steps
+
+:::tip[Prerequisites]
+
+This guide assumes you've [created a Robot class](../01-robots), [created an Attachment class](../02-attachments), [learned about the structure of Volt OpModes](../03-opmodes), and understand 
+[Actions](../../concepts/01-actions).
+
+:::
+
+### 1. Create Your `ManualMode` Class
+
+First, create a new class that inherits `ManualMode`.
+The constructor requires a `robotFactory`, which is used to create your `Robot` instance.
+Use a lambda function to provide the `robotFactory`.
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+import dev.kingssack.volt.opmode.manual.ManualMode
+
+class ExampleTeleOp : ManualMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        // Your events will go here
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+import dev.kingssack.volt.opmode.manual.ManualMode;
+
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new, new ManualParams());
+    }
+
+    @Override
+    public void defineEvents() {
+        // Your events will go here
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+### 2. Define Events
+
+By default `ManualModes`s support seven [Events](../../concepts/02-events):
+
+- `Tap(button: Button)`
+- `Release(button: Button)`
+- `Hold(button: Button, durationMs: Double)`
+- `DoubleTap(button: Button)`
+- `Change(analogInput: AnalogInput)`
+- `Threshold(analogInput: AnalogInput, min: Float)`
+- `Combo(buttons: Set<Button>)`
+
+Let's make releasing the "A" button on gamepad one score, releasing the "A" button on gamepad two open the claw, and
+releasing the "B" button on gamepad two close the claw.
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin {7-9}
+import dev.kingssack.volt.opmode.manual.ManualMode
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.Button
+
+class ExampleTeleOp : ManualMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        Release(Button.A1) then { +robot.score() }
+        Release(Button.A2) then { +robot.claw.open() }
+        Release(Button.B2) then { +robot.claw.close() }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {10-21}
+import dev.kingssack.volt.opmode.manual.ManualMode;
+import dev.kingssack.volt.util.Event.ManualEvent.*;
+import dev.kingssack.volt.util.Button;
+import kotlin.Unit;
+
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new, new ManualParams());
+
+        then(new Release(Button.A1), builder -> {
+            builder.unaryPlus(robot.score());
+            return Unit.INSTANCE;
+        });
+        then(new Release(Button.A2), builder -> {
+            builder.unaryPlus(robot.getClaw().open());
+            return Unit.INSTANCE;
+        });
+        then(new Release(Button.B2), builder -> {
+            builder.unaryPlus(robot.getClaw().close());
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+### 3. Make it an OpMode
+
+Add the `@TeleOp` annotation to the class definition. Without this annotation, the OpMode will not be registered and will not appear on the Driver Station.
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin {6}
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import dev.kingssack.volt.opmode.manual.ManualMode
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.Button
+
+@TeleOp(name = "Example TeleOp", group = "Examples")
+class ExampleTeleOp : ManualMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        Release(Button.A1) then { +robot.score() }
+        Release(Button.A2) then { +robot.claw.open() }
+        Release(Button.B2) then { +robot.claw.close() }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {7}
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import dev.kingssack.volt.opmode.manual.ManualMode;
+import dev.kingssack.volt.util.Event.ManualEvent.*;
+import dev.kingssack.volt.util.Button;
+import kotlin.Unit;
+
+@TeleOp(name = "Example TeleOp", group = "Examples")
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new, new ManualParams());
+    }
+
+    @Override
+    public void defineEvents() {
+        then(new Release(Button.A1), builder -> {
+            builder.unaryPlus(robot.score());
+            return Unit.INSTANCE;
+        });
+        then(new Release(Button.A2), builder -> {
+            builder.unaryPlus(robot.getClaw().open());
+            return Unit.INSTANCE;
+        });
+        then(new Release(Button.B2), builder -> {
+            builder.unaryPlus(robot.getClaw().close());
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+## Result
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+package org.firstinspires.ftc.teamcode.opmodes.manual
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import dev.kingssack.volt.opmode.manual.ManualMode
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.Button
+
+@TeleOp(name = "Example TeleOp", group = "Examples")
+class ExampleTeleOp : ManualMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        Release(Button.A1) then { +robot.score() }
+        Release(Button.A2) then { +robot.claw.open() }
+        Release(Button.B2) then { +robot.claw.close() }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+package org.firstinspires.ftc.teamcode.opmodes.manual;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import dev.kingssack.volt.opmode.manual.ManualMode;
+import dev.kingssack.volt.util.Event.ManualEvent.*;
+import dev.kingssack.volt.util.Button;
+import kotlin.Unit;
+
+@TeleOp(name = "Example TeleOp", group = "Examples")
+public class ExampleTeleOp extends ManualMode<MyRobot> {
+    public ExampleTeleOp() {
+        super(MyRobot::new, new ManualParams());
+    }
+
+    @Override
+    public void defineEvents() {
+        then(new Release(Button.A1), builder -> {
+            builder.unaryPlus(robot.score());
+            return Unit.INSTANCE;
+        });
+        then(new Release(Button.A2), builder -> {
+            builder.unaryPlus(robot.getClaw().open());
+            return Unit.INSTANCE;
+        });
+        then(new Release(Button.B2), builder -> {
+            builder.unaryPlus(robot.getClaw().close());
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+## Next Steps
+
+- [Discover Built-In Attachments](../06-built-in-attachments)
+- [Learn more about Events](../../concepts/02-events)
+- [Learn more about the VoltActionBuilder](../../concepts/03-volt-action-builder)
