@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 import com.pedropathing.geometry.Pose
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.MultiDualAutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.toRadians
@@ -21,13 +22,14 @@ class Finch() :
         blackboard["allianceColor"] = color
     }
 
-    /** Drives to launch zone, fires, and saves pose */
-    override fun sequence() = execute {
-        with(robot) {
-            +drivetrain.path { lineTo(launchPose) }
-            +fire(3)
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
+    override fun defineEvents() {
+        // Drives to the launch zone and fires preloaded artifacts
+        Start then
+            {
+                +robot.drivetrain.path { lineTo(launchPose) }
+                +robot.fire(3)
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }
 enum class FinchStartingPosition {

@@ -5,10 +5,12 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
-import dev.kingssack.volt.util.GamepadAnalogInput
-import dev.kingssack.volt.util.GamepadButton
-import org.firstinspires.ftc.robotcore.external.Telemetry
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.buttons.AnalogInput
+import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Classifier
+import org.firstinspires.ftc.teamcode.attachment.Launcher
+import org.firstinspires.ftc.teamcode.attachment.Pusher
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
@@ -18,104 +20,107 @@ import dev.kingssack.volt.opmode.autonomous.AllianceColor
 class Seahorse() :
     SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
     override val robot: JonesPP = JonesPP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
+    // --- State ---
     var targetVelocity = Jones.launcherTargetVelocity
     var allianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
 
     var position: Int = 0
 
-    init {
-        // Launcher
-        onButtonTapped(GamepadButton.RIGHT_BUMPER2) {
-            with(robot) { +launcher.enable(targetVelocity) }
-        }
-        onButtonTapped(GamepadButton.LEFT_BUMPER2) { with(robot) { +launcher.disable() } }
-        onButtonTapped(GamepadButton.DPAD_LEFT2) {
-            with(robot) {
+    // --- Controls ---
+
+    private fun Launcher.controls() {
+        Tap(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
+        Tap(Button.LEFT_BUMPER2) then { +disable() }
+        Tap(Button.DPAD_LEFT2) then
+            {
                 instant { targetVelocity = Jones.launcherLowVelocity }
-                if (launcher.currentVelocity > 0.0) +launcher.enable(targetVelocity)
+                if (currentVelocity > 0.0) +enable(targetVelocity)
             }
-        }
-        onButtonTapped(GamepadButton.DPAD_UP2) {
-            with(robot) {
+        Tap(Button.DPAD_UP2) then
+            {
                 instant { targetVelocity = Jones.launcherMediumVelocity }
-                if (launcher.currentVelocity > 0.0) +launcher.enable(targetVelocity)
+                if (currentVelocity > 0.0) +enable(targetVelocity)
             }
-        }
-        onButtonTapped(GamepadButton.DPAD_RIGHT2) {
-            with(robot) {
+        Tap(Button.DPAD_RIGHT2) then
+            {
                 instant { targetVelocity = Jones.launcherTargetVelocity }
-                if (launcher.currentVelocity > 0.0) +launcher.enable(targetVelocity)
+                if (currentVelocity > 0.0) +enable(targetVelocity)
             }
-        }
+    }
 
-        // Classifier
-        onButtonTapped(GamepadButton.A2) {
-            with(robot) { +classifier.releaseArtifact(Classifier.ReleaseType.NEXT) }
-        }
-        onButtonTapped(GamepadButton.X2) {
-            with(robot) { +classifier.releaseArtifact(Classifier.ReleaseType.PURPLE) }
-        }
-        onButtonTapped(GamepadButton.Y2) {
-            with(robot) { +classifier.releaseArtifact(Classifier.ReleaseType.GREEN) }
-        }
-        onButtonTapped(GamepadButton.DPAD_DOWN1) {
-            with(robot) {
+    private fun Classifier.controls() {
+        Tap(Button.A2) then { +releaseArtifact(Classifier.ReleaseType.NEXT) }
+        Tap(Button.X2) then { +releaseArtifact(Classifier.ReleaseType.PURPLE) }
+        Tap(Button.Y2) then { +releaseArtifact(Classifier.ReleaseType.GREEN) }
+        Tap(Button.DPAD_DOWN1) then
+            {
                 instant { position++ }
-                +classifier.goToPos(position % 3 + 1)
+                +goToPos(position % 3 + 1)
             }
-        }
+    }
 
-        // Pusher
-        onButtonTapped(GamepadButton.B2) { with(robot) { +pusher.push() } }
-        onButtonReleased(GamepadButton.B2) { with(robot) { +pusher.retract() } }
+    private fun Pusher.controls() {
+        Tap(Button.B2) then { +push() }
+        Release(Button.B2) then { +retract() }
+    }
 
-        // Aiming
-        context(telemetry) {
-            onAnalog(GamepadAnalogInput.RIGHT_TRIGGER1) { value ->
-                with(robot) {
-                    if (value <= 0.3) {
-                        aprilTagAiming.reset()
-                        return@onAnalog
-                    }
-
-                    val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
-                    val tag = getDetectedAprilTags(targetId).firstOrNull()
-
-                    rx =
-                        if (tag != null) {
-                            aprilTagAiming.pointTowardsAprilTag(tag)
-                        } else {
-                            aprilTagAiming.reset()
-                            0.0
+    private fun aimingControls() {
+        Change(AnalogInput.RIGHT_TRIGGER1) then
+            { value ->
+                instant {
+                    context(telemetry) {
+                        if (value <= 0.3) {
+                            robot.aprilTagAiming.reset()
+                            return@instant
                         }
+
+                        val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
+                        val tag = robot.getDetectedAprilTags(targetId).firstOrNull()
+
+                        rx =
+                            if (tag != null) {
+                                robot.aprilTagAiming.pointTowardsAprilTag(tag)
+                            } else {
+                                robot.aprilTagAiming.reset()
+                                0.0
+                            }
+                    }
                 }
             }
-        }
-        // Automatic firing
-        onButtonTapped(GamepadButton.DPAD_DOWN2) {
-            with(robot) { +fireAllStoredArtifacts(targetVelocity) }
-        }
+    }
+
+    private fun autoFireControls() {
+        Tap(Button.DPAD_DOWN2) then { +robot.fireAllStoredArtifacts(targetVelocity) }
+    }
+
+    override fun defineEvents() {
+        super.defineEvents()
+        robot.launcher.controls()
+        robot.classifier.controls()
+        robot.pusher.controls()
+        aimingControls()
+        autoFireControls()
     }
 
     init {
-        with(robot) { drivetrain.startTeleOpDrive() }
+        robot.drivetrain.startTeleOpDrive()
     }
 
-    context(telemetry: Telemetry)
-    override fun tick() =
+    override fun tick() {
         with(telemetry) {
             addData("Alliance Color", allianceColor)
             addData("Target Velocity", targetVelocity)
             addData("Classifier Position", position % 3 + 1)
-
-            if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
-                gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
-                gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
-            } else {
-                gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
-                gamepad2.stopRumble()
-            }
-
-            super.tick()
         }
+
+        if (robot.launcher.isAtSpeed && robot.launcher.currentVelocity > 0.0) {
+            gamepad2.setLedColor(0.0, 1.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+            gamepad2.rumble(1.0, 1.0, Gamepad.RUMBLE_DURATION_CONTINUOUS)
+        } else {
+            gamepad2.setLedColor(1.0, 0.0, 0.0, Gamepad.LED_DURATION_CONTINUOUS)
+            gamepad2.stopRumble()
+        }
+
+        super.tick()
+    }
 }

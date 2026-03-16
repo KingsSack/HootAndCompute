@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.robotcore.hardware.*
+import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.core.voltAction
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.teamcode.util.AprilTagAiming
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
+
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
  *
@@ -49,8 +51,8 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
         @JvmField var launcherTargetVelocity: Double = 1340.0
         @JvmField var launcherMediumVelocity: Double = 1300.0
         @JvmField var launcherLowVelocity: Double = 1240.0
-        @JvmField var exposureMs: Int = 6
-        @JvmField var gain: Int = 230
+        @JvmField var cameraExposureMs: Int = 6
+        @JvmField var cameraGain: Int = 230
     }
 
     // --- Hardware ---
@@ -107,28 +109,30 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
             aprilTag,
         )
 
-    val aprilTagAiming = AprilTagAiming()
-
-    init {
-        rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED)
-
+    private fun setCameraExposure(exposureMs: Int, gain: Int) {
         try {
-            while (
-                    visionPortal.cameraState != VisionPortal.CameraState.STREAMING
-            ) {
+            while (visionPortal.cameraState != VisionPortal.CameraState.STREAMING) {
                 Thread.sleep(100)
             }
 
             val exposureControl = visionPortal.getCameraControl(ExposureControl::class.java)
             val gainControl = visionPortal.getCameraControl(GainControl::class.java)
 
-            if (exposureControl.mode != ExposureControl.Mode.Manual)
+            if (exposureControl.mode != ExposureControl.Mode.Manual) {
                 exposureControl.mode = ExposureControl.Mode.Manual
+            }
             exposureControl.setExposure(exposureMs.toLong(), TimeUnit.MILLISECONDS)
             gainControl.gain = gain
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
         }
+    }
+
+    val aprilTagAiming = AprilTagAiming()
+
+    init {
+        rgb.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED)
+        setCameraExposure(cameraExposureMs, cameraGain)
     }
 
     // --- Actions ---
@@ -138,6 +142,7 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
      *
      * @return an [Action] that fires all stored artifacts
      */
+    @VoltAction(name = "Fire All Artifacts", description = "Fires all the artifacts stored in the classifier")
     fun fireAllStoredArtifacts(targetVelocity: Double = launcherTargetVelocity) = voltAction {
         +launcher.enable(targetVelocity)
         +classifier.releaseAllArtifacts()

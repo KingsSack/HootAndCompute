@@ -89,3 +89,6 @@ kls_database.db
 
 # Node.js
 node_modules
+
+# Volt Flow Editor static files
+Volt/src/main/assets/public

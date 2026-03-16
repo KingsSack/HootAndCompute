@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 import com.pedropathing.geometry.Pose
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.MultiDualAutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.robot.GabePP
 import org.firstinspires.ftc.teamcode.util.StartingPosition
 import org.firstinspires.ftc.teamcode.util.toRadians
@@ -28,11 +29,12 @@ class Pigeon() :
         blackboard["allianceColor"] = color
     }
 
-    /** Drives off the launch line and saves pose */
-    override fun sequence() = execute {
-        with(robot) {
-            +drivetrain.path { lineTo(endPose) }
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
+    override fun defineEvents() {
+        // Leaves the launch line
+        Start then
+            {
+                +robot.drivetrain.path { lineTo(endPose) }
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }

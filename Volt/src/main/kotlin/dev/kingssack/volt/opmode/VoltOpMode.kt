@@ -18,6 +18,12 @@ import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.reflect
 
+/**
+ * Base class for Volt's OpModes
+ *
+ * @param R the type of robot
+ * @property robot the robot instance
+ */
 abstract class VoltOpMode<R : Robot>() {
     protected abstract val robot: R
     val hardwareMap: HardwareMap = OpModeInfoHolder.hardwareMap!!
@@ -29,7 +35,7 @@ abstract class VoltOpMode<R : Robot>() {
         return OpModeInfoHolder.opModeInInit!!()
     }
 
-    /** code to run when the op mode begins. */
+    /** Code to run when the op mode begins. */
     abstract fun begin()
     fun opModeIsActive(): Boolean {
         return OpModeInfoHolder.isActiveFunction!!()
@@ -60,7 +66,7 @@ abstract class VoltOpMode<R : Robot>() {
                 VoltOpModeWrapper.postInitializeOpMode(opMode, opMode.robot, opMode.javaClass)
                 waitForStart()
                 opMode.begin()
-
+                opMode.end()
             }
         }
         fun register(c: Constructor<VoltOpMode<*>>, meta: OpModeMeta) {
@@ -118,4 +124,6 @@ abstract class VoltOpMode<R : Robot>() {
             }
         }
     }
+    /** Optional code to run when the op mode ends. */
+    open fun end() {}
 }

@@ -39,6 +39,7 @@ class StaticAssetHandler(
         path.endsWith(".jpg") || path.endsWith(".jpeg") -> "image/jpeg"
         path.endsWith(".svg") -> "image/svg+xml"
         path.endsWith(".ico") -> "image/x-icon"
+        path.endsWith(".txt") -> "text/plain"
         else -> "application/octet-stream"
     }
 }

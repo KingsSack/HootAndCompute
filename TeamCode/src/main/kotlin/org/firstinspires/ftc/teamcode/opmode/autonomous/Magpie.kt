@@ -1,6 +1,10 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.pedropathing.geometry.Pose
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
@@ -44,22 +48,23 @@ class Magpie() :
         robot.visionPortal.stopStreaming()
     }
 
-    /** Fires artifacts according to the detected pattern, drives to, and saves final pose */
-    override fun sequence() = execute {
-        with(robot) {
-            +launcher.enable()
+    override fun defineEvents() {
+        // Fires artifacts according to the detected pattern and leaves
+        Start then
+            {
+                +robot.launcher.enable()
 
-            for (artifact in patterns[patternId] ?: defaultPattern) {
-                +classifier.releaseArtifact(artifact)
-                wait(1.5)
+                for (artifact in patterns[patternId] ?: defaultPattern) {
+                    +robot.classifier.releaseArtifact(artifact)
+                    wait(1.5)
+                }
+
+                parallel {
+                    +robot.launcher.disable()
+                    +robot.drivetrain.path { lineTo(finalPose) }
+                }
+
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
             }
-
-            parallel {
-                +launcher.disable()
-                +drivetrain.path { lineTo(finalPose) }
-            }
-
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
     }
 }

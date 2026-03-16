@@ -1,14 +1,13 @@
 package dev.kingssack.volt.opmode.manual
 
-import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
-import dev.kingssack.volt.util.GamepadAnalogInput
-import dev.kingssack.volt.util.GamepadButton
+import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.buttons.AnalogInput
+import dev.kingssack.volt.util.buttons.Button
 import java.util.EnumMap
-import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
  * An abstract class that defines the methods for running a manual mode with speed modes for a robot
@@ -70,31 +69,58 @@ abstract class SimpleManualModeWithSpeedModes<
     var y = 0.0
     var rx = 0.0
 
-    init {
-        onButtonReleased(GamepadButton.Y1) {
-            +InstantAction { currentSpeedMode = SpeedMode.TURBO }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.TURBO]!!, speedModes[SpeedMode.TURBO]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(255.0, 0.0, 0.0, 300) }
-        }
-        onButtonReleased(GamepadButton.B1) {
-            +InstantAction { currentSpeedMode = SpeedMode.NORMAL }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.NORMAL]!!, speedModes[SpeedMode.NORMAL]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(0.0, 0.0, 255.0, 300) }
-        }
-        onButtonReleased(GamepadButton.A1) {
-            +InstantAction { currentSpeedMode = SpeedMode.PRECISE }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.PRECISE]!!, speedModes[SpeedMode.PRECISE]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(0.0, 255.0, 0.0, 300) }
-        }
-        onButtonReleased(GamepadButton.X1) {
-            +InstantAction { currentSpeedMode = SpeedMode.SLOW }
-            +InstantAction { gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300) }
-            +InstantAction { gamepad1.setLedColor(255.0, 255.0, 0.0, 300) }
-        }
+    override fun defineEvents() {
+        Tap(Button.Y1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.TURBO
+                    gamepad1.rumble(
+                        speedModes[SpeedMode.TURBO]!!,
+                        speedModes[SpeedMode.TURBO]!!,
+                        300,
+                    )
+                    gamepad1.setLedColor(255.0, 0.0, 0.0, 300)
+                }
+            }
+        Tap(Button.B1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.NORMAL
+                    gamepad1.rumble(
+                        speedModes[SpeedMode.NORMAL]!!,
+                        speedModes[SpeedMode.NORMAL]!!,
+                        300,
+                    )
+                    gamepad1.setLedColor(0.0, 0.0, 255.0, 300)
+                }
+            }
+        Tap(Button.A1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.PRECISE
+                    gamepad1.rumble(
+                        speedModes[SpeedMode.PRECISE]!!,
+                        speedModes[SpeedMode.PRECISE]!!,
+                        300,
+                    )
+                    gamepad1.setLedColor(0.0, 255.0, 0.0, 300)
+                }
+            }
+        Tap(Button.X1) then
+            {
+                instant {
+                    currentSpeedMode = SpeedMode.SLOW
+                    gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300)
+                    gamepad1.setLedColor(255.0, 255.0, 0.0, 300)
+                }
+            }
 
-        onAnalog(GamepadAnalogInput.LEFT_STICK_X1) { value -> x = -value.toDouble() }
-        onAnalog(GamepadAnalogInput.LEFT_STICK_Y1) { value -> y = -value.toDouble() }
-        onAnalog(GamepadAnalogInput.RIGHT_STICK_X1) { value -> rx = -value * params.turnScale }
+        Change(AnalogInput.LEFT_STICK_X1) then { value -> instant { x = -value.toDouble() } }
+        Change(AnalogInput.LEFT_STICK_Y1) then { value -> instant { y = -value.toDouble() } }
+        Change(AnalogInput.RIGHT_STICK_X1) then
+            { value ->
+                instant { rx = -value * params.turnScale }
+            }
     }
 
     /**
@@ -125,7 +151,6 @@ abstract class SimpleManualModeWithSpeedModes<
         }
     }
 
-    context(telemetry: Telemetry)
     override fun tick() {
         robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
         telemetry.addData("Speed Mode", currentSpeedMode)

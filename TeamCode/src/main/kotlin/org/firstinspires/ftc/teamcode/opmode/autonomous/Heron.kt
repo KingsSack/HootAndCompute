@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.pedropathing.geometry.Pose
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
@@ -41,28 +42,26 @@ class Heron() :
         robot.visionPortal.stopStreaming()
     }
 
-    /**
-     * Drives to the launch zone, fires artifacts according to the detected pattern, drives to, and
-     * saves final pose
-     */
-    override fun sequence() = execute {
-        with(robot) {
-            parallel {
-                +drivetrain.path { lineTo(launchPose) }
-                +launcher.enable()
-            }
+    override fun defineEvents() {
+        // Drives to the launch zone, fires artifacts according to the detected pattern, and leaves
+        Start then
+            {
+                parallel {
+                    +robot.drivetrain.path { lineTo(launchPose) }
+                    +robot.launcher.enable()
+                }
 
-            for (artifact in patterns[patternId] ?: defaultPattern) {
-                +classifier.releaseArtifact(artifact)
-                wait(1.5)
-            }
+                for (artifact in patterns[patternId] ?: defaultPattern) {
+                    +robot.classifier.releaseArtifact(artifact)
+                    wait(1.5)
+                }
 
-            parallel {
-                +launcher.disable()
-                +drivetrain.path { lineTo(finalPose) }
-            }
+                parallel {
+                    +robot.launcher.disable()
+                    +robot.drivetrain.path { lineTo(finalPose) }
+                }
 
-            instant { blackboard["endPose"] = drivetrain.pose }
-        }
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
     }
 }
