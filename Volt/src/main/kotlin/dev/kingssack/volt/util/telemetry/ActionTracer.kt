@@ -19,7 +19,7 @@ object ActionTracer {
         running.add(action)
     }
 
-    context (action: TracedAction)
+    context(action: TracedAction)
     fun markCompleted() {
         running.remove(action)
     }

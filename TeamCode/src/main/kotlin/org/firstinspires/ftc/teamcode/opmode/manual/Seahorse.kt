@@ -4,6 +4,7 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.VoltOpModeMeta
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.Event.ManualEvent.*
 import dev.kingssack.volt.util.buttons.AnalogInput
@@ -13,16 +14,15 @@ import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Pusher
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
-import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
-@Suppress("unused")
 @VoltOpModeMeta("Seahorse", "Competition")
-class Seahorse() :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
-    override val robot: JonesPP = JonesPP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
+class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
+    override val robot = JonesPP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
+
     // --- State ---
+
     var targetVelocity = Jones.launcherTargetVelocity
-    var allianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
+    val allianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
 
     var position: Int = 0
 

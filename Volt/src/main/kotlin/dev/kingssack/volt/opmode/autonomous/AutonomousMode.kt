@@ -20,16 +20,28 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
     private val canvas = Canvas()
+
     @Suppress("unused")
     object Register : Registrar() {
-        override fun register(registrationHelper: VoltRegistrationHelper, clazz: Class<VoltOpMode<*>>) {
+        override fun register(
+            registrationHelper: VoltRegistrationHelper,
+            clazz: Class<VoltOpMode<*>>,
+        ) {
             if (clazz.isAnnotationPresent(VoltOpModeMeta::class.java)) {
                 val annotation = clazz.getAnnotation(VoltOpModeMeta::class.java)
                 if (annotation != null) {
-                    registrationHelper.register(clazz.getDeclaredConstructor(),
-                        OpModeMeta.Builder().setName(annotation.name).setGroup(annotation.group).setFlavor(OpModeMeta.Flavor.AUTONOMOUS)
-                            .setTransitionTarget(if (annotation.autoTransition == "") null else annotation.autoTransition)
-                            .setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build()
+                    registrationHelper.register(
+                        clazz.getDeclaredConstructor(),
+                        OpModeMeta.Builder()
+                            .setName(annotation.name)
+                            .setGroup(annotation.group)
+                            .setFlavor(OpModeMeta.Flavor.AUTONOMOUS)
+                            .setTransitionTarget(
+                                if (annotation.autoTransition == "") null
+                                else annotation.autoTransition
+                            )
+                            .setSource(OpModeMeta.Source.EXTERNAL_LIBRARY)
+                            .build(),
                     )
                 }
             }
