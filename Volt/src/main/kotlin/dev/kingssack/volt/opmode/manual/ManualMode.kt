@@ -14,7 +14,6 @@ import dev.kingssack.volt.util.buttons.AnalogInput
 import dev.kingssack.volt.util.buttons.Button
 import dev.kingssack.volt.util.telemetry.ActionTracer
 import java.util.*
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 /**

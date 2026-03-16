@@ -9,10 +9,7 @@ import dev.kingssack.volt.util.Event.ManualEvent.*
 import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
-import org.firstinspires.ftc.teamcode.robot.Gabe
-import dev.kingssack.volt.util.GamepadButton
 import org.firstinspires.ftc.teamcode.robot.GabePP
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
 @Suppress("unused")

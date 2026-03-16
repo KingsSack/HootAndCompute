@@ -15,7 +15,6 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 /**
  * AutonomousMode is an abstract class that defines the methods for running an autonomous mode.
  *
- * @param robotFactory a function that creates a [robot] instance from a HardwareMap
  * @param R the type of robot
  */
 abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
@@ -49,8 +48,7 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
     abstract fun defineEvents()
 
     /** Defines autonomous events */
-    override fun initialize() {
-        super.initialize()
+    init {
         defineEvents()
     }
 
