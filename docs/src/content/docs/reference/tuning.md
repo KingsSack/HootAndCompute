@@ -10,4 +10,4 @@ We recommend using the [RoadRunner Quickstart Guide](https://rr.brott.dev/docs/v
 
 ## How to Tune [PedroPathing](https://pedropathing.com/docs/pathing/installation)
 
-You can find a guide for tuning [PedroPathing](https://pedropathing.com/docs/pathing/installation) on the [PedroPathing Docs](https://pedropathing.com/docs/pathing/tuning)
+You can find a guide for tuning [PedroPathing](https://pedropathing.com/docs/pathing/installation) on the [PedroPathing Docs](https://pedropathing.com/docs/pathing/tuning).

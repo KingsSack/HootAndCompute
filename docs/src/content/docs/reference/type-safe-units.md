@@ -2,7 +2,7 @@
 title: Type-Safe Units
 ---
 
-Volt provides types-safe units to increase readability through your codebase.
+Volt provides type-safe units to increase readability through your codebase.
 
 ## Available Units
 
