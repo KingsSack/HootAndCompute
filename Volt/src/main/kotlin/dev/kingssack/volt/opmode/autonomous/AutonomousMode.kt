@@ -57,10 +57,32 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
             when (event) {
                 Event.AutonomousEvent.Start ->
                     runAction(VoltActionBuilder(robot).apply(action).build())
+                else -> {}
+            }
+        }
+        while (opModeIsActive()) tick()
+    }
+    open fun tick() {
+        processEvents()
+    }
+    private fun processEvents() {
+        events.forEach { (event, action) ->
+            when (event) {
+                is Event.AutonomousEvent.When -> {
+                    if (event.trigger()) {
+                        runAction(VoltActionBuilder(robot).apply(action).build())
+                    }
+                }
+                is Event.AutonomousEvent.First -> {
+                    if (event.trigger()) {
+                        runAction(VoltActionBuilder(robot).apply(action).build())
+                        events.removeIf { it.first == event }
+                    }
+                }
+                else -> {}
             }
         }
     }
-
     private fun runAction(action: Action) {
         action.preview(canvas)
 

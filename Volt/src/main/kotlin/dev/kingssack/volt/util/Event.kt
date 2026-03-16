@@ -6,6 +6,8 @@ import dev.kingssack.volt.util.buttons.Button
 sealed interface Event {
     sealed interface AutonomousEvent : Event {
         data object Start : AutonomousEvent
+        data class First(val trigger: () -> Boolean) : AutonomousEvent
+        data class When(val trigger: () -> Boolean) : AutonomousEvent
     }
 
     sealed interface ManualEvent : Event {
