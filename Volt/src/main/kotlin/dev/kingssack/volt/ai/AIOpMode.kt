@@ -8,9 +8,8 @@ import dev.kingssack.volt.robot.Robot
 import java.util.concurrent.ConcurrentLinkedQueue
 
 abstract class AIOpMode<R : Robot>(
-    robotFactory: (HardwareMap) -> R,
     private val serverPort: Int = 8081,
-) : VoltOpMode<R>(robotFactory) {
+) : VoltOpMode<R>() {
     private lateinit var aiServer: AIServer
     private val pendingActions = ConcurrentLinkedQueue<Action>()
     private var currentAction: Action? = null
