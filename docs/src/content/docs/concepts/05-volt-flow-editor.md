@@ -43,7 +43,7 @@ fun enable(target: Double = targetVelocity): Action = action {
 }
 ```
 
-With this annotation, the [Action](../01-actions) will available in the editor whenever the selected [Robot](../../guides/01-robot) has access to it.
+With this annotation, the [Action](../01-actions) will available in the editor whenever the selected [Robot](../../guides/01-robots) has access to it.
  
 :::
 
