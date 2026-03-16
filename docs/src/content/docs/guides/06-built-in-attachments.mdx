@@ -30,7 +30,7 @@ To use a built-in `Attachment` as-is, simply create a new instance of the `Attac
 <TabItem label="Kotlin">
 
 ```kotlin {4}
-class MyRobot(HardwareMap hardwareMap) : Robot(hardwareMap) {
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
     private val clawServo by servo("clawServo")
 
     val claw = attachment { ServoAttachment("Claw", clawServo) }

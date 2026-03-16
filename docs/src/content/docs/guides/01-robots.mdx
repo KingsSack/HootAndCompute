@@ -173,14 +173,13 @@ public class MyRobot extends Robot {
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
         exampleAttachment = attachment(() -> new DcMotorAttachment(
-                    "Example",
-                    motor1,
-                    0.5,
-                    1000,
-                    0,
-                    DcMotorSimple.Direction.FORWARD
-            );
-        );
+                "Example",
+                motor1,
+                0.5,
+                1000,
+                0,
+                DcMotorSimple.Direction.FORWARD
+        ));
     }
 }
 ```
@@ -248,14 +247,13 @@ public class MyRobot extends Robot {
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
         exampleAttachment = attachment(() -> new DcMotorAttachment(
-                    "Example",
-                    motor1,
-                    0.5,
-                    1000,
-                    0,
-                    DcMotorSimple.Direction.FORWARD
-            );
-        );
+                "Example",
+                motor1,
+                0.5,
+                1000,
+                0,
+                DcMotorSimple.Direction.FORWARD
+        ));
     }
 
     // Actions
@@ -330,16 +328,14 @@ public class MyRobot extends Robot {
         super(hardwareMap);
         motor1 = hardwareMap.get(DcMotor.class, "m1");
         imu = hardwareMap.get(IMU.class, "imu");
-        exampleAttachment = attachment(() -> {
-            return new DcMotorAttachment(
-                    "Example",
-                    motor1,
-                    0.5,
-                    1000,
-                    0,
-                    DcMotorSimple.Direction.FORWARD
-            );
-        });
+        exampleAttachment = attachment(() -> new DcMotorAttachment(
+                "Example",
+                motor1,
+                0.5,
+                1000,
+                0,
+                DcMotorSimple.Direction.FORWARD
+        ));
     }
 
     public Action score() {
