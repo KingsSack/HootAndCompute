@@ -23,9 +23,9 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
  * @property robot the robot instance
  * @property hardwareMap used to get hardware instances
  * @property telemetry used to log information to the driver station
- * @property gamepad1 used to get information from gampead one
+ * @property gamepad1 used to get information from gamepad one
  * @property gamepad2 used to get information from gamepad two
- * @property blackboard used to share information accross opmodes
+ * @property blackboard used to share information across opmodes
  */
 abstract class VoltOpMode<R : Robot> {
     protected abstract val robot: R
@@ -136,13 +136,13 @@ abstract class VoltOpMode<R : Robot> {
                     while (c !== VoltOpMode::class.java) {
                         val registrar =
                             (c.declaredClasses
-                                .firstOrNull {
-                                    Registrar::class.java.isAssignableFrom(it) &&
-                                        it.fields.any { it.name === "INSTANCE" }
+                                .firstOrNull { cls ->
+                                    Registrar::class.java.isAssignableFrom(cls) &&
+                                        cls.fields.any { it.name == "INSTANCE" }
                                 }
                                 ?.getDeclaredField("INSTANCE")
                                 ?.get(null))
-                                as? Registrar?
+                                as Registrar?
                         if (registrar !== null) {
                             registrar.register(registrationHelper, cls as Class<VoltOpMode<*>>)
                             return
