@@ -9,9 +9,9 @@ import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.buttons.AnalogHandler
-import dev.kingssack.volt.util.buttons.ButtonHandler
 import dev.kingssack.volt.util.buttons.AnalogInput
 import dev.kingssack.volt.util.buttons.Button
+import dev.kingssack.volt.util.buttons.ButtonHandler
 import dev.kingssack.volt.util.telemetry.ActionTracer
 import java.util.*
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
@@ -22,23 +22,31 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
  * @param R the robot type
  * @property params the configuration object for manual control
  */
-abstract class ManualMode<R : Robot>(
-    private val params: ManualParams = ManualParams(),
-) : VoltOpMode<R>() {
+abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualParams()) :
+    VoltOpMode<R>() {
     @Suppress("unused")
     object Register : Registrar() {
-        override fun register(registrationHelper: VoltRegistrationHelper, clazz: Class<VoltOpMode<*>>) {
+        override fun register(
+            registrationHelper: VoltRegistrationHelper,
+            clazz: Class<VoltOpMode<*>>,
+        ) {
             if (clazz.isAnnotationPresent(VoltOpModeMeta::class.java)) {
                 val annotation = clazz.getAnnotation(VoltOpModeMeta::class.java)
                 if (annotation != null) {
-                    registrationHelper.register(clazz.getDeclaredConstructor(),
-                        OpModeMeta.Builder().setName(annotation.name).setGroup(annotation.group).setFlavor(OpModeMeta.Flavor.TELEOP)
-                            .setSource(OpModeMeta.Source.EXTERNAL_LIBRARY).build()
+                    registrationHelper.register(
+                        clazz.getDeclaredConstructor(),
+                        OpModeMeta.Builder()
+                            .setName(annotation.name)
+                            .setGroup(annotation.group)
+                            .setFlavor(OpModeMeta.Flavor.TELEOP)
+                            .setSource(OpModeMeta.Source.EXTERNAL_LIBRARY)
+                            .build(),
                     )
                 }
             }
         }
     }
+
     /**
      * Configuration object for manual control.
      *
@@ -48,8 +56,7 @@ abstract class ManualMode<R : Robot>(
     data class ManualParams(val deadzone: Float = 0.05f, val inputExp: Float = 2.0f)
 
     private val buttonHandlers = EnumMap<Button, ButtonHandler>(Button::class.java)
-    private val analogHandlers =
-        EnumMap<AnalogInput, AnalogHandler>(AnalogInput::class.java)
+    private val analogHandlers = EnumMap<AnalogInput, AnalogHandler>(AnalogInput::class.java)
 
     private var runningActions = mutableListOf<Action>()
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
@@ -71,7 +78,9 @@ abstract class ManualMode<R : Robot>(
     }
 
     /** Maps an action to an analog event */
-    protected infix fun Event.ManualEvent.AnalogEvent.then(block: VoltActionBuilder<R>.(Float) -> Unit) {
+    protected infix fun Event.ManualEvent.AnalogEvent.then(
+        block: VoltActionBuilder<R>.(Float) -> Unit
+    ) {
         analogBindings.add(this to block)
     }
 
@@ -127,21 +136,23 @@ abstract class ManualMode<R : Robot>(
     private fun processEvents() {
         buttonBindings.forEach { (event, action) ->
             val handler = buttonHandlers[event.button] ?: return@forEach
-            val triggered = when (event) {
-                is Event.ManualEvent.Tap -> handler.tappedThisTick
-                is Event.ManualEvent.Release -> handler.releasedThisTick
-                is Event.ManualEvent.Hold -> handler.held(event.durationMs)
-                is Event.ManualEvent.DoubleTap -> handler.doubleTappedThisTick
-            }
+            val triggered =
+                when (event) {
+                    is Event.ManualEvent.Tap -> handler.tappedThisTick
+                    is Event.ManualEvent.Release -> handler.releasedThisTick
+                    is Event.ManualEvent.Hold -> handler.held(event.durationMs)
+                    is Event.ManualEvent.DoubleTap -> handler.doubleTappedThisTick
+                }
             if (triggered) triggerAction(action)
         }
 
         analogBindings.forEach { (event, action) ->
             val handler = analogHandlers[event.analogInput] ?: return@forEach
-            val triggered = when (event) {
-                is Event.ManualEvent.Change -> handler.changed
-                is Event.ManualEvent.Threshold -> handler.changed && handler.value > event.min
-            }
+            val triggered =
+                when (event) {
+                    is Event.ManualEvent.Change -> handler.changed
+                    is Event.ManualEvent.Threshold -> handler.changed && handler.value > event.min
+                }
             if (triggered) triggerAnalogAction(handler.value, action)
         }
 
