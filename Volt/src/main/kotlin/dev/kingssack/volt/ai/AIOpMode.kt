@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 abstract class AIOpMode<R : Robot>(
     private val serverPort: Int = 8081,
 ) : VoltOpMode<R>() {
-    private lateinit var aiServer: AIServer
+    private var aiServer: AIServer = AIServer(serverPort)
     private val pendingActions = ConcurrentLinkedQueue<Action>()
     private var currentAction: Action? = null
 
@@ -23,8 +23,6 @@ abstract class AIOpMode<R : Robot>(
         for (attachment in robot.attachments) {
             ActionRegistry.registerInstance(attachment)
         }
-
-        aiServer = AIServer(serverPort)
     }
 
     override fun begin() {
