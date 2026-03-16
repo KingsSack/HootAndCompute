@@ -4,25 +4,24 @@ import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.VoltOpModeMeta
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.Event.ManualEvent.*
 import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
 import org.firstinspires.ftc.teamcode.robot.GabePP
-import dev.kingssack.volt.opmode.autonomous.AllianceColor
 
-@Suppress("unused")
 @VoltOpModeMeta("Manatee", "Competition")
-class Manatee() :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
-    override val robot: GabePP = GabePP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
+class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
+    override val robot = GabePP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
 
     // --- State ---
+
     var targetVelocity = 1500.0
     var modifyScale = 100.0
 
-    val allianceColor: AllianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
+    val allianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
 
     // --- Controls ---
 

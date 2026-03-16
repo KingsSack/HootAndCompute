@@ -1,22 +1,19 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.pedropathing.geometry.Pose
-import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
-import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
-import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
 import org.firstinspires.ftc.teamcode.util.toRadians
-@Suppress("Unused")
+
 @VoltOpModeMeta("Heron", "Competition", "Seahorse")
-class Heron() :
-    DualAutonomousMode<Jones<MecanumDriveWithPP>>() {
-    private val initialPose = sw(Pose(63.875, 8.0, 90.0.toRadians()))
-    override val robot: Jones<MecanumDriveWithPP> = JonesPP(hardwareMap, initialPose)
-    private val launchPose: Pose = sw(Pose(60.0, 12.0, 115.0.toRadians()))
-    private val finalPose: Pose = sw(Pose(60.0, 30.0, 115.0.toRadians()))
+class Heron : DualAutonomousMode<JonesPP>() {
+    override val robot = JonesPP(hardwareMap, sw(Pose(63.875, 8.0, 90.0.toRadians())))
+
+    private val launchPose = sw(Pose(60.0, 12.0, 115.0.toRadians()))
+    private val finalPose = sw(Pose(60.0, 30.0, 115.0.toRadians()))
 
     private val patterns =
         mapOf(
