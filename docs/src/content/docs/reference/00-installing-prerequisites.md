@@ -17,7 +17,7 @@ The SDK includes the Android platform, tools, and libraries needed to build Andr
 In IntelliJ, you need the `Android` plugin to develop Android applications and install the Android SDK.
 
 Make sure you have the `Android` plugin installed.
-Go to `Languages & Framworks` in IntelliJ's settings.
+Go to `Languages & Frameworks` in IntelliJ's settings.
 Go to `Android SDK Updater`.
 
 You can also install the Android SDK manually.

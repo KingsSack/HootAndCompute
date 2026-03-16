@@ -1,0 +1,270 @@
+---
+title: Creating your first Autonomous Mode
+description: Learn to create your first Autonomous Mode with Volt.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+An `AutonomousMode` is a [VoltOpMode](../03-opmodes) that allows you to perform [Actions](../../concepts/01-actions) autonomously.
+
+## Steps
+
+:::tip[Prerequisites]
+
+This guide assumes you've [created a Robot class](../01-robots), [created an Attachment class](../02-attachments), [learned about the structure of Volt OpModes](../03-opmodes), and understand 
+[Actions](../../concepts/01-actions).
+
+:::
+
+### 1. Create Your `AutonomousMode` Class
+
+First, create a new class that inherits `AutonomousMode`.
+The constructor requires a `robotFactory`, which is used to create your `Robot` instance.
+Use a lambda function to provide the `robotFactory`.
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+
+class ExampleAuto : AutonomousMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        // Your events will go here
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
+    }
+
+    @Override
+    public void defineEvents() {
+        // Your events will go here
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+### 2. Define an Event
+
+By default `AutonomousMode`s only have one event: `Start`, which is triggered when the play button is pressed on the Driver Station.
+
+On `Start`, we'll open the claw, then close the claw and score at the same time. We'll repeat this sequence three times:
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin {6-16}
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
+
+class ExampleAuto : AutonomousMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        Start then
+            {
+                repeat(3)  {
+                    +robot.claw.open() // Add an action to the sequence
+    
+                    parallel { // Run these actions at the same time
+                        +robot.claw.close()
+                        +robot.score()
+                    }
+                }
+            }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {12-22}
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start;
+import kotlin.Unit;
+
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
+    }
+
+    @Override
+    public void defineEvents() {
+        then(Start.INSTANCE, builder -> {
+            for (int i = 0; i < 3; i++) {
+                builder.unaryPlus(robot.getClaw().open()); // Add an action to the sequence
+
+                builder.parallel(() -> { // Run these actions at the same time
+                    builder.unaryPlus(robot.getClaw().close());
+                    builder.unaryPlus(robot.score());
+                });
+            }
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+### 3. Make it an OpMode
+
+Add the `@Autonomous` annotation to the class definition. Without this annotation, the OpMode will not be registered and will not appear on the Driver Station.
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin {5}
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
+
+@Autonomous(name = "Example Auto", group = "Examples")
+class ExampleAuto : AutonomousMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        Start.then
+            {
+                repeat(3)  {
+                    +robot.claw.open()
+        
+                    parallel {
+                        +robot.claw.close()
+                        +robot.score()
+                    }
+                }
+            }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {6}
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start;
+import kotlin.Unit;
+
+@Autonomous(name = "Example Auto", group = "Examples")
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
+    }
+
+    @Override
+    public void defineEvents() {
+        then(Start.INSTANCE, builder -> {
+            for (int i = 0; i < 3; i++) {
+                builder.unaryPlus(robot.getClaw().open());
+
+                builder.parallel(() -> {
+                    builder.unaryPlus(robot.getClaw().close());
+                    builder.unaryPlus(robot.score());
+                });
+            }
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+## Result
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+package org.firstinspires.ftc.teamcode.opmodes.autonomous
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
+
+@Autonomous(name = "Example Auto", group = "Examples")
+class ExampleAuto : AutonomousMode<MyRobot>({ MyRobot(it) }) {
+    override fun defineEvents() {
+        Start.then
+            {
+                repeat(3)  {
+                    +robot.claw.open()
+        
+                    parallel {
+                        +robot.claw.close()
+                        +robot.score()
+                    }
+                }
+            }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+package org.firstinspires.ftc.teamcode.opmodes.autonomous;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start;
+import kotlin.Unit;
+
+@Autonomous(name = "Example Auto", group = "Examples")
+public class ExampleAuto extends AutonomousMode<MyRobot> {
+    public ExampleAuto() {
+        super(MyRobot::new);
+    }
+
+    @Override
+    public void defineEvents() {
+        then(Start.INSTANCE, builder -> {
+            for (int i = 0; i < 3; i++) {
+                builder.unaryPlus(robot.getClaw().open());
+
+                builder.parallel(() -> {
+                    builder.unaryPlus(robot.getClaw().close());
+                    builder.unaryPlus(robot.score());
+                });
+            }
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+## Next Steps
+
+- [Create a ManualMode](../05-manual-mode) to control you [Robot](../01-robots) with gamepads
+- [Learn more about Events](../../concepts/02-events)
+- [Learn more about the VoltActionBuilder](../../concepts/03-volt-action-builder)
