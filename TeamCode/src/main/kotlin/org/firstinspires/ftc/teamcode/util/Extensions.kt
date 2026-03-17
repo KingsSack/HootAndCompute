@@ -10,7 +10,7 @@ fun Double.toDegrees(): Double = Math.toDegrees(this)
 
 val Double.inches
     get() = Inches(this)
-val Double. deg
+val Double.deg
     get() = Degrees(this)
 val Double.rad
     get() = Radians(this)
