@@ -72,7 +72,7 @@ abstract class DualAutonomousMode<R : Robot> : AutonomousMode<R>() {
         var color: AllianceColor? = null
     }
 
-    /** @return [red] if red alliance is selected, [blue] if blue alliance is slected */
+    /** @return [red] if red alliance is selected, [blue] if blue alliance is selected */
     @Suppress("unused")
     fun <T> sw(red: T, blue: T): T = if (color == AllianceColor.RED) red else blue
 

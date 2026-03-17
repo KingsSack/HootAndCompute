@@ -85,7 +85,7 @@ abstract class VoltOpMode<R : Robot> {
                     try {
                         c.newInstance()
                     } catch (e: InvocationTargetException) {
-                        // Always catch InvocationTargetExceptions or they will cash the robot
+                        // Always catch InvocationTargetExceptions or they will crash the robot
                         throw e.cause!!
                     }
                 },
@@ -99,7 +99,7 @@ abstract class VoltOpMode<R : Robot> {
                     try {
                         c()
                     } catch (e: InvocationTargetException) {
-                        // Always catch InvocationTargetExceptions or they will cash the robot
+                        // Always catch InvocationTargetExceptions or they will crash the robot
                         throw e.cause!!
                     }
                 },

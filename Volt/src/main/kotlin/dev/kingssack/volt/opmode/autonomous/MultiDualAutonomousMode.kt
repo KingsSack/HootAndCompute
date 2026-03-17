@@ -7,7 +7,7 @@ import java.lang.reflect.ParameterizedType
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 /**
- * A [DualAutonomousMode] that can be registered as multiple seperate opmodes, one for each value of
+ * A [DualAutonomousMode] that can be registered as multiple separate opmodes, one for each value of
  * the enum [E].
  *
  * @param E the enum to register separate opmodes for
