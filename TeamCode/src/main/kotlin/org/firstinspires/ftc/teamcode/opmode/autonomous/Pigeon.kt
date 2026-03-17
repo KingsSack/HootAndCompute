@@ -33,14 +33,11 @@ class Pigeon : MultiDualAutonomousMode<GabePP, StartingPosition>() {
 
     init {
         blackboard["allianceColor"] = color
-    }
-
-    override fun defineEvents() {
         // Leaves the launch line
         Start then
-            {
-                +robot.drivetrain.path { lineTo(endPose) }
-                instant { blackboard["endPose"] = robot.drivetrain.pose }
-            }
+                {
+                    +robot.drivetrain.path { lineTo(endPose) }
+                    instant { blackboard["endPose"] = robot.drivetrain.pose }
+                }
     }
 }

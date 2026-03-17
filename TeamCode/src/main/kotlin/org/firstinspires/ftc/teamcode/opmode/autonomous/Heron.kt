@@ -36,29 +36,25 @@ class Heron : DualAutonomousMode<JonesPP>() {
             telemetry.update()
         }
 
-        robot.visionPortal.stopStreaming()
-    }
-
-    override fun defineEvents() {
-        // Drives to the launch zone, fires artifacts according to the detected pattern, and leaves
+        robot.visionPortal.stopStreaming()// Drives to the launch zone, fires artifacts according to the detected pattern, and leaves
         Start then
-            {
-                parallel {
-                    +robot.drivetrain.path { lineTo(launchPose) }
-                    +robot.launcher.enable()
-                }
+                {
+                    parallel {
+                        +robot.drivetrain.path { lineTo(launchPose) }
+                        +robot.launcher.enable()
+                    }
 
-                for (artifact in patterns[patternId] ?: defaultPattern) {
-                    +robot.classifier.releaseArtifact(artifact)
-                    wait(1.5)
-                }
+                    for (artifact in patterns[patternId] ?: defaultPattern) {
+                        +robot.classifier.releaseArtifact(artifact)
+                        wait(1.5)
+                    }
 
-                parallel {
-                    +robot.launcher.disable()
-                    +robot.drivetrain.path { lineTo(finalPose) }
-                }
+                    parallel {
+                        +robot.launcher.disable()
+                        +robot.drivetrain.path { lineTo(finalPose) }
+                    }
 
-                instant { blackboard["endPose"] = robot.drivetrain.pose }
-            }
+                    instant { blackboard["endPose"] = robot.drivetrain.pose }
+                }
     }
 }

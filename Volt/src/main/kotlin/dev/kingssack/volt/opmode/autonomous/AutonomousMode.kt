@@ -55,14 +55,6 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
         events.add(this to block)
     }
 
-    /** A place to define actions to be triggered by events */
-    abstract fun defineEvents()
-
-    /** Defines autonomous events */
-    init {
-        defineEvents()
-    }
-
     override fun begin() {
         events.forEach { (event, action) ->
             when (event) {

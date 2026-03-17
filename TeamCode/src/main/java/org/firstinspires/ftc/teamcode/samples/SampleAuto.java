@@ -12,10 +12,6 @@ import org.jetbrains.annotations.NotNull;
 abstract public class SampleAuto extends AutonomousMode<SampleRobot> {
     public SampleAuto() {
         super();
-    }
-
-    @Override
-    public void defineEvents() {
         then(Start.INSTANCE, builder -> {
             builder.unaryPlus(getRobot().score());
             return Unit.INSTANCE;

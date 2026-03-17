@@ -31,16 +31,13 @@ class Finch : MultiDualAutonomousMode<GabePP, FinchStartingPosition>() {
 
     init {
         blackboard["allianceColor"] = color
-    }
-
-    override fun defineEvents() {
         // Drives to the launch zone and fires preloaded artifacts
         Start then
-            {
-                +robot.drivetrain.path { lineTo(launchPose) }
-                +robot.fire(3)
-                instant { blackboard["endPose"] = robot.drivetrain.pose }
-            }
+                {
+                    +robot.drivetrain.path { lineTo(launchPose) }
+                    +robot.fire(3)
+                    instant { blackboard["endPose"] = robot.drivetrain.pose }
+                }
     }
 }
 

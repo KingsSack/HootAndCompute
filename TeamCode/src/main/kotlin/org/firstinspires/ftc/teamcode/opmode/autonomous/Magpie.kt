@@ -43,25 +43,22 @@ class Magpie : DualAutonomousMode<JonesPP>() {
         }
 
         robot.visionPortal.stopStreaming()
-    }
-
-    override fun defineEvents() {
         // Fires artifacts according to the detected pattern and leaves
         Start then
-            {
-                +robot.launcher.enable()
+                {
+                    +robot.launcher.enable()
 
-                for (artifact in patterns[patternId] ?: defaultPattern) {
-                    +robot.classifier.releaseArtifact(artifact)
-                    wait(1.5)
+                    for (artifact in patterns[patternId] ?: defaultPattern) {
+                        +robot.classifier.releaseArtifact(artifact)
+                        wait(1.5)
+                    }
+
+                    parallel {
+                        +robot.launcher.disable()
+                        +robot.drivetrain.path { lineTo(finalPose) }
+                    }
+
+                    instant { blackboard["endPose"] = robot.drivetrain.pose }
                 }
-
-                parallel {
-                    +robot.launcher.disable()
-                    +robot.drivetrain.path { lineTo(finalPose) }
-                }
-
-                instant { blackboard["endPose"] = robot.drivetrain.pose }
-            }
     }
 }

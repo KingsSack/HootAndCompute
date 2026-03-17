@@ -69,7 +69,7 @@ abstract class SimpleManualModeWithSpeedModes<
     var y = 0.0
     var rx = 0.0
 
-    override fun defineEvents() {
+    init {
         Tap(Button.Y1) then
             {
                 instant {

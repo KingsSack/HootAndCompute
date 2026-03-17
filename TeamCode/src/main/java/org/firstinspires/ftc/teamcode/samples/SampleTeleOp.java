@@ -13,10 +13,6 @@ import org.jetbrains.annotations.NotNull;
 abstract public class SampleTeleOp extends ManualMode<SampleRobot> {
     public SampleTeleOp() {
         super(new ManualParams());
-    }
-
-    @Override
-    public void defineEvents() {
         then(new Tap(Button.A1), builder -> {
             builder.unaryPlus(getRobot().sampleAttachment.exampleAction());
             return Unit.INSTANCE;

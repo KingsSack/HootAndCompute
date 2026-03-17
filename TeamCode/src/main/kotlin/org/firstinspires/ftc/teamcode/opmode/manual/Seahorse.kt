@@ -93,17 +93,13 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
         Tap(Button.DPAD_DOWN2) then { +robot.fireAllStoredArtifacts(targetVelocity) }
     }
 
-    override fun defineEvents() {
-        super.defineEvents()
+    init {
+        robot.drivetrain.startTeleOpDrive()
         robot.launcher.controls()
         robot.classifier.controls()
         robot.pusher.controls()
         aimingControls()
         autoFireControls()
-    }
-
-    init {
-        robot.drivetrain.startTeleOpDrive()
     }
 
     override fun tick() {

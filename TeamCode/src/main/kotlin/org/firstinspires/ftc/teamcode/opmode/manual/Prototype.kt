@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.rr.TestRobot
 class Prototype : ManualMode<Robot>() {
     override val robot: Robot = TestRobot(hardwareMap, Pose2d(Vector2d(0.0, 0.0), 0.0))
 
-    override fun defineEvents() {
+    init {
         Release(Button.A1) then { instant { telemetry.addData("Button", "A1 released") } }
     }
 }
