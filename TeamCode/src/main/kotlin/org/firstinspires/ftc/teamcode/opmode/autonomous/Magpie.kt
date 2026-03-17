@@ -35,6 +35,24 @@ class Magpie : DualAutonomousMode<JonesPP>() {
     init {
         blackboard["allianceColor"] = color
 
+        // Fires artifacts according to the detected pattern and leaves
+        Start then
+            {
+                +robot.launcher.enable()
+
+                for (artifact in patterns[patternId] ?: defaultPattern) {
+                    +robot.classifier.releaseArtifact(artifact)
+                    wait(1.5)
+                }
+
+                parallel {
+                    +robot.launcher.disable()
+                    +robot.drivetrain.path { lineTo(finalPose) }
+                }
+
+                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            }
+
         while (opModeInInit()) {
             val tags = context(telemetry) { robot.getDetectedAprilTags() }
             patternId = tags.firstOrNull { it.id in patterns.keys }?.id
@@ -43,22 +61,5 @@ class Magpie : DualAutonomousMode<JonesPP>() {
         }
 
         robot.visionPortal.stopStreaming()
-        // Fires artifacts according to the detected pattern and leaves
-        Start then
-                {
-                    +robot.launcher.enable()
-
-                    for (artifact in patterns[patternId] ?: defaultPattern) {
-                        +robot.classifier.releaseArtifact(artifact)
-                        wait(1.5)
-                    }
-
-                    parallel {
-                        +robot.launcher.disable()
-                        +robot.drivetrain.path { lineTo(finalPose) }
-                    }
-
-                    instant { blackboard["endPose"] = robot.drivetrain.pose }
-                }
     }
 }

@@ -25,7 +25,7 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
 
     // --- Controls ---
 
-    private fun Launcher.controls() {
+    private fun Launcher.defineControls() {
         Release(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
         Release(Button.LEFT_BUMPER2) then { +disable() }
         Release(Button.DPAD_UP2) then
@@ -42,12 +42,12 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
         Release(Button.DPAD_LEFT2) then { instant { modifyScale /= 10 } }
     }
 
-    private fun Storage.controls() {
+    private fun Storage.defineControls() {
         Tap(Button.A2) then { +release() }
         Release(Button.A2) then { +close() }
     }
 
-    private fun aimingControls() {
+    private fun defineAimingControls() {
         Tap(Button.RIGHT_BUMPER1) then
             {
                 context(telemetry) { +robot.pointTowardsAprilTag(allianceColor) }
@@ -55,10 +55,13 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
     }
 
     init {
+        robot.launcher.defineControls()
+        robot.storage.defineControls()
+        defineAimingControls()
+    }
+
+    init {
         robot.drivetrain.startTeleOpDrive()
-        robot.launcher.controls()
-        robot.storage.controls()
-        aimingControls()
     }
 
     override fun tick() {

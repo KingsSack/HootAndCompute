@@ -28,7 +28,7 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
 
     // --- Controls ---
 
-    private fun Launcher.controls() {
+    private fun Launcher.defineControls() {
         Tap(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
         Tap(Button.LEFT_BUMPER2) then { +disable() }
         Tap(Button.DPAD_LEFT2) then
@@ -48,7 +48,7 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
             }
     }
 
-    private fun Classifier.controls() {
+    private fun Classifier.defineControls() {
         Tap(Button.A2) then { +releaseArtifact(Classifier.ReleaseType.NEXT) }
         Tap(Button.X2) then { +releaseArtifact(Classifier.ReleaseType.PURPLE) }
         Tap(Button.Y2) then { +releaseArtifact(Classifier.ReleaseType.GREEN) }
@@ -59,12 +59,12 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
             }
     }
 
-    private fun Pusher.controls() {
+    private fun Pusher.defineControls() {
         Tap(Button.B2) then { +push() }
         Release(Button.B2) then { +retract() }
     }
 
-    private fun aimingControls() {
+    private fun defineAimingControls() {
         Change(AnalogInput.RIGHT_TRIGGER1) then
             { value ->
                 instant {
@@ -89,17 +89,20 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
             }
     }
 
-    private fun autoFireControls() {
+    private fun defineAutoFireControls() {
         Tap(Button.DPAD_DOWN2) then { +robot.fireAllStoredArtifacts(targetVelocity) }
     }
 
     init {
+        robot.launcher.defineControls()
+        robot.classifier.defineControls()
+        robot.pusher.defineControls()
+        defineAimingControls()
+        defineAutoFireControls()
+    }
+
+    init {
         robot.drivetrain.startTeleOpDrive()
-        robot.launcher.controls()
-        robot.classifier.controls()
-        robot.pusher.controls()
-        aimingControls()
-        autoFireControls()
     }
 
     override fun tick() {
