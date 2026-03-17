@@ -26,8 +26,8 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
                     // If this is not the direct superclass, this might not work, but I don't know a
                     // better way.
                     val enumClass =
-                        ((clazz.genericSuperclass as ParameterizedType).actualTypeArguments[1]
-                            as Class<Enum<*>>)
+                        (clazz.genericSuperclass as ParameterizedType).actualTypeArguments[1]
+                            as Class<Enum<*>>
                     enumClass.enumConstants!!.forEach { value ->
                         registrationHelper.register(
                             { instantiateOpMode(value as Enum<*>, clazz, AllianceColor.BLUE) },
