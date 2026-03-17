@@ -40,7 +40,7 @@ abstract class VoltOpMode<R : Robot> {
     val telemetry: Telemetry = OpModeInfoHolder.telemetry!!
     val gamepad1: Gamepad = OpModeInfoHolder.gamepad1!!
     val gamepad2: Gamepad = OpModeInfoHolder.gamepad2!!
-    val blackboard: java.util.HashMap<String, Any> = OpModeInfoHolder.blackboard!!
+    val blackboard: MutableMap<String, Any> = OpModeInfoHolder.blackboard!!
 
     fun opModeInInit() = OpModeInfoHolder.opModeInInit!!()
 
@@ -63,6 +63,7 @@ abstract class VoltOpMode<R : Robot> {
             override fun runOpMode() {
                 telemetry.update()
                 VoltOpModeWrapper.initializeOpMode()
+
                 OpModeInfoHolder.blackboard = blackboard
                 OpModeInfoHolder.telemetry = telemetry
                 OpModeInfoHolder.hardwareMap = hardwareMap
@@ -70,11 +71,16 @@ abstract class VoltOpMode<R : Robot> {
                 OpModeInfoHolder.gamepad1 = gamepad1
                 OpModeInfoHolder.gamepad2 = gamepad2
                 OpModeInfoHolder.opModeInInit = { this.opModeInInit() }
+
                 val opMode = opModeBuilder()
                 VoltOpModeWrapper.postInitializeOpMode(opMode, opMode.robot, opMode.javaClass)
+
                 waitForStart()
-                opMode.begin()
-                opMode.end()
+                try {
+                    opMode.begin()
+                } finally {
+                    opMode.end()
+                }
             }
         }
 
@@ -85,7 +91,7 @@ abstract class VoltOpMode<R : Robot> {
                     try {
                         c.newInstance()
                     } catch (e: InvocationTargetException) {
-                        // Always catch InvocationTargetExceptions or they will cash the robot
+                        // Always catch InvocationTargetExceptions or they will crash the robot
                         throw e.cause!!
                     }
                 },
@@ -99,7 +105,7 @@ abstract class VoltOpMode<R : Robot> {
                     try {
                         c()
                     } catch (e: InvocationTargetException) {
-                        // Always catch InvocationTargetExceptions or they will cash the robot
+                        // Always catch InvocationTargetExceptions or they will crash the robot
                         throw e.cause!!
                     }
                 },
@@ -126,7 +132,7 @@ abstract class VoltOpMode<R : Robot> {
             registrationHelper: RegistrationHelper,
         ) {
             try {
-                val registrationHelper = VoltRegistrationHelper(registrationHelper)
+                val voltHelper = VoltRegistrationHelper(registrationHelper)
 
                 if (
                     VoltOpMode::class.java.isAssignableFrom(cls) &&
@@ -144,18 +150,18 @@ abstract class VoltOpMode<R : Robot> {
                                 ?.get(null))
                                 as Registrar?
                         if (registrar !== null) {
-                            registrar.register(registrationHelper, cls as Class<VoltOpMode<*>>)
+                            registrar.register(voltHelper, cls as Class<VoltOpMode<*>>)
                             return
                         }
                         c = c.superclass as Class<*>
                     }
                 }
-            } catch (e: Throwable) {
-                VoltLogs.log("error registering opmodes: ${e.message.toString()}")
+            } catch (e: Exception) {
+                VoltLogs.log("Error registering opmodes: ${e.message.toString()}")
                 registrationHelper.register(
                     OpModeMeta.Builder()
                         .setFlavor(OpModeMeta.Flavor.AUTONOMOUS)
-                        .setName("error: $e")
+                        .setName("Error: $e")
                         .build(),
                     object : OpMode() {
                         override fun init() {}

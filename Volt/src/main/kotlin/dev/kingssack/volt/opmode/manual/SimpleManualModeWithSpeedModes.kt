@@ -13,9 +13,9 @@ import java.util.EnumMap
  * An abstract class that defines the methods for running a manual mode with speed modes for a robot
  * with a mecanum drivetrain.
  *
+ * @param params the configuration object for manual control
  * @param T the type of mecanum drivetrain
  * @param R the type of robot with mecanum drivetrain
- * @property params the configuration object for manual control
  * @property x the x-axis input from the gamepad
  * @property y the y-axis input from the gamepad
  * @property rx the rotation input from the gamepad
@@ -152,8 +152,8 @@ abstract class SimpleManualModeWithSpeedModes<
     }
 
     override fun tick() {
-        robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
-        telemetry.addData("Speed Mode", currentSpeedMode)
         super.tick()
+        telemetry.addData("Speed Mode", currentSpeedMode)
+        robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
     }
 }

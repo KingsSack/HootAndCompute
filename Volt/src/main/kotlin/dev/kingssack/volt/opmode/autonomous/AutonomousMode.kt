@@ -19,7 +19,6 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
  */
 abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
-    private val canvas = Canvas()
 
     @Suppress("unused")
     object Register : Registrar() {
@@ -74,6 +73,7 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
     }
 
     private fun runAction(action: Action) {
+        val canvas = Canvas()
         action.preview(canvas)
 
         var running = true
