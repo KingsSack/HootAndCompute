@@ -94,15 +94,13 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
     }
 
     init {
+        robot.drivetrain.startTeleOpDrive()
+
         robot.launcher.defineControls()
         robot.classifier.defineControls()
         robot.pusher.defineControls()
         defineAimingControls()
         defineAutoFireControls()
-    }
-
-    init {
-        robot.drivetrain.startTeleOpDrive()
     }
 
     override fun tick() {

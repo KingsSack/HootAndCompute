@@ -55,13 +55,11 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
     }
 
     init {
+        robot.drivetrain.startTeleOpDrive()
+
         robot.launcher.defineControls()
         robot.storage.defineControls()
         defineAimingControls()
-    }
-
-    init {
-        robot.drivetrain.startTeleOpDrive()
     }
 
     override fun tick() {
