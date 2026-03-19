@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.pedropathing.geometry.Pose
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.opmode.VoltOpModeMeta
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
 import dev.kingssack.volt.util.Event.ManualEvent.*
 import dev.kingssack.volt.util.buttons.AnalogInput
@@ -13,26 +14,21 @@ import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Pusher
 import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
-import org.firstinspires.ftc.teamcode.util.AllianceColor
 
-@TeleOp(name = "Seahorse", group = "Competition")
-class Seahorse :
-    SimpleManualModeWithSpeedModes<MecanumDriveWithPP, Jones<MecanumDriveWithPP>>({
-        JonesPP(it, blackboard["endPose"] as? Pose ?: Pose())
-    }) {
+@VoltOpModeMeta("Seahorse", "Competition")
+class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
+    override val robot = JonesPP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
+
     // --- State ---
 
     var targetVelocity = Jones.launcherTargetVelocity
-
-    val allianceColor: AllianceColor by lazy {
-        blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
-    }
+    val allianceColor = blackboard["allianceColor"] as? AllianceColor ?: AllianceColor.BLUE
 
     var position: Int = 0
 
     // --- Controls ---
 
-    private fun Launcher.controls() {
+    private fun Launcher.defineControls() {
         Tap(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
         Tap(Button.LEFT_BUMPER2) then { +disable() }
         Tap(Button.DPAD_LEFT2) then
@@ -52,7 +48,7 @@ class Seahorse :
             }
     }
 
-    private fun Classifier.controls() {
+    private fun Classifier.defineControls() {
         Tap(Button.A2) then { +releaseArtifact(Classifier.ReleaseType.NEXT) }
         Tap(Button.X2) then { +releaseArtifact(Classifier.ReleaseType.PURPLE) }
         Tap(Button.Y2) then { +releaseArtifact(Classifier.ReleaseType.GREEN) }
@@ -63,12 +59,12 @@ class Seahorse :
             }
     }
 
-    private fun Pusher.controls() {
+    private fun Pusher.defineControls() {
         Tap(Button.B2) then { +push() }
         Release(Button.B2) then { +retract() }
     }
 
-    private fun aimingControls() {
+    private fun defineAimingControls() {
         Change(AnalogInput.RIGHT_TRIGGER1) then
             { value ->
                 instant {
@@ -93,22 +89,18 @@ class Seahorse :
             }
     }
 
-    private fun autoFireControls() {
+    private fun defineAutoFireControls() {
         Tap(Button.DPAD_DOWN2) then { +robot.fireAllStoredArtifacts(targetVelocity) }
     }
 
-    override fun defineEvents() {
-        super.defineEvents()
-        robot.launcher.controls()
-        robot.classifier.controls()
-        robot.pusher.controls()
-        aimingControls()
-        autoFireControls()
-    }
-
-    override fun initialize() {
-        super.initialize()
+    init {
         robot.drivetrain.startTeleOpDrive()
+
+        robot.launcher.defineControls()
+        robot.classifier.defineControls()
+        robot.pusher.defineControls()
+        defineAimingControls()
+        defineAutoFireControls()
     }
 
     override fun tick() {

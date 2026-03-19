@@ -2,7 +2,6 @@ package dev.kingssack.volt.opmode.manual
 
 import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
 import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
 import dev.kingssack.volt.util.Event.ManualEvent.*
@@ -14,9 +13,9 @@ import java.util.EnumMap
  * An abstract class that defines the methods for running a manual mode with speed modes for a robot
  * with a mecanum drivetrain.
  *
+ * @param params the configuration object for manual control
  * @param T the type of mecanum drivetrain
  * @param R the type of robot with mecanum drivetrain
- * @property params the configuration object for manual control
  * @property x the x-axis input from the gamepad
  * @property y the y-axis input from the gamepad
  * @property rx the rotation input from the gamepad
@@ -25,11 +24,10 @@ abstract class SimpleManualModeWithSpeedModes<
     T : MecanumDrivetrain,
     R : RobotWithMecanumDrivetrain<T>,
 >(
-    robotFactory: (hardwareMap: HardwareMap) -> R,
     private val params: SimpleManualModeWithSpeedModesParams =
         SimpleManualModeWithSpeedModesParams(),
     manualParams: ManualParams = ManualParams(),
-) : ManualMode<R>(robotFactory, manualParams) {
+) : ManualMode<R>(manualParams) {
     /**
      * Configuration object for manual control.
      *
@@ -71,7 +69,7 @@ abstract class SimpleManualModeWithSpeedModes<
     var y = 0.0
     var rx = 0.0
 
-    override fun defineEvents() {
+    init {
         Tap(Button.Y1) then
             {
                 instant {
@@ -154,8 +152,8 @@ abstract class SimpleManualModeWithSpeedModes<
     }
 
     override fun tick() {
-        robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
-        telemetry.addData("Speed Mode", currentSpeedMode)
         super.tick()
+        telemetry.addData("Speed Mode", currentSpeedMode)
+        robot.drivetrain.setDrivePowers(calculatePoseWithGamepad())
     }
 }

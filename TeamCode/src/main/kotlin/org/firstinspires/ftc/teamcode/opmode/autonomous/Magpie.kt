@@ -1,20 +1,25 @@
 package org.firstinspires.ftc.teamcode.opmode.autonomous
 
 import com.pedropathing.geometry.Pose
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
-import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.opmode.VoltOpModeMeta
+import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode
 import dev.kingssack.volt.util.Event.AutonomousEvent.Start
 import org.firstinspires.ftc.teamcode.attachment.Classifier.ReleaseType
-import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
-import org.firstinspires.ftc.teamcode.util.AllianceColor
-import org.firstinspires.ftc.teamcode.util.maybeFlip
 import org.firstinspires.ftc.teamcode.util.toRadians
 
-abstract class Magpie(private val alliance: AllianceColor, private val initialPose: Pose) :
-    AutonomousMode<Jones<MecanumDriveWithPP>>({ JonesPP(it, initialPose) }) {
-    private val finalPose: Pose = Pose(56.0, 36.0, 115.0.toRadians()).maybeFlip(alliance)
+@VoltOpModeMeta("Magpie", "Competition", "Seahorse")
+class Magpie : DualAutonomousMode<JonesPP>() {
+    companion object {
+        @JvmField var INITIAL_X: Double = 56.0
+        @JvmField var INITIAL_Y: Double = 8.0
+        @JvmField var INITIAL_HEADING: Double = 90.0
+    }
+
+    override val robot =
+        JonesPP(hardwareMap, sw(Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians())))
+
+    private val finalPose = sw(Pose(56.0, 36.0, 115.0.toRadians()))
 
     private val patterns =
         mapOf(
@@ -27,21 +32,9 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
 
     private var patternId: Int? = null
 
-    override fun initialize() {
-        blackboard["allianceColor"] = alliance
-        super.initialize()
+    init {
+        blackboard["allianceColor"] = color
 
-        while (opModeInInit()) {
-            val tags = context(telemetry) { robot.getDetectedAprilTags() }
-            patternId = tags.firstOrNull { it.id in patterns.keys }?.id
-            telemetry.addData("Pattern ID", patternId ?: "None detected")
-            telemetry.update()
-        }
-
-        robot.visionPortal.stopStreaming()
-    }
-
-    override fun defineEvents() {
         // Fires artifacts according to the detected pattern and leaves
         Start then
             {
@@ -59,11 +52,14 @@ abstract class Magpie(private val alliance: AllianceColor, private val initialPo
 
                 instant { blackboard["endPose"] = robot.drivetrain.pose }
             }
+
+        while (opModeInInit()) {
+            val tags = context(telemetry) { robot.getDetectedAprilTags() }
+            patternId = tags.firstOrNull { it.id in patterns.keys }?.id
+            telemetry.addData("Pattern ID", patternId ?: "None detected")
+            telemetry.update()
+        }
+
+        robot.visionPortal.stopStreaming()
     }
 }
-
-@Autonomous(name = "Magpie Blue", group = "Competition", preselectTeleOp = "Seahorse")
-class MagpieBlue : Magpie(AllianceColor.BLUE, Pose(56.0, 8.0, 115.0.toRadians()))
-
-@Autonomous(name = "Magpie Red", group = "Competition", preselectTeleOp = "Seahorse")
-class MagpieRed : Magpie(AllianceColor.RED, Pose(56.0, 8.0, 115.0.toRadians()).mirror())

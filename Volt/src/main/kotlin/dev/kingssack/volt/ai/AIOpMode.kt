@@ -2,20 +2,18 @@ package dev.kingssack.volt.ai
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
-import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.robot.Robot
 import java.util.concurrent.ConcurrentLinkedQueue
 
 abstract class AIOpMode<R : Robot>(
-    robotFactory: (HardwareMap) -> R,
     private val serverPort: Int = 8081,
-) : VoltOpMode<R>(robotFactory) {
-    private lateinit var aiServer: AIServer
+) : VoltOpMode<R>() {
+    private var aiServer: AIServer = AIServer(serverPort)
     private val pendingActions = ConcurrentLinkedQueue<Action>()
     private var currentAction: Action? = null
 
-    override fun initialize() {
+    init {
         telemetry.addData("Status", "Initializing Agent...")
         telemetry.update()
 
@@ -25,8 +23,6 @@ abstract class AIOpMode<R : Robot>(
         for (attachment in robot.attachments) {
             ActionRegistry.registerInstance(attachment)
         }
-
-        aiServer = AIServer(serverPort)
     }
 
     override fun begin() {
