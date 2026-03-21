@@ -13,11 +13,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  *
  * @param name the name of the attachment
  * @param crServo the cr servo to control
+ * @param direction the direction of the cr servo
  */
 open class CRServoAttachment(
     name: String,
     protected val crServo: CRServo,
-    private val direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
 ) : Attachment(name) {
     init {
         crServo.direction = direction
@@ -44,6 +45,9 @@ open class CRServoAttachment(
         }
     }
 
+    /** @see moveFor */
+    fun moveFor(power: Double, seconds: Double) = moveFor(Power(power), Seconds(seconds))
+
     /**
      * Start moving the cr servo at a specified [power].
      *
@@ -53,9 +57,10 @@ open class CRServoAttachment(
         init { setPower(power) }
 
         loop { true }
-
-        cleanup { stop() }
     }
+
+    /** @see start */
+    fun start(power: Double) = start(Power(power))
 
     private fun setPower(power: Power) {
         crServo.power = power.value
@@ -69,5 +74,6 @@ open class CRServoAttachment(
 
     override fun stop() {
         setPower(Power(0.0))
+        setState(AttachmentState.Idle)
     }
 }

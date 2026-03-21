@@ -43,7 +43,7 @@ abstract class Attachment(val name: String) {
     @DslMarker @Target(AnnotationTarget.CLASS) annotation class AttachmentActionDsl
 
     @AttachmentActionDsl
-    inner class AttachmentActionBuilder {
+    protected inner class AttachmentActionBuilder {
         private var init: (() -> Unit)? = null
         private var loop: (TelemetryPacket.() -> Boolean)? = null
         private var cleanup: (() -> Unit)? = null
@@ -99,7 +99,7 @@ abstract class Attachment(val name: String) {
      *
      * @return an [Action] that can be executed by an OpMode
      */
-    fun action(block: AttachmentActionBuilder.() -> Unit): Action =
+    protected fun action(block: AttachmentActionBuilder.() -> Unit): Action =
         AttachmentActionBuilder().apply(block).build()
 
     /** Updates the telemetry with the current state of the attachment. */
