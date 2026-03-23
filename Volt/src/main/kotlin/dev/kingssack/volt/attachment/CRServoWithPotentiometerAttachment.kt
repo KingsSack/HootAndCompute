@@ -53,6 +53,9 @@ open class CRServoWithPotentiometerAttachment(
         }
     }
 
+    /** @see goTo */
+    fun goTo(power: Double, target: Double) = goTo(Power(power), Voltage(target))
+
     context(telemetry: Telemetry)
     override fun update() {
         super.update()

@@ -67,6 +67,10 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
         addAction(InstantAction(block))
     }
 
+    fun action(block: ActionLifecycleBuilder.() -> Unit) {
+        addAction(ActionLifecycleBuilder().apply(block).build())
+    }
+
     private fun extractActions(block: VoltActionBuilder<R>.() -> Unit): List<Action> {
         return VoltActionBuilder(robot).apply(block)._actions
     }
