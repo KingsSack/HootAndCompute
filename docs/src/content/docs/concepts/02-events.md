@@ -4,8 +4,6 @@ title: What are Events
 
 Events are the primary way to map gamepad inputs and autonomous triggers to [Actions](../01-actions) in Volt. Instead of writing imperative `if (gamepad.a)` checks every loop, you declare **what** should happen **when** an event occurs, and Volt handles the detection and dispatching for you.
 
-Events are defined inside the `defineEvents()` method of your [OpMode](../../guides/03-opmodes).
-
 ## The Event Hierarchy
 
 `Event` is a sealed interface with two branches, one for each OpMode type:
@@ -41,7 +39,7 @@ This reads as: "when button A on gamepad 1 is tapped, run `someAction()`."
 
 :::note
 
-The `then` lambda is a [VoltActionBuilder](../03-volt-action-builder) block, so you have access to the full action DSL. Learn more on the [Volt Action Builder](../03-volt-action-builder) page.
+Learn more about the [VoltActionBuilder](../03-volt-action-builder) on the [Volt Action Builder](../03-volt-action-builder) page.
 
 :::
 
@@ -180,21 +178,20 @@ Volt provides enum entries for every gamepad input. Entries suffixed with `1` re
 
 ## Putting It Together
 
-A typical `defineEvents()` override organizes bindings by attachment using extension functions:
+A typical [OpMode](../../guides/03-opmodes) override organizes bindings by attachment using extension functions:
 
 ```kotlin
-override fun defineEvents() {
-    super.defineEvents()
-    robot.launcher.controls()
-    robot.pusher.controls()
+init {
+    robot.launcher.defineControls()
+    robot.pusher.defineControls()
 }
 
-private fun Launcher.controls() {
+private fun Launcher.defineControls() {
     Tap(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
     Tap(Button.LEFT_BUMPER2) then { +disable() }
 }
 
-private fun Pusher.controls() {
+private fun Pusher.defineControls() {
     Tap(Button.B2) then { +push() }
     Release(Button.B2) then { +retract() }
 }
