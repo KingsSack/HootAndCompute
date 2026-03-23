@@ -6,7 +6,8 @@ import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import dev.kingssack.volt.opmode.manual.SimpleManualModeWithSpeedModes
-import dev.kingssack.volt.util.Event.ManualEvent.*
+import dev.kingssack.volt.util.Event.ManualEvent.Release
+import dev.kingssack.volt.util.Event.ManualEvent.Tap
 import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
@@ -28,16 +29,14 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
     private fun Launcher.defineControls() {
         Release(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
         Release(Button.LEFT_BUMPER2) then { +disable() }
-        Release(Button.DPAD_UP2) then
-            {
-                instant { targetVelocity += modifyScale }
-                if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
-            }
-        Release(Button.DPAD_DOWN2) then
-            {
-                instant { targetVelocity -= modifyScale }
-                if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
-            }
+        Release(Button.DPAD_UP2) then {
+            instant { targetVelocity += modifyScale }
+            if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
+        }
+        Release(Button.DPAD_DOWN2) then {
+            instant { targetVelocity -= modifyScale }
+            if (!gamepad2.isRumbling) gamepad2.rumble(0.5, 0.5, 100)
+        }
         Release(Button.DPAD_RIGHT2) then { instant { modifyScale *= 10 } }
         Release(Button.DPAD_LEFT2) then { instant { modifyScale /= 10 } }
     }
@@ -48,10 +47,9 @@ class Manatee : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, GabePP>() {
     }
 
     private fun defineAimingControls() {
-        Tap(Button.RIGHT_BUMPER1) then
-            {
-                context(telemetry) { +robot.pointTowardsAprilTag(allianceColor) }
-            }
+        Tap(Button.RIGHT_BUMPER1) then {
+            context(telemetry) { +robot.pointTowardsAprilTag(allianceColor) }
+        }
     }
 
     init {

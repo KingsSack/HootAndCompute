@@ -31,32 +31,28 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
     private fun Launcher.defineControls() {
         Tap(Button.RIGHT_BUMPER2) then { +enable(targetVelocity) }
         Tap(Button.LEFT_BUMPER2) then { +disable() }
-        Tap(Button.DPAD_LEFT2) then
-            {
-                instant { targetVelocity = Jones.launcherLowVelocity }
-                if (currentVelocity > 0.0) +enable(targetVelocity)
-            }
-        Tap(Button.DPAD_UP2) then
-            {
-                instant { targetVelocity = Jones.launcherMediumVelocity }
-                if (currentVelocity > 0.0) +enable(targetVelocity)
-            }
-        Tap(Button.DPAD_RIGHT2) then
-            {
-                instant { targetVelocity = Jones.launcherTargetVelocity }
-                if (currentVelocity > 0.0) +enable(targetVelocity)
-            }
+        Tap(Button.DPAD_LEFT2) then {
+            instant { targetVelocity = Jones.launcherLowVelocity }
+            if (currentVelocity > 0.0) +enable(targetVelocity)
+        }
+        Tap(Button.DPAD_UP2) then {
+            instant { targetVelocity = Jones.launcherMediumVelocity }
+            if (currentVelocity > 0.0) +enable(targetVelocity)
+        }
+        Tap(Button.DPAD_RIGHT2) then {
+            instant { targetVelocity = Jones.launcherTargetVelocity }
+            if (currentVelocity > 0.0) +enable(targetVelocity)
+        }
     }
 
     private fun Classifier.defineControls() {
         Tap(Button.A2) then { +releaseArtifact(Classifier.ReleaseType.NEXT) }
         Tap(Button.X2) then { +releaseArtifact(Classifier.ReleaseType.PURPLE) }
         Tap(Button.Y2) then { +releaseArtifact(Classifier.ReleaseType.GREEN) }
-        Tap(Button.DPAD_DOWN1) then
-            {
-                instant { position++ }
-                +goToPos(position % 3 + 1)
-            }
+        Tap(Button.DPAD_DOWN1) then {
+            instant { position++ }
+            +goToPos(position % 3 + 1)
+        }
     }
 
     private fun Pusher.defineControls() {
@@ -65,28 +61,27 @@ class Seahorse : SimpleManualModeWithSpeedModes<MecanumDriveWithPP, JonesPP>() {
     }
 
     private fun defineAimingControls() {
-        Change(AnalogInput.RIGHT_TRIGGER1) then
-            { value ->
-                instant {
-                    context(telemetry) {
-                        if (value <= 0.3) {
-                            robot.aprilTagAiming.reset()
-                            return@instant
-                        }
-
-                        val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
-                        val tag = robot.getDetectedAprilTags(targetId).firstOrNull()
-
-                        rx =
-                            if (tag != null) {
-                                robot.aprilTagAiming.pointTowardsAprilTag(tag)
-                            } else {
-                                robot.aprilTagAiming.reset()
-                                0.0
-                            }
+        Change(AnalogInput.RIGHT_TRIGGER1) then { value ->
+            instant {
+                context(telemetry) {
+                    if (value <= 0.3) {
+                        robot.aprilTagAiming.reset()
+                        return@instant
                     }
+
+                    val targetId = if (allianceColor == AllianceColor.BLUE) 20 else 24
+                    val tag = robot.getDetectedAprilTags(targetId).firstOrNull()
+
+                    rx =
+                        if (tag != null) {
+                            robot.aprilTagAiming.pointTowardsAprilTag(tag)
+                        } else {
+                            robot.aprilTagAiming.reset()
+                            0.0
+                        }
                 }
             }
+        }
     }
 
     private fun defineAutoFireControls() {
