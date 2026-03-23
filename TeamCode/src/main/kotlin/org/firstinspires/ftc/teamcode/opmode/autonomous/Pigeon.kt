@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @VoltOpModeMeta("Pigeon", "Competition", "Manatee")
 class Pigeon : MultiDualAutonomousMode<GabePP, StartingPosition>() {
-    override val robot: GabePP =
+    override val robot =
         GabePP(
             hardwareMap,
             mirroredForAlliance(
