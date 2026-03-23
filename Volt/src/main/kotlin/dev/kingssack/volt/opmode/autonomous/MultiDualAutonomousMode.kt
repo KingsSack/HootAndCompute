@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
  * the enum [E].
  *
  * @param E the enum to register separate opmodes for
- * @property type the selected value of [E]
+ * @property variant the selected variant of [E]
  */
 abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousMode<R>() {
     @Suppress("unused")
@@ -77,5 +77,5 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
         var type: Enum<*>? = null
     }
 
-    val type: E = InfoHolder.type as E
+    val variant: E = InfoHolder.type as E
 }
