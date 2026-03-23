@@ -282,6 +282,76 @@ public class ExampleAuto extends AutonomousMode<MyRobot> {
 
 </Tabs>
 
+## MultiAutonomousMode and DualAutonomousMode
+
+Sometimes you may need multiple variants of an AutonomousMode, such as if your path needs to be mirrored for one color, or it can start in multiple locations.
+That is the reason for the MultiAutonomousMode, DualAutonomousMode, and MultiDualAutonomousMode are for.
+the MultiAutonomousMode allows you to create multiple instances of an autonomous for each instance of an enum, the DualAutonomousMode does the same thing specifically for team colors, and the MultiDualAutonomousMode is a combination of both.
+
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin {7-16}
+import dev.kingssack.volt.opmode.autonomous.AutonomousMode
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start
+
+class ExampleAuto : AutonomousMode<MyRobot>() {
+    override val robot = MyRobot(hardwareMap)
+    init {
+        Start then {
+                repeat(3)  {
+                    +robot.claw.open() // Add an action to the sequence
+
+                    parallel { // Run these actions at the same time
+                        +robot.claw.close()
+                        +robot.score()
+                    }
+                }
+            }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {17-27}
+import dev.kingssack.volt.opmode.autonomous.MultiDualAutonomousMode;
+import dev.kingssack.volt.opmode.autonomous.DualAutonomousMode.AllianceColor
+import org.jetbrains.annotations.NotNull;
+
+public class ExampleAuto extends MultiDualAutonomousMode<MyRobot, type> {
+    enum type {
+        type1,
+        type2
+    }
+    @NotNull MyRobot robot = new MyRobot(getHardwareMap());
+
+    @Override
+    protected @NotNull MyRobot getRobot() {
+        return robot;
+        // example: check the type
+        if (variant === type.type1) {}
+        // example: check the color
+        if (color === AllianceColor.RED) {}
+        // helper methods:
+        // mirroredForAlliance(pose) mirrors a pose if the blue OpMode is active
+        // forAlliance(red, blue) returns a different value depending on if the red or blue OpMode is active
+    }
+
+    public ExampleAuto() {
+        super();
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
 ## Next Steps
 
 - [Create a ManualMode](../05-manual-mode) to control you [Robot](../01-robots) with gamepads
