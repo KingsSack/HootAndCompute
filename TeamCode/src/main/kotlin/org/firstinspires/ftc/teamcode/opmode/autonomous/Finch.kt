@@ -13,8 +13,8 @@ class Finch : MultiDualAutonomousMode<GabePP, FinchStartingPosition>() {
     override val robot =
         GabePP(
             hardwareMap,
-            sw(
-                when (type) {
+            mirroredForAlliance(
+                when (variant) {
                     FinchStartingPosition.WALL -> Pose(56.0, 9.0, 90.0.toRadians())
                     FinchStartingPosition.GOAL -> Pose(26.0, 133.0, 142.0.toRadians())
                 }
@@ -22,8 +22,8 @@ class Finch : MultiDualAutonomousMode<GabePP, FinchStartingPosition>() {
         )
 
     private var launchPose: Pose =
-        sw(
-            when (type) {
+        mirroredForAlliance(
+            when (variant) {
                 FinchStartingPosition.WALL -> Pose(64.0, 100.0, 140.0.toRadians())
                 FinchStartingPosition.GOAL -> Pose(64.0, 125.0, 148.0.toRadians())
             }
@@ -33,12 +33,11 @@ class Finch : MultiDualAutonomousMode<GabePP, FinchStartingPosition>() {
         blackboard["allianceColor"] = color
 
         // Drives to the launch zone and fires preloaded artifacts
-        Start then
-            {
-                +robot.drivetrain.path { lineTo(launchPose) }
-                +robot.fire(3)
-                instant { blackboard["endPose"] = robot.drivetrain.pose }
-            }
+        Start then {
+            +robot.drivetrain.path { lineTo(launchPose) }
+            +robot.fire(3)
+            instant { blackboard["endPose"] = robot.drivetrain.pose }
+        }
     }
 }
 

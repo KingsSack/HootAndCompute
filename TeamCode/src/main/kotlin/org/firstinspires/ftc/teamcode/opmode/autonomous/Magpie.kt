@@ -11,15 +11,20 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 @VoltOpModeMeta("Magpie", "Competition", "Seahorse")
 class Magpie : DualAutonomousMode<JonesPP>() {
     companion object {
-        @JvmField var INITIAL_X: Double = 56.0
-        @JvmField var INITIAL_Y: Double = 8.0
-        @JvmField var INITIAL_HEADING: Double = 90.0
+        @JvmField
+        var INITIAL_X: Double = 56.0
+
+        @JvmField
+        var INITIAL_Y: Double = 8.0
+
+        @JvmField
+        var INITIAL_HEADING: Double = 90.0
     }
 
     override val robot =
-        JonesPP(hardwareMap, sw(Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians())))
+        JonesPP(hardwareMap, mirroredForAlliance(Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians())))
 
-    private val finalPose = sw(Pose(56.0, 36.0, 115.0.toRadians()))
+    private val finalPose = mirroredForAlliance(Pose(56.0, 36.0, 115.0.toRadians()))
 
     private val patterns =
         mapOf(
@@ -36,22 +41,21 @@ class Magpie : DualAutonomousMode<JonesPP>() {
         blackboard["allianceColor"] = color
 
         // Fires artifacts according to the detected pattern and leaves
-        Start then
-            {
-                +robot.launcher.enable()
+        Start then {
+            +robot.launcher.enable()
 
-                for (artifact in patterns[patternId] ?: defaultPattern) {
-                    +robot.classifier.releaseArtifact(artifact)
-                    wait(1.5)
-                }
-
-                parallel {
-                    +robot.launcher.disable()
-                    +robot.drivetrain.path { lineTo(finalPose) }
-                }
-
-                instant { blackboard["endPose"] = robot.drivetrain.pose }
+            for (artifact in patterns[patternId] ?: defaultPattern) {
+                +robot.classifier.releaseArtifact(artifact)
+                wait(1.5)
             }
+
+            parallel {
+                +robot.launcher.disable()
+                +robot.drivetrain.path { lineTo(finalPose) }
+            }
+
+            instant { blackboard["endPose"] = robot.drivetrain.pose }
+        }
 
         while (opModeInInit()) {
             val tags = context(telemetry) { robot.getDetectedAprilTags() }
