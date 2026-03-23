@@ -10,11 +10,11 @@ import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.frozenmilk.sinister.targeting.NarrowSearch
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.VoltLogs
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 /**
  * Base class for Volt's OpModes
@@ -52,7 +52,7 @@ abstract class VoltOpMode<R : Robot> {
         var telemetry: Telemetry? = null
         var gamepad1: Gamepad? = null
         var gamepad2: Gamepad? = null
-        var blackboard: java.util.HashMap<String, Any>? = null
+        var blackboard: MutableMap<String, Any>? = null
         var opModeInInit: (() -> Boolean)? = null
     }
 
@@ -136,7 +136,7 @@ abstract class VoltOpMode<R : Robot> {
 
                 if (
                     VoltOpMode::class.java.isAssignableFrom(cls) &&
-                        !Modifier.isAbstract(cls.modifiers)
+                    !Modifier.isAbstract(cls.modifiers)
                 ) {
                     var c = cls
                     while (c !== VoltOpMode::class.java) {
@@ -144,11 +144,11 @@ abstract class VoltOpMode<R : Robot> {
                             (c.declaredClasses
                                 .firstOrNull { cls ->
                                     Registrar::class.java.isAssignableFrom(cls) &&
-                                        cls.fields.any { it.name == "INSTANCE" }
+                                            cls.fields.any { it.name == "INSTANCE" }
                                 }
                                 ?.getDeclaredField("INSTANCE")
                                 ?.get(null))
-                                as Registrar?
+                                    as Registrar?
                         if (registrar !== null) {
                             registrar.register(voltHelper, cls as Class<VoltOpMode<*>>)
                             return
