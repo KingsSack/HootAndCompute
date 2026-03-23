@@ -1,17 +1,23 @@
 package org.firstinspires.ftc.teamcode.samples;
 
 import dev.kingssack.volt.opmode.autonomous.AutonomousMode;
-import dev.kingssack.volt.util.Event.AutonomousEvent.Start;
 import kotlin.Unit;
+import dev.kingssack.volt.util.Event.AutonomousEvent.Start;
+import org.jetbrains.annotations.NotNull;
 
+// An actual opmode would not be abstract
 @SuppressWarnings("unused")
-public class SampleAuto extends AutonomousMode<SampleRobot> {
-    public SampleAuto() {
-        super(SampleRobot::new);
-    }
+abstract public class SampleAuto extends AutonomousMode<SampleRobot> {
+    @NotNull SampleRobot robot = new SampleRobot(getHardwareMap());
 
     @Override
-    public void defineEvents() {
+    protected @NotNull SampleRobot getRobot() {
+        return robot;
+    }
+
+    public SampleAuto() {
+        super();
+
         then(Start.INSTANCE, builder -> {
             builder.unaryPlus(getRobot().score());
             return Unit.INSTANCE;
