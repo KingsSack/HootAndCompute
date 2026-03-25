@@ -25,7 +25,7 @@ Event
 ```
 
 - **`AutonomousEvent`** types are used in [AutonomousModes](../../guides/04-autonomous-mode) and respond to lifecycle triggers.
-- **`ManualEvent`** types are used in [ManualModes](../../guides/05-manual-mode) and respond to gamepad input.
+- **`ManualEvent`** types are used in [ManualModes](../../guides/06-manual-mode) and respond to gamepad input.
 
 ## Binding Events with `then`
 
@@ -68,7 +68,7 @@ Start then {
 
 ## Manual Events
 
-Manual events are used in [ManualModes](../../guides/05-manual-mode). Import them with:
+Manual events are used in [ManualModes](../../guides/06-manual-mode). Import them with:
 
 ```kotlin
 import dev.kingssack.volt.util.Event.ManualEvent.*

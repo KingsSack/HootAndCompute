@@ -7,7 +7,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 OpModes in Volt are built on top of the `VoltOpMode` base class.
 
-There are two main types of `VoltOpMode`: [AutonomousModes](../04-autonomous-mode) and [ManualModes](../05-manual-mode).
+There are two main types of `VoltOpMode`: [AutonomousModes](../04-autonomous-mode) and [ManualModes](../06-manual-mode).
 
 The `VoltOpMode` class has the following properties:
 
@@ -22,7 +22,7 @@ This goal is accomplished using [Events](../../concepts/02-events).
 
 ## Defining [Events](../../concepts/02-events)
 
-In both [AutonomousModes](../04-autonomous-mode) and [ManualModes](../05-manual-mode)
+In both [AutonomousModes](../04-autonomous-mode) and [ManualModes](../06-manual-mode)
 [Events](../../concepts/02-events) are defined using the `then` method:
 
 <Tabs syncKey="language">
@@ -57,11 +57,11 @@ The `VoltOpModeMeta` annotation has three parameters:
 
 - `name: String`: The only required parameter. Specifies the name that will appear on the Driver Station app.
 - `group: String`: Specifies the group that will appear on the Driver Station app. Defaults to "$$$$$$$".
-- `autoTransition: String`: Specifies the [ManualMode](../05-manual-mode) that an [AutonomousMode](../04-autonomous-mode) will automatically transition to on completion.
+- `autoTransition: String`: Specifies the [ManualMode](../06-manual-mode) that an [AutonomousMode](../04-autonomous-mode) will automatically transition to on completion.
 
 ## Next Steps
 
 - [Create an AutonomousMode](../04-autonomous-mode) to control your [Robot](../01-robots) autonomously
-- [Create a ManualMode](../05-manual-mode) to control your [Robot](../01-robots) with gamepads
+- [Create a ManualMode](../06-manual-mode) to control your [Robot](../01-robots) with gamepads
 - [Learn more about Events](../../concepts/02-events)
 - [Learn more about the VoltActionBuilder](../../concepts/03-volt-action-builder)
