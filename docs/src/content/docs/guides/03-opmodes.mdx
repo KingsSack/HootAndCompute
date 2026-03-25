@@ -49,14 +49,15 @@ The `then` method pairs [Events](../../concepts/02-events) with a [VoltActionBui
 In this builder, you can build simple or complex sequences of [Actions](../../concepts/01-actions)
 from the ones defined in your [Attachments](../02-attachments) and [Robots](../01-robots).
 
-## OpMode Metadata
+## Adding Metadata
 
-opmodes require the VoltOpModeMeta annotation to determine how they should appear on the driver hub.
-The VoltOpModeMeta annotation has Three parameters:
+A `VoltOpMode` requires the `VoltOpModeMeta` annotation to determine how it appears on the Driver Station app.
 
-Name is the only required parameter, it determines the name that will appear on the driver hub
-Group determines the group that will appear on the driver hub. it defaults to "$$$$$$$"
-autoTransition determines the manualMode that an autonomous mode will automatically transition to.
+The `VoltOpModeMeta` annotation has three parameters:
+
+- `name: String`: The only required parameter. Specifies the name that will appear on the Driver Station app.
+- `group: String`: Specifies the group that will appear on the Driver Station app. Defaults to "$$$$$$$".
+- `autoTransition: String`: Specifies the [ManualMode](../05-manual-mode) that an [AutonomousMode](../04-autonomous-mode) will automatically transition to on completion.
 
 ## Next Steps
 
