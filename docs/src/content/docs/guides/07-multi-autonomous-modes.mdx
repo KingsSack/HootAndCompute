@@ -1,0 +1,345 @@
+---
+title: Multi-Variant Autonomous Modes
+description: Learn how to create multi-variant Autonomous Modes with Volt.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+In FTC your autonomous flow often needs to **adapt** based on alliance or starting position, this is where multi-variant [AutonomousModes](../06-autonomous-mode) come in.
+
+---
+
+Currently Volt comes with three types of multi-variant [AutonomousModes](../06-autonomous-mode):
+
+- **`DualAutonomousMode`**: Creates **two variants**, one for red and one for blue alliance
+- **`MultiAutonomousMode`**: Creates **one variant for every type** defined in an enum class
+- **`MultiDualAutonomousMode`**: Creates **two variants for every type** defined in an enum class, one for red and one for blue alliance
+
+## `DualAutonomousMode`
+
+Use `DualAutonomousMode` when your [AutonomousMode](../06-autonomous-mode) needs to do different things when you are on blue alliance vs red alliance.
+
+The `color` property references the selected `AllianceColor`.
+
+`DualAutonomousMode` also provides helper methods:
+
+- `<T> forAlliance(red: T, blue: T): T`: Returns `red` if the selected alliance is `RED` or `blue` if the selected alliance is `BLUE`.
+- `mirroredForAlliance(redPose: Pose)`: Returns a [PedroPathing](https://pedropathing.com/docs/pathing/installation) `Pose` that is mirrored if the selected alliance is `BLUE`.
+
+### Example
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+class Park : DualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>>() {
+    companion object {
+        // Define RED poses
+        private val START_RED = Pose(12.0, 60.0, 270.0.toRadians())
+        private val PARK_RED = Pose(12.0, 36.0, 270.0.toRadians())
+    }
+    
+    // Mirror poses if BLUE
+    val initialPose = mirroredForAlliance(START_RED)
+    val parkPose = mirroredForAlliance(PARK_RED)
+    
+    override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
+        hardwareMap,
+        MecanumDriveWithPP(
+            hardwareMap,
+            FollowerConstants(),
+            DriveEncoderConstants(),
+            PathConstraints(),
+            MecanumConstants(),
+            initialPose,
+        ),
+    )
+    
+    init {
+        blackboard["allianceColor"] = color // Save color to the blackboard
+        
+        Start then {
+            +robot.drivetrain.path { lineTo(parkPose) }
+        }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+public class Park extends DualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>> {
+    private static final Pose START_RED = new Pose(12, 60, Math.toRadians(270));
+    private static final Pose PARK_RED = new Pose(12, 36, Math.toRadians(270));
+    
+    // Mirror poses if BLUE
+    Pose initialPose = mirroredForAlliance(START_RED);
+    Pose parkPose = mirroredForAlliance(PARK_RED);
+    
+    private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
+            new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
+                    getHardwareMap(),
+                    new MecanumDriveWithPP(
+                            getHardwareMap(),
+                            new FollowerConstants(),
+                            new DriveEncoderConstants(),
+                            new PathConstraints(),
+                            new MecanumConstants(),
+                            initialPose
+                    )
+            );
+    
+    @Override
+    protected @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP>> getRobot() {
+        return robot;
+    }
+    
+    public Park() {
+        blackboard.put("allianceColor", getColor()); // Save color to the blackboard
+        
+        then(Start.INSTANCE, builder -> {
+            builder.unaryPlus(getRobot().getDrivetrain().path(pathBuilder -> {
+                pathBuilder.lineTo(parkPose);
+                return Unit.INSTANCE;
+            }));
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+## `MultiAutonomousMode`
+
+Use `MultiAutonomousMode` to create as many variants for your [AutonomousMode](../06-autonomous-mode) as you want. Examples include multiple starting positions, launch positions, speeds, etc.
+
+The `variant` property references the selected variant. The type of `variant`, `E`, is provided via a type parameter.
+
+### Example
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+enum class StartingPosition {
+    LEFT,
+    RIGHT,
+}
+
+class Park : MultiAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition>() {
+    companion object {
+        // Define poses
+        private val START_LEFT = Pose(12.0, 60.0, 270.0.toRadians())
+        private val START_RIGHT = Pose(12.0, 66.0, 270.0.toRadians())
+        private val PARK = Pose(12.0, 36.0, 270.0.toRadians())
+    }
+    
+    // Get initial pose
+    val initialPose = if (variant == StartingPosition.LEFT) START_LEFT else START_RIGHT
+    
+    override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
+        hardwareMap,
+        MecanumDriveWithPP(
+            hardwareMap,
+            FollowerConstants(),
+            DriveEncoderConstants(),
+            PathConstraints(),
+            MecanumConstants(),
+            initialPose,
+        ),
+    )
+    
+    init {
+        Start then {
+            +robot.drivetrain.path { lineTo(PARK) }
+        }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+public class Park extends MultiAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition> {
+    enum StartingPosition {
+        LEFT,
+        RIGHT
+    }
+    
+    private static final Pose START_LEFT = new Pose(12, 60, Math.toRadians(270));
+    private static final Pose START_RIGHT = new Pose(12, 66, Math.toRadians(270));
+    private static final Pose PARK_RED = new Pose(12, 36, Math.toRadians(270));
+    
+    // Get initial Pose
+    Pose getInitialPose() {
+        if (getVariant().equals(StartingPosition.LEFT)) {
+            return START_LEFT;
+        }
+        else {
+            return START_RIGHT;
+        }
+    };
+    
+    private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
+            new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
+                    getHardwareMap(),
+                    new MecanumDriveWithPP(
+                            getHardwareMap(),
+                            new FollowerConstants(),
+                            new DriveEncoderConstants(),
+                            new PathConstraints(),
+                            new MecanumConstants(),
+                            getInitialPose()
+                    )
+            );
+    
+    @Override
+    protected @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP>> getRobot() {
+        return robot;
+    }
+    
+    public Park() {
+        then(Start.INSTANCE, builder -> {
+            builder.unaryPlus(getRobot().getDrivetrain().path(pathBuilder -> {
+                pathBuilder.lineTo(PARK);
+                return Unit.INSTANCE;
+            }));
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+## `MultiDualAutonomousMode`
+
+`MultiDualAutonomousMode` combines `DualAutonomousMode` and `MultiAutonomousMode`, use it when you want alliance color variants for each of your `MultiAutonomousMode` variants.
+
+`MultiDualAutonomousMode` extends `DualAutonomousMode`, adding the `variant` property from `MultiAutonomousMode`.
+
+### Example
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+enum class StartingPosition {
+    LEFT,
+    RIGHT,
+}
+
+class Park : MultiDualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition>() {
+    companion object {
+        // Define RED poses
+        private val START_LEFT_RED = Pose(12.0, 60.0, 270.0.toRadians())
+        private val START_RIGHT_RED = Pose(12.0, 66.0, 270.0.toRadians())
+        private val PARK_RED = Pose(12.0, 36.0, 270.0.toRadians())
+    }
+    
+    // Get initial pose and mirror poses if BLUE
+    val initialPose = if (variant == StartingPosition.LEFT) mirroredForAlliance(START_LEFT_RED) else mirroredForAlliance(START_RIGHT_RED)
+    val parkPose = mirroredForAlliance(PARK_RED)
+    
+    override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
+        hardwareMap,
+        MecanumDriveWithPP(
+            hardwareMap,
+            FollowerConstants(),
+            DriveEncoderConstants(),
+            PathConstraints(),
+            MecanumConstants(),
+            initialPose,
+        ),
+    )
+    
+    init {
+        blackboard["allianceColor"] = color // Save color to the blackboard
+        
+        Start then {
+            +robot.drivetrain.path { lineTo(parkPose) }
+        }
+    }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition> {
+    enum StartingPosition {
+        LEFT,
+        RIGHT
+    }
+    
+    private static final START_LEFT_RED = new Pose(12, 60, Math.toRadians(270));
+    private static final START_RIGHT_RED = new Pose(12, 66, Math.toRadians(270));
+    private static final PARK_RED = new Pose(12, 36, Math.toRadians(270));
+    
+    // Get initial pose
+    Pose getInitialPose() {
+        if (getVariant().equals(StartingPosition.LEFT)) {
+            return mirroredForAlliance(START_LEFT_RED); // Mirror pose if BLUE
+        }
+        else {
+            return mirroredForAlliance(START_RIGHT_RED); // Mirror pose if BLUE
+        }
+    };
+    
+    Pose parkPose = mirroredForAlliance(PARK_RED); // Mirror pose if BLUE
+    
+    private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
+            new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
+                    getHardwareMap(),
+                    new MecanumDriveWithPP(
+                            getHardwareMap(),
+                            new FollowerConstants(),
+                            new DriveEncoderConstants(),
+                            new PathConstraints(),
+                            new MecanumConstants(),
+                            getInitialPose()
+                    )
+            );
+    
+    @Override
+    protected @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP>> getRobot() {
+        return robot;
+    }
+    
+    public Park() {
+        blackboard.put("allianceColor", getColor()); // Save color to the blackboard
+        
+        then(Start.INSTANCE, builder -> {
+            builder.unaryPlus(getRobot().getDrivetrain().path(pathBuilder -> {
+                pathBuilder.lineTo(parkPose);
+                return Unit.INSTANCE;
+            }));
+            return Unit.INSTANCE;
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+## Next Steps
+
+- [Create a ManualMode](../08-manual-mode) to control you [Robot](../01-robots) with gamepads
+- [Learn more about Events](../../concepts/02-events)
+- [Learn more about the VoltActionBuilder](../../concepts/03-volt-action-builder)
