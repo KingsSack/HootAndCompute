@@ -12,7 +12,7 @@ Actions encapsulate all logic that controls your [Robot](../../guides/01-robots)
 
 - [Attachments](../../guides/02-attachments)
 - [Robots](../../guides/01-robots)
-- [OpModes](../../guides/03-opmodes)
+- [OpModes](../../guides/05-opmodes)
 
 Actions have three stages of logic:
 

@@ -8,7 +8,7 @@ title: Volt Action Builder
 > composition.
 
 `VoltActionBuilder` is the DSL class for composing [Actions](../01-actions) into sequences with timing, parallelism, and control flow.
-It is used by the `then` function in [AutonomousModes](../../guides/04-autonomous-mode) and [ManualModes](../../guides/05-manual-mode)
+It is used by the `then` function in [AutonomousModes](../../guides/06-autonomous-mode) and [ManualModes](../../guides/08-manual-mode)
 and the `voltAction` function in other classes (usually [Robots](../../guides/01-robots)).
 
 The builder collects actions into a list and produces a single `SequentialAction` when built.

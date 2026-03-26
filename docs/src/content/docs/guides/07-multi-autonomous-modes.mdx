@@ -5,11 +5,11 @@ description: Learn how to create multi-variant Autonomous Modes with Volt.
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-In FTC your autonomous flow often needs to **adapt** based on alliance or starting position, this is where multi-variant [AutonomousModes](../04-autonomous-mode) come in.
+In FTC your autonomous flow often needs to **adapt** based on alliance or starting position, this is where multi-variant [AutonomousModes](../06-autonomous-mode) come in.
 
 ---
 
-Currently Volt comes with three types of multi-variant Autonomous Modes:
+Currently Volt comes with three types of multi-variant [AutonomousModes](../06-autonomous-mode):
 
 - **`DualAutonomousMode`**: Creates **two variants**, one for red and one for blue alliance
 - **`MultiAutonomousMode`**: Creates **one variant for every type** defined in an enum class
@@ -17,7 +17,7 @@ Currently Volt comes with three types of multi-variant Autonomous Modes:
 
 ## `DualAutonomousMode`
 
-Use `DualAutonomousMode` when your [AutonomousMode](../04-autonomous-mode) needs to do different things when you are on blue alliance vs red alliance.
+Use `DualAutonomousMode` when your [AutonomousMode](../06-autonomous-mode) needs to do different things when you are on blue alliance vs red alliance.
 
 The `color` property references the selected `AllianceColor`.
 
@@ -33,18 +33,18 @@ The `color` property references the selected `AllianceColor`.
 <TabItem label="Kotlin">
 
 ```kotlin
-class Park : DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>>() {
+class Park : DualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>>() {
     companion object {
         // Define RED poses
-        private const val START_RED = Pose(12.0, 60.0, 270.0.toRadians())
-        private const val PARK_RED = Pose(12.0, 36.0, 270.0.toRadians())
+        private val START_RED = Pose(12.0, 60.0, 270.0.toRadians())
+        private val PARK_RED = Pose(12.0, 36.0, 270.0.toRadians())
     }
     
     // Mirror poses if BLUE
     val initialPose = mirroredForAlliance(START_RED)
     val parkPose = mirroredForAlliance(PARK_RED)
     
-    override val robot = RobotWithMecanumDrive<MecanumDriveWithPP>(
+    override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
         hardwareMap,
         MecanumDriveWithPP(
             hardwareMap,
@@ -71,16 +71,16 @@ class Park : DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>>() {
 <TabItem label="Java">
 
 ```java
-public class Park extends DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>> {
-    private static final START_RED = new Pose(12, 60, Math.toRadians(270));
-    private static final PARK_RED = new Pose(12, 36, Math.toRadians(270));
+public class Park extends DualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>> {
+    private static final Pose START_RED = new Pose(12, 60, Math.toRadians(270));
+    private static final Pose PARK_RED = new Pose(12, 36, Math.toRadians(270));
     
     // Mirror poses if BLUE
     Pose initialPose = mirroredForAlliance(START_RED);
     Pose parkPose = mirroredForAlliance(PARK_RED);
     
-    private final @NotNull RobotWithMecanumDrive<MecanumDriveWithPP>> robot =
-            new RobotWithMecanumDrive<MecanumDriveWithPP>(
+    private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
+            new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
                     getHardwareMap(),
                     new MecanumDriveWithPP(
                             getHardwareMap(),
@@ -93,7 +93,7 @@ public class Park extends DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveW
             );
     
     @Override
-    protected @NotNull RobotWithMecanumDrive<MecanumDriveWithPP>> getRobot() {
+    protected @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP>> getRobot() {
         return robot;
     }
     
@@ -117,7 +117,7 @@ public class Park extends DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveW
 
 ## `MultiAutonomousMode`
 
-Use `MultiAutonomousMode` to create as many variants for your [AutonomousMode](../04-autonomous-mode) as you want. Examples include multiple starting positions, launch positions, speeds, etc.
+Use `MultiAutonomousMode` to create as many variants for your [AutonomousMode](../06-autonomous-mode) as you want. Examples include multiple starting positions, launch positions, speeds, etc.
 
 The `variant` property references the selected variant. The type of `variant`, `E`, is provided via a type parameter.
 
@@ -133,18 +133,18 @@ enum class StartingPosition {
     RIGHT,
 }
 
-class Park : MultiAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>, StartingPosition>() {
+class Park : MultiAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition>() {
     companion object {
         // Define poses
-        private const val START_LEFT = Pose(12.0, 60.0, 270.0.toRadians())
-        private const val START_RIGHT = Pose(12.0, 66.0, 270.0.toRadians())
-        private const val PARK = Pose(12.0, 36.0, 270.0.toRadians())
+        private val START_LEFT = Pose(12.0, 60.0, 270.0.toRadians())
+        private val START_RIGHT = Pose(12.0, 66.0, 270.0.toRadians())
+        private val PARK = Pose(12.0, 36.0, 270.0.toRadians())
     }
     
     // Get initial pose
     val initialPose = if (variant == StartingPosition.LEFT) START_LEFT else START_RIGHT
     
-    override val robot = RobotWithMecanumDrive<MecanumDriveWithPP>(
+    override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
         hardwareMap,
         MecanumDriveWithPP(
             hardwareMap,
@@ -169,15 +169,15 @@ class Park : MultiAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>, Star
 <TabItem label="Java">
 
 ```java
-public class Park extends DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>, StartingPosition> {
+public class Park extends MultiAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition> {
     enum StartingPosition {
         LEFT,
         RIGHT
     }
     
-    private static final START_LEFT = new Pose(12, 60, Math.toRadians(270));
-    private static final START_RIGHT = new Pose(12, 66, Math.toRadians(270));
-    private static final PARK_RED = new Pose(12, 36, Math.toRadians(270));
+    private static final Pose START_LEFT = new Pose(12, 60, Math.toRadians(270));
+    private static final Pose START_RIGHT = new Pose(12, 66, Math.toRadians(270));
+    private static final Pose PARK_RED = new Pose(12, 36, Math.toRadians(270));
     
     // Get initial Pose
     Pose getInitialPose() {
@@ -189,8 +189,8 @@ public class Park extends DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveW
         }
     };
     
-    private final @NotNull RobotWithMecanumDrive<MecanumDriveWithPP>> robot =
-            new RobotWithMecanumDrive<MecanumDriveWithPP>(
+    private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
+            new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
                     getHardwareMap(),
                     new MecanumDriveWithPP(
                             getHardwareMap(),
@@ -203,7 +203,7 @@ public class Park extends DualAutonomousMode<RobotWithMecanumDrive<MecanumDriveW
             );
     
     @Override
-    protected @NotNull RobotWithMecanumDrive<MecanumDriveWithPP>> getRobot() {
+    protected @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP>> getRobot() {
         return robot;
     }
     
@@ -241,19 +241,19 @@ enum class StartingPosition {
     RIGHT,
 }
 
-class Park : MultiDualAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>, StartingPosition>() {
+class Park : MultiDualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition>() {
     companion object {
         // Define RED poses
-        private const val START_LEFT_RED = Pose(12.0, 60.0, 270.0.toRadians())
-        private const val START_RIGHT_RED = Pose(12.0, 66.0, 270.0.toRadians())
-        private const val PARK_RED = Pose(12.0, 36.0, 270.0.toRadians())
+        private val START_LEFT_RED = Pose(12.0, 60.0, 270.0.toRadians())
+        private val START_RIGHT_RED = Pose(12.0, 66.0, 270.0.toRadians())
+        private val PARK_RED = Pose(12.0, 36.0, 270.0.toRadians())
     }
     
     // Get initial pose and mirror poses if BLUE
     val initialPose = if (variant == StartingPosition.LEFT) mirroredForAlliance(START_LEFT_RED) else mirroredForAlliance(START_RIGHT_RED)
     val parkPose = mirroredForAlliance(PARK_RED)
     
-    override val robot = RobotWithMecanumDrive<MecanumDriveWithPP>(
+    override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
         hardwareMap,
         MecanumDriveWithPP(
             hardwareMap,
@@ -280,7 +280,7 @@ class Park : MultiDualAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>, 
 <TabItem label="Java">
 
 ```java
-public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrive<MecanumDriveWithPP>, StartingPosition> {
+public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>, StartingPosition> {
     enum StartingPosition {
         LEFT,
         RIGHT
@@ -302,8 +302,8 @@ public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrive<MecanumD
     
     Pose parkPose = mirroredForAlliance(PARK_RED); // Mirror pose if BLUE
     
-    private final @NotNull RobotWithMecanumDrive<MecanumDriveWithPP>> robot =
-            new RobotWithMecanumDrive<MecanumDriveWithPP>(
+    private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
+            new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
                     getHardwareMap(),
                     new MecanumDriveWithPP(
                             getHardwareMap(),
@@ -316,7 +316,7 @@ public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrive<MecanumD
             );
     
     @Override
-    protected @NotNull RobotWithMecanumDrive<MecanumDriveWithPP>> getRobot() {
+    protected @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP>> getRobot() {
         return robot;
     }
     
@@ -340,6 +340,6 @@ public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrive<MecanumD
 
 ## Next Steps
 
-- [Create a ManualMode](../05-manual-mode) to control you [Robot](../01-robots) with gamepads
+- [Create a ManualMode](../08-manual-mode) to control you [Robot](../01-robots) with gamepads
 - [Learn more about Events](../../concepts/02-events)
 - [Learn more about the VoltActionBuilder](../../concepts/03-volt-action-builder)
