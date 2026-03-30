@@ -10,11 +10,11 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @VoltOpModeMeta("Pigeon", "Competition", "Manatee")
 class Pigeon : MultiDualAutonomousMode<GabePP, StartingPosition>() {
-    override val robot: GabePP =
+    override val robot =
         GabePP(
             hardwareMap,
-            sw(
-                when (type) {
+            mirroredForAlliance(
+                when (variant) {
                     StartingPosition.WALL -> Pose(57.0, 9.0, 90.0.toRadians())
                     StartingPosition.GOAL -> Pose(26.0, 133.0, 323.0.toRadians())
                     StartingPosition.RAMP -> Pose(15.0, 112.0, 0.0.toRadians())
@@ -23,8 +23,8 @@ class Pigeon : MultiDualAutonomousMode<GabePP, StartingPosition>() {
         )
 
     private val endPose =
-        sw(
-            when (type) {
+        mirroredForAlliance(
+            when (variant) {
                 StartingPosition.WALL -> Pose(37.0, 9.0, 90.0.toRadians())
                 StartingPosition.GOAL -> Pose(36.0, 125.0, 323.0.toRadians())
                 StartingPosition.RAMP -> Pose(15.0, 105.0, 0.0.toRadians())
@@ -33,14 +33,11 @@ class Pigeon : MultiDualAutonomousMode<GabePP, StartingPosition>() {
 
     init {
         blackboard["allianceColor"] = color
-    }
 
-    override fun defineEvents() {
         // Leaves the launch line
-        Start then
-            {
-                +robot.drivetrain.path { lineTo(endPose) }
-                instant { blackboard["endPose"] = robot.drivetrain.pose }
-            }
+        Start then {
+            +robot.drivetrain.path { lineTo(endPose) }
+            instant { blackboard["endPose"] = robot.drivetrain.pose }
+        }
     }
 }

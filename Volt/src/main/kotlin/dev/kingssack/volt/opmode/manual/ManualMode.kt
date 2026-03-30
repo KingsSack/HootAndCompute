@@ -92,9 +92,6 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
         comboBindings.add(this to block)
     }
 
-    /** A place to define actions to be triggered by events */
-    abstract fun defineEvents()
-
     private fun initializeInputMappings() {
         Button.entries.forEach { button -> buttonHandlers[button] = ButtonHandler() }
         AnalogInput.entries.forEach { analog ->
@@ -105,7 +102,6 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
     /** Initializes inputs and defines manual events */
     init {
         initializeInputMappings()
-        defineEvents()
     }
 
     override fun begin() {

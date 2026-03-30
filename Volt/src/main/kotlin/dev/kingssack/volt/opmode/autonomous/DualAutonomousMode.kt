@@ -72,13 +72,17 @@ abstract class DualAutonomousMode<R : Robot> : AutonomousMode<R>() {
         var color: AllianceColor? = null
     }
 
-    /** @return [red] if red alliance is selected, [blue] if blue alliance is slected */
+    /** @return [red] if red alliance is selected, [blue] if blue alliance is selected */
     @Suppress("unused")
-    fun <T> sw(red: T, blue: T): T = if (color == AllianceColor.RED) red else blue
+    fun <T> forAlliance(red: T, blue: T): T = if (color == AllianceColor.RED) red else blue
 
-    /** @return [pose] if red alliance is selected, or mirrored [pose] if blue alliance is selected */
+    /**
+     * @return [redPose] if red alliance is selected, or [redPose] mirrored if blue alliance is
+     *   selected
+     */
     @Suppress("unused")
-    fun sw(pose: Pose): Pose = if (color == AllianceColor.RED) pose else pose.mirror()
+    fun mirroredForAlliance(redPose: Pose): Pose =
+        if (color == AllianceColor.RED) redPose else redPose.mirror()
 }
 
 enum class AllianceColor {

@@ -7,11 +7,11 @@ import java.lang.reflect.ParameterizedType
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 /**
- * A [DualAutonomousMode] that can be registered as multiple seperate opmodes, one for each value of
+ * A [DualAutonomousMode] that can be registered as multiple separate opmodes, one for each value of
  * the enum [E].
  *
  * @param E the enum to register separate opmodes for
- * @property type the selected value of [E]
+ * @property variant the selected variant of [E]
  */
 abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousMode<R>() {
     @Suppress("unused")
@@ -26,8 +26,8 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
                     // If this is not the direct superclass, this might not work, but I don't know a
                     // better way.
                     val enumClass =
-                        ((clazz.genericSuperclass as ParameterizedType).actualTypeArguments[1]
-                            as Class<Enum<*>>)
+                        (clazz.genericSuperclass as ParameterizedType).actualTypeArguments[1]
+                            as Class<Enum<*>>
                     enumClass.enumConstants!!.forEach { value ->
                         registrationHelper.register(
                             { instantiateOpMode(value as Enum<*>, clazz, AllianceColor.BLUE) },
@@ -77,5 +77,5 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
         var type: Enum<*>? = null
     }
 
-    val type: E = InfoHolder.type as E
+    val variant: E = InfoHolder.type as E
 }
