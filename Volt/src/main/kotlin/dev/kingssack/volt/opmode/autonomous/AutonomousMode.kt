@@ -9,6 +9,7 @@ import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Event
+import dev.kingssack.volt.util.Event.AutonomousEvent.When
 import dev.kingssack.volt.util.telemetry.ActionTracer
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
@@ -55,6 +56,18 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
         events.add(this to block)
     }
 
+    /** [When] but only triggers when it becomes true (aka rising edge) */
+    protected fun on(trigger: () -> Boolean): When {
+        var state = false
+        return When {
+            if (state xor trigger()) {
+                state = !state
+                return@When state
+            }
+            false
+        }
+    }
+
     override fun begin() {
         events.forEach { (event, action) ->
             when (event) {
@@ -65,9 +78,11 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
         }
         while (opModeIsActive()) tick()
     }
+
     open fun tick() {
         processEvents()
     }
+
     private fun processEvents() {
         events.forEach { (event, action) ->
             when (event) {
@@ -86,6 +101,7 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
             }
         }
     }
+
     private fun runAction(action: Action) {
         val canvas = Canvas()
         action.preview(canvas)

@@ -6,8 +6,12 @@ import dev.kingssack.volt.util.buttons.Button
 sealed interface Event {
     sealed interface AutonomousEvent : Event {
         data object Start : AutonomousEvent
+
+        /** triggers when [trigger] becomes true. oly runs once */
         data class First(val trigger: () -> Boolean) : AutonomousEvent
-        data class When(val trigger: () -> Boolean) : AutonomousEvent
+
+        /** triggers each tick that [trigger] is true */
+        class When(val trigger: () -> Boolean) : AutonomousEvent
     }
 
     sealed interface ManualEvent : Event {
@@ -20,11 +24,17 @@ sealed interface Event {
         }
 
         data class Tap(override val button: Button) : ButtonEvent
+
         data class Release(override val button: Button) : ButtonEvent
+
         data class Hold(override val button: Button, val durationMs: Double = 200.0) : ButtonEvent
+
         data class DoubleTap(override val button: Button) : ButtonEvent
+
         data class Change(override val analogInput: AnalogInput) : AnalogEvent
-        data class Threshold(override val analogInput: AnalogInput, val min: Float = 0.3f) : AnalogEvent
+
+        data class Threshold(override val analogInput: AnalogInput, val min: Float = 0.3f) :
+            AnalogEvent
 
         data class Combo(val buttons: Set<Button>) : ManualEvent
     }
