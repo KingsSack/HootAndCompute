@@ -15,7 +15,8 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithRR
+import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerMecanumDrivetrain
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Drawing.drawRobot
 import java.util.*
@@ -48,10 +49,10 @@ class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareM
     }
 
     val drive =
-        MecanumDriveWithRR(
+        RoadRunnerDriveEncoderMecanumDrivetrain(
             hardwareMap,
             initialPose,
-            MecanumDriveWithRR.DriveParams(
+            RoadRunnerMecanumDrivetrain.DriveParams(
                 logoFacingDirection,
                 usbFacingDirection,
                 inPerTick,
@@ -99,15 +100,15 @@ class RoadRunnerTest : LinearOpMode() {
             context(telemetry) { robot.update() }
 
             with (telemetry) {
-                addData("x", robot.drive.pose.position.x)
-                addData("y", robot.drive.pose.position.y)
-                addData("heading (deg)", Math.toDegrees(robot.drive.pose.heading.toDouble()))
+                addData("x", robot.drive.localizer.pose.position.x)
+                addData("y", robot.drive.localizer.pose.position.y)
+                addData("heading (deg)", Math.toDegrees(robot.drive.localizer.pose.heading.toDouble()))
                 update()
             }
 
             val packet = TelemetryPacket()
             packet.fieldOverlay().setStroke("#3F51B5")
-            drawRobot(packet.fieldOverlay(), robot.drive.pose)
+            drawRobot(packet.fieldOverlay(), robot.drive.localizer.pose)
             FtcDashboard.getInstance().sendTelemetryPacket(packet)
         }
     }

@@ -6,23 +6,23 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithRR
-import org.firstinspires.ftc.robotcore.external.Telemetry
+import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerMecanumDrivetrain
 
 /**
- * [Gabe] with [MecanumDriveWithRR] drivetrain.
+ * [Gabe] with [RoadRunnerDriveEncoderMecanumDrivetrain] drivetrain.
  *
  * @param hardwareMap The FTC hardware map.
  * @param initialPose The initial pose of the robot.
  */
 @Config
 class GabeRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
-    Gabe<MecanumDriveWithRR>(
+    Gabe<RoadRunnerDriveEncoderMecanumDrivetrain>(
         hardwareMap,
-        MecanumDriveWithRR(
+        RoadRunnerDriveEncoderMecanumDrivetrain(
             hardwareMap,
             initialPose,
-            MecanumDriveWithRR.DriveParams(
+            RoadRunnerMecanumDrivetrain.DriveParams(
                 logoFacingDirection,
                 usbFacingDirection,
                 inPerTick,
@@ -64,11 +64,5 @@ class GabeRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0
         @JvmField var axialGain: Double = 5.0
         @JvmField var lateralGain: Double = 4.0
         @JvmField var headingGain: Double = 3.0
-    }
-
-    context(telemetry: Telemetry)
-    override fun update() {
-        drivetrain.update()
-        super.update()
     }
 }

@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.robot
 import com.acmerobotics.dashboard.config.Config
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver
-import com.qualcomm.robotcore.hardware.*
+import com.qualcomm.robotcore.hardware.DistanceSensor
+import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import dev.kingssack.volt.annotations.VoltAction
-import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.Drivetrain
 import dev.kingssack.volt.core.voltAction
-import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
-import java.util.concurrent.TimeUnit
+import dev.kingssack.volt.robot.DrivetrainRobot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl
@@ -21,23 +22,23 @@ import org.firstinspires.ftc.teamcode.util.AprilTagAiming
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
+import java.util.concurrent.TimeUnit
 
 /**
  * Jones is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
- * @param T the type of mecanum drivetrain
- * @property drivetrain the mecanum drivetrain used by the robot
+ * @param T the type of drivetrain
+ * @property drivetrain the drivetrain used by the robot
  * @property visionPortal the vision portal for processing camera input
  * @property launcher the launcher attachment for firing artifacts
  * @property classifier the classifier attachment for classifying and releasing artifacts
  * @property pusher the pusher attachment for pushing artifacts into the launcher
  * @property aprilTagAiming the AprilTag aiming utility for aligning with targets using AprilTags
- * @see MecanumDrivetrain
  */
 @Config
-abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override val drivetrain: T) :
-    RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
+abstract class Jones<T : Drivetrain>(hardwareMap: HardwareMap, override val drivetrain: T) :
+    DrivetrainRobot<T>(hardwareMap, drivetrain) {
     companion object {
         @JvmField var launcherLeftP: Double = 90.0
         @JvmField var launcherLeftI: Double = 0.0
@@ -142,7 +143,10 @@ abstract class Jones<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override v
      *
      * @return an [Action] that fires all stored artifacts
      */
-    @VoltAction(name = "Fire All Artifacts", description = "Fires all the artifacts stored in the classifier")
+    @VoltAction(
+        name = "Fire All Artifacts",
+        description = "Fires all the artifacts stored in the classifier",
+    )
     fun fireAllStoredArtifacts(targetVelocity: Double = launcherTargetVelocity) = voltAction {
         +launcher.enable(targetVelocity)
         +classifier.releaseAllArtifacts()
