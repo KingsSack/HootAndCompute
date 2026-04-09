@@ -1,40 +1,8 @@
-package dev.kingssack.volt.attachment.drivetrain
+package dev.kingssack.volt.attachment.drivetrain.rr
 
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
-import com.acmerobotics.roadrunner.AccelConstraint
-import com.acmerobotics.roadrunner.Action
-import com.acmerobotics.roadrunner.AngularVelConstraint
-import com.acmerobotics.roadrunner.DualNum
-import com.acmerobotics.roadrunner.HolonomicController
-import com.acmerobotics.roadrunner.MecanumKinematics
-import com.acmerobotics.roadrunner.MinVelConstraint
-import com.acmerobotics.roadrunner.MotorFeedforward
-import com.acmerobotics.roadrunner.Pose2d
-import com.acmerobotics.roadrunner.PoseVelocity2d
-import com.acmerobotics.roadrunner.PoseVelocity2dDual
-import com.acmerobotics.roadrunner.ProfileAccelConstraint
-import com.acmerobotics.roadrunner.ProfileParams
-import com.acmerobotics.roadrunner.Rotation2d
-import com.acmerobotics.roadrunner.Time
-import com.acmerobotics.roadrunner.TimeTrajectory
-import com.acmerobotics.roadrunner.TimeTurn
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder
-import com.acmerobotics.roadrunner.TrajectoryBuilderParams
-import com.acmerobotics.roadrunner.TurnConstraints
-import com.acmerobotics.roadrunner.Twist2d
-import com.acmerobotics.roadrunner.Twist2dDual
-import com.acmerobotics.roadrunner.Vector2d
-import com.acmerobotics.roadrunner.VelConstraint
-import com.acmerobotics.roadrunner.ftc.DownsampledWriter
-import com.acmerobotics.roadrunner.ftc.Encoder
-import com.acmerobotics.roadrunner.ftc.LazyHardwareMapImu
-import com.acmerobotics.roadrunner.ftc.OverflowEncoder
-import com.acmerobotics.roadrunner.ftc.RawEncoder
-import com.acmerobotics.roadrunner.ftc.throwIfModulesAreOutdated
-import com.acmerobotics.roadrunner.now
-import com.acmerobotics.roadrunner.range
-import com.qualcomm.hardware.lynx.LynxModule
+import com.acmerobotics.roadrunner.*
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
@@ -42,26 +10,15 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.IMU
-import com.qualcomm.robotcore.hardware.VoltageSensor
-import dev.kingssack.volt.annotations.VoltAction
-import dev.kingssack.volt.util.Degrees
 import dev.kingssack.volt.util.Drawing
-import dev.kingssack.volt.util.Localizer
-import dev.kingssack.volt.util.Radians
-import dev.kingssack.volt.util.Seconds
-import dev.kingssack.volt.util.toRadians
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 
 /**
  * A mecanum drivetrain integrated with the RoadRunner library.
  *
  * @param hardwareMap the hardware map
- * @property pose the pose
  * @param params the drive parameters
  * @property leftFront the left front motor
  * @property leftBack the left back motor
@@ -69,13 +26,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
  * @property rightFront the right front motor
  * @property voltageSensor the voltage sensor
  * @property lazyImu the lazy IMU
- * @property localizer the drive localizer
+ * @property localizer the localizer
  */
-class MecanumDriveWithRR(
+abstract class RoadRunnerMecanumDrivetrain(
     hardwareMap: HardwareMap,
-    var pose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0),
-    private val params: DriveParams = DriveParams(),
-) : MecanumDrivetrain() {
+    protected val params: DriveParams = DriveParams(),
+) :
+    RoadRunnerDrivetrain<MecanumKinematics>(
+        hardwareMap,
+        RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection),
+    ) {
     /**
      * Parameters for the robot's mecanum drive.
      *
@@ -121,22 +81,22 @@ class MecanumDriveWithRR(
         val headingVelGain: Double = 0.0,
     )
 
-    private val kinematics: MecanumKinematics =
+    override val kinematics =
         MecanumKinematics(
             params.inPerTick * params.trackWidthTicks,
             params.inPerTick / params.lateralInPerTick,
         )
 
-    private val defaultTurnConstraints: TurnConstraints =
+    override val defaultTurnConstraints =
         TurnConstraints(params.maxAngVel, -params.maxAngAccel, params.maxAngAccel)
-    private val defaultVelConstraint: VelConstraint =
+    override val defaultVelConstraint =
         MinVelConstraint(
             listOf(
                 kinematics.WheelVelConstraint(params.maxWheelVel),
                 AngularVelConstraint(params.maxAngVel),
             )
         )
-    private val defaultAccelConstraint: AccelConstraint =
+    override val defaultAccelConstraint =
         ProfileAccelConstraint(params.minProfileAccel, params.maxProfileAccel)
 
     val leftFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lf")
@@ -145,144 +105,20 @@ class MecanumDriveWithRR(
     val rightFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "rf")
     private val driveMotors = listOf(leftFront, leftBack, rightBack, rightFront)
 
-    val voltageSensor: VoltageSensor = hardwareMap.voltageSensor.iterator().next()
-
-    val lazyImu =
-        LazyHardwareMapImu(
-            hardwareMap,
-            "imu",
-            RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection),
-        )
-
-    val localizer = DriveLocalizer(pose)
-
     private val poseHistory = LinkedList<Pose2d>()
 
-    private val estimatedPoseWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
-    private val targetPoseWriter = DownsampledWriter("TARGET_POSE", 50000000)
-    private val driveCommandWriter = DownsampledWriter("DRIVE_COMMAND", 50000000)
-    private val mecanumCommandWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
-
-    inner class DriveLocalizer(override var pose: Pose2d) : Localizer {
-        val leftFrontEncoder: Encoder = OverflowEncoder(RawEncoder(leftFront))
-        val leftBackEncoder: Encoder = OverflowEncoder(RawEncoder(leftBack))
-        val rightBackEncoder: Encoder = OverflowEncoder(RawEncoder(rightBack))
-        val rightFrontEncoder: Encoder = OverflowEncoder(RawEncoder(rightFront))
-        private val imu: IMU = lazyImu.get()
-
-        private var lastLeftFrontPos = 0
-        private var lastLeftBackPos = 0
-        private var lastRightBackPos = 0
-        private var lastRightFrontPos = 0
-        private var lastHeading: Rotation2d? = null
-        private var initialized = false
-
-        override fun update(): PoseVelocity2d {
-            val leftFrontPosVel = leftFrontEncoder.getPositionAndVelocity()
-            val leftBackPosVel = leftBackEncoder.getPositionAndVelocity()
-            val rightBackPosVel = rightBackEncoder.getPositionAndVelocity()
-            val rightFrontPosVel = rightFrontEncoder.getPositionAndVelocity()
-
-            val angles = imu.robotYawPitchRollAngles
-
-            //            FlightRecorder.write(
-            //                "MECANUM_LOCALIZER_INPUTS",
-            //                MecanumLocalizerInputsMessage(
-            //                    leftFrontPosVel,
-            //                    leftBackPosVel,
-            //                    rightBackPosVel,
-            //                    rightFrontPosVel,
-            //                    angles
-            //                )
-            //            )
-
-            val heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS))
-
-            if (!initialized) {
-                initialized = true
-
-                lastLeftFrontPos = leftFrontPosVel.position
-                lastLeftBackPos = leftBackPosVel.position
-                lastRightBackPos = rightBackPosVel.position
-                lastRightFrontPos = rightFrontPosVel.position
-
-                lastHeading = heading
-
-                return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
-            }
-
-            val headingDelta = heading.minus(lastHeading!!)
-            val twist: Twist2dDual<Time> =
-                kinematics.forward(
-                    MecanumKinematics.WheelIncrements(
-                        DualNum<Time>(
-                                doubleArrayOf(
-                                    (leftFrontPosVel.position - lastLeftFrontPos).toDouble(),
-                                    leftFrontPosVel.velocity!!.toDouble(),
-                                )
-                            )
-                            .times(params.inPerTick),
-                        DualNum<Time>(
-                                doubleArrayOf(
-                                    (leftBackPosVel.position - lastLeftBackPos).toDouble(),
-                                    leftBackPosVel.velocity!!.toDouble(),
-                                )
-                            )
-                            .times(params.inPerTick),
-                        DualNum<Time>(
-                                doubleArrayOf(
-                                    (rightBackPosVel.position - lastRightBackPos).toDouble(),
-                                    rightBackPosVel.velocity!!.toDouble(),
-                                )
-                            )
-                            .times(params.inPerTick),
-                        DualNum<Time>(
-                                doubleArrayOf(
-                                    (rightFrontPosVel.position - lastRightFrontPos).toDouble(),
-                                    rightFrontPosVel.velocity!!.toDouble(),
-                                )
-                            )
-                            .times(params.inPerTick),
-                    )
-                )
-
-            lastLeftFrontPos = leftFrontPosVel.position
-            lastLeftBackPos = leftBackPosVel.position
-            lastRightBackPos = rightBackPosVel.position
-            lastRightFrontPos = rightFrontPosVel.position
-
-            lastHeading = heading
-
-            pose = pose.plus(Twist2d(twist.line.value(), headingDelta))
-
-            return twist.velocity().value()
-        }
-
-        init {
-            leftBack.direction = DcMotorSimple.Direction.REVERSE
-            rightBack.direction = DcMotorSimple.Direction.REVERSE
-        }
-    }
+    //    private val estimatedPoseWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
+    //    private val targetPoseWriter = DownsampledWriter("TARGET_POSE", 50000000)
+    //    private val driveCommandWriter = DownsampledWriter("DRIVE_COMMAND", 50000000)
+    //    private val mecanumCommandWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
 
     init {
-        throwIfModulesAreOutdated(hardwareMap)
-
-        for (module in hardwareMap.getAll(LynxModule::class.java)) {
-            module.bulkCachingMode = LynxModule.BulkCachingMode.AUTO
-        }
-
         driveMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
 
         leftBack.direction = DcMotorSimple.Direction.REVERSE
         rightBack.direction = DcMotorSimple.Direction.REVERSE
     }
 
-    /**
-     * Set the drive powers.
-     *
-     * @param powers the drive powers
-     * @see PoseVelocity2d
-     */
     override fun setDrivePowers(powers: PoseVelocity2d) {
         val wheelVels = MecanumKinematics(1.0).inverse(PoseVelocity2dDual.constant<Time>(powers, 1))
 
@@ -517,12 +353,9 @@ class MecanumDriveWithRR(
         val xPoints = DoubleArray(poseHistory.size)
         val yPoints = DoubleArray(poseHistory.size)
 
-        var i = 0
-        for ((position) in poseHistory) {
-            xPoints[i] = position.x
-            yPoints[i] = position.y
-
-            i++
+        for ((i, t) in poseHistory.withIndex()) {
+            xPoints[i] = t.position.x
+            yPoints[i] = t.position.y
         }
 
         c.setStrokeWidth(1)
@@ -530,14 +363,8 @@ class MecanumDriveWithRR(
         c.strokePolyline(xPoints, yPoints)
     }
 
-    /**
-     * Create a new trajectory action builder.
-     *
-     * @param beginPose the current pose of the robot
-     * @return the action builder
-     */
-    fun driveActionBuilder(beginPose: Pose2d): TrajectoryActionBuilder {
-        return TrajectoryActionBuilder(
+    override fun driveActionBuilder(beginPose: Pose2d): TrajectoryActionBuilder =
+        TrajectoryActionBuilder(
             ::TurnAction,
             ::FollowTrajectoryAction,
             TrajectoryBuilderParams(1e-6, ProfileParams(0.25, 0.1, 1e-2)),
@@ -547,85 +374,4 @@ class MecanumDriveWithRR(
             defaultVelConstraint,
             defaultAccelConstraint,
         )
-    }
-
-    /**
-     * Strafe from [from] to [to].
-     *
-     * @return the action
-     */
-    @VoltAction(name = "Strafe To", "Strafe the robot to a certain position")
-    fun strafeTo(from: Pose2d, to: Vector2d): Action = driveActionBuilder(from).strafeTo(to).build()
-
-    /**
-     * Strafe from [from] to [to].
-     *
-     * @return the action
-     */
-    @VoltAction(name = "Strafe To Linear Heading", "Strafe the robot to a certain pose")
-    fun strafeToLinearHeading(from: Pose2d, to: Pose2d): Action =
-        driveActionBuilder(from).strafeToLinearHeading(to.position, to.heading).build()
-
-    /**
-     * Turn from [from] to [to].
-     *
-     * @return the action
-     */
-    @VoltAction(name = "Turn To Radians", "Turn the robot to a certain heading in radians")
-    fun turnTo(from: Pose2d, to: Radians): Action =
-        driveActionBuilder(from).turnTo(to.value).build()
-
-    /**
-     * Turn from [from] to [to].
-     *
-     * @return the action
-     */
-    @VoltAction(name = "Turn To Degrees", "Turn the robot to a certain heading in degrees")
-    fun turnTo(from: Pose2d, to: Degrees): Action =
-        driveActionBuilder(from).turnTo(to.toRadians().value).build()
-
-    /**
-     * Turn a certain number of [radians].
-     *
-     * @param from the starting pose
-     * @return the action
-     */
-    @VoltAction(name = "Turn Radians", "Turn the robot a certain number of radians")
-    fun turn(from: Pose2d, radians: Radians): Action =
-        driveActionBuilder(from).turn(radians.value).build()
-
-    /**
-     * Turn a certain number of [degrees].
-     *
-     * @param from the starting pose
-     * @return the action
-     */
-    @VoltAction(name = "Turn Degrees", "Turn the robot a certain number of degrees")
-    fun turn(from: Pose2d, degrees: Degrees): Action =
-        driveActionBuilder(from).turn(degrees.toRadians().value).build()
-
-    /**
-     * Build a trajectory action.
-     *
-     * @param from the starting pose
-     * @return the built action
-     */
-    fun trajectory(
-        from: Pose2d = localizer.pose,
-        block: TrajectoryActionBuilder.() -> TrajectoryActionBuilder,
-    ): Action {
-        return driveActionBuilder(from).block().build()
-    }
-
-    context(telemetry: Telemetry)
-    override fun update() {
-        updatePoseEstimate()
-
-        super.update()
-        with(telemetry) {
-            addData("x", localizer.pose.position.x)
-            addData("y", localizer.pose.position.y)
-            addData("heading (deg)", Math.toDegrees(localizer.pose.heading.toDouble()))
-        }
-    }
 }

@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param hardwareMap The hardware map of the robot.
  * @property drivetrain The drivetrain of the robot.
  */
-open class RobotWithDrivetrain<T : Drivetrain>(hardwareMap: HardwareMap, open val drivetrain: T) :
+open class DrivetrainRobot<T : Drivetrain>(hardwareMap: HardwareMap, open val drivetrain: T) :
     Robot(hardwareMap) {
     context(telemetry: Telemetry)
     override fun update() {
