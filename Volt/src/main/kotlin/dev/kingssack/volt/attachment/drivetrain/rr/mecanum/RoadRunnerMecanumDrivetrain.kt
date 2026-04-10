@@ -1,30 +1,49 @@
-package dev.kingssack.volt.attachment.drivetrain.rr
+package dev.kingssack.volt.attachment.drivetrain.rr.mecanum
 
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.*
-import com.acmerobotics.roadrunner.Vector2dDual.Companion.constant
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.util.Drawing.drawRobot
+import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerDrivetrain
+import dev.kingssack.volt.integrations.rr.Drawing
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
 
-abstract class RoadRunnerTankDrivetrain(
+/**
+ * A mecanum drivetrain integrated with the RoadRunner library.
+ *
+ * @param hardwareMap the hardware map
+ * @param params the drive parameters
+ * @property leftFront the left front motor
+ * @property leftBack the left back motor
+ * @property rightBack the right back motor
+ * @property rightFront the right front motor
+ * @property voltageSensor the voltage sensor
+ * @property lazyImu the lazy IMU
+ * @property localizer the localizer
+ */
+abstract class RoadRunnerMecanumDrivetrain(
     hardwareMap: HardwareMap,
     protected val params: DriveParams = DriveParams(),
-) : RoadRunnerDrivetrain<TankKinematics>(hardwareMap, RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection)) {
+) :
+    RoadRunnerDrivetrain<MecanumKinematics>(
+        hardwareMap,
+        RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection),
+    ) {
     /**
      * Parameters for the robot's mecanum drive.
      *
      * @property logoFacingDirection the direction the Control Hub's logo is facing
      * @property usbFacingDirection the direction the Control Hub's USB port is facing
      * @property inPerTick the inches per tick
+     * @property lateralInPerTick the lateral inches per tick
      * @property trackWidthTicks the track width in ticks
      * @property kS the static gain
      * @property kV the velocity gain
@@ -34,12 +53,18 @@ abstract class RoadRunnerTankDrivetrain(
      * @property maxProfileAccel the maximum profile acceleration
      * @property maxAngVel the maximum angular velocity
      * @property maxAngAccel the maximum angular acceleration
-     * @property ramseteZeta the
+     * @property axialGain the axial gain
+     * @property lateralGain the lateral gain
+     * @property headingGain the heading gain
+     * @property axialVelGain the axial velocity gain
+     * @property lateralVelGain the lateral velocity gain
+     * @property headingVelGain the heading velocity gain
      */
     class DriveParams(
         val logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP,
         val usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD,
         val inPerTick: Double = 1.0,
+        val lateralInPerTick: Double = inPerTick,
         val trackWidthTicks: Double = 0.0,
         val kS: Double = 0.0,
         val kV: Double = 0.0,
@@ -49,14 +74,19 @@ abstract class RoadRunnerTankDrivetrain(
         val maxProfileAccel: Double = 50.0,
         val maxAngVel: Double = Math.PI,
         val maxAngAccel: Double = Math.PI,
-        val ramseteZeta: Double = 0.7,
-        val ramseteBBar: Double = 2.0,
-        val turnGain: Double = 0.0,
-        val turnVelGain: Double = 0.0,
+        val axialGain: Double = 0.0,
+        val lateralGain: Double = 0.0,
+        val headingGain: Double = 0.0,
+        val axialVelGain: Double = 0.0,
+        val lateralVelGain: Double = 0.0,
+        val headingVelGain: Double = 0.0,
     )
 
     override val kinematics =
-        TankKinematics(params.inPerTick * params.trackWidthTicks)
+        MecanumKinematics(
+            params.inPerTick * params.trackWidthTicks,
+            params.inPerTick / params.lateralInPerTick,
+        )
 
     override val defaultTurnConstraints =
         TurnConstraints(params.maxAngVel, -params.maxAngAccel, params.maxAngAccel)
@@ -70,34 +100,41 @@ abstract class RoadRunnerTankDrivetrain(
     override val defaultAccelConstraint =
         ProfileAccelConstraint(params.minProfileAccel, params.maxProfileAccel)
 
-    val leftMotors: List<DcMotorEx> = listOf(hardwareMap.get(DcMotorEx::class.java, "left"))
-    val rightMotors: List<DcMotorEx> = listOf(hardwareMap.get(DcMotorEx::class.java, "right"))
+    val leftFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lf")
+    val leftBack: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lr")
+    val rightBack: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "rr")
+    val rightFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "rf")
+    private val driveMotors = listOf(leftFront, leftBack, rightBack, rightFront)
 
     private val poseHistory = LinkedList<Pose2d>()
 
     //    private val estimatedPoseWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
     //    private val targetPoseWriter = DownsampledWriter("TARGET_POSE", 50000000)
     //    private val driveCommandWriter = DownsampledWriter("DRIVE_COMMAND", 50000000)
-    //    private val tankCommandWriter = DownsampledWriter("TANK_COMMAND", 50000000)
+    //    private val mecanumCommandWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
 
     init {
-        leftMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
-        rightMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
+        driveMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
+
+        leftBack.direction = DcMotorSimple.Direction.REVERSE
+        rightBack.direction = DcMotorSimple.Direction.REVERSE
     }
 
     override fun setDrivePowers(powers: PoseVelocity2d) {
-        val wheelVels = TankKinematics(2.0).inverse(PoseVelocity2dDual.constant<Time>(powers, 1))
+        val wheelVels = MecanumKinematics(1.0).inverse(PoseVelocity2dDual.constant<Time>(powers, 1))
 
         var maxPowerMag = 1.0
         for (power in wheelVels.all()) {
             maxPowerMag = max(maxPowerMag, power.value())
         }
 
-        leftMotors.forEach { it.power = wheelVels.left[0] / maxPowerMag }
-        rightMotors.forEach { it.power = wheelVels.right[0] / maxPowerMag }
+        leftFront.power = wheelVels.leftFront[0] / maxPowerMag
+        leftBack.power = wheelVels.leftBack[0] / maxPowerMag
+        rightBack.power = wheelVels.rightBack[0] / maxPowerMag
+        rightFront.power = wheelVels.rightFront[0] / maxPowerMag
     }
 
-    inner class FollowTrajectoryAction(val timeTrajectory: TimeTrajectory) : Action {
+    inner class FollowTrajectoryAction(private val timeTrajectory: TimeTrajectory) : Action {
         private var beginTs = -1.0
 
         private val xPoints: DoubleArray
@@ -108,7 +145,7 @@ abstract class RoadRunnerTankDrivetrain(
                 range(
                     0.0,
                     timeTrajectory.path.length(),
-                    max(2, ceil(timeTrajectory.path.length() / 2).toInt()),
+                    max(2.0, ceil(timeTrajectory.path.length() / 2).toInt().toDouble()).toInt(),
                 )
             xPoints = DoubleArray(disps.size)
             yPoints = DoubleArray(disps.size)
@@ -129,39 +166,58 @@ abstract class RoadRunnerTankDrivetrain(
             }
 
             if (t >= timeTrajectory.duration) {
-                leftMotors.forEach { it.power = 0.0 }
-                rightMotors.forEach { it.power = 0.0 }
+                leftFront.power = 0.0
+                leftBack.power = 0.0
+                rightBack.power = 0.0
+                rightFront.power = 0.0
 
                 return false
             }
 
-            val x = timeTrajectory.profile[t]
-
-            val txWorldTarget = timeTrajectory.path[x.value(), 3]
+            val txWorldTarget = timeTrajectory[t]
             //            targetPoseWriter.write(PoseMessage(txWorldTarget.value()))
 
-            updatePoseEstimate()
+            val robotVelRobot = updatePoseEstimate()
 
             val command =
-                RamseteController(kinematics.trackWidth, params.ramseteZeta, params.ramseteBBar)
-                    .compute(x, txWorldTarget, localizer.pose)
+                HolonomicController(
+                        params.axialGain,
+                        params.lateralGain,
+                        params.headingGain,
+                        params.axialVelGain,
+                        params.lateralVelGain,
+                        params.headingVelGain,
+                    )
+                    .compute(txWorldTarget, localizer.pose, robotVelRobot)
             //            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
-            val voltage: Double = voltageSensor.voltage
+            val voltage = voltageSensor.voltage
+
             val feedforward =
                 MotorFeedforward(
                     params.kS,
                     params.kV / params.inPerTick,
                     params.kA / params.inPerTick,
                 )
-            val leftPower = feedforward.compute(wheelVels.left) / voltage
-            val rightPower = feedforward.compute(wheelVels.right) / voltage
-            //            tankCommandWriter.write(TankCommandMessage(voltage, leftPower,
-            // rightPower))
+            val leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage
+            val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
+            val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
+            val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
+            //            mecanumCommandWriter.write(
+            //                MecanumCommandMessage(
+            //                    voltage,
+            //                    leftFrontPower,
+            //                    leftBackPower,
+            //                    rightBackPower,
+            //                    rightFrontPower,
+            //                )
+            //            )
 
-            leftMotors.forEach { it.power = leftPower }
-            rightMotors.forEach { it.power = rightPower }
+            leftFront.power = leftFrontPower
+            leftBack.power = leftBackPower
+            rightBack.power = rightBackPower
+            rightFront.power = rightFrontPower
 
             p.put("x", localizer.pose.position.x)
             p.put("y", localizer.pose.position.y)
@@ -176,10 +232,10 @@ abstract class RoadRunnerTankDrivetrain(
             drawPoseHistory(c)
 
             c.setStroke("#4CAF50")
-            drawRobot(c, txWorldTarget.value())
+            Drawing.drawRobot(c, txWorldTarget.value())
 
             c.setStroke("#3F51B5")
-            drawRobot(c, localizer.pose)
+            Drawing.drawRobot(c, localizer.pose)
 
             c.setStroke("#4CAF50FF")
             c.setStrokeWidth(1)
@@ -208,8 +264,10 @@ abstract class RoadRunnerTankDrivetrain(
             }
 
             if (t >= turn.duration) {
-                leftMotors.forEach { it.power = 0.0 }
-                rightMotors.forEach { it.power = 0.0 }
+                leftFront.power = 0.0
+                leftBack.power = 0.0
+                rightBack.power = 0.0
+                rightFront.power = 0.0
 
                 return false
             }
@@ -220,18 +278,15 @@ abstract class RoadRunnerTankDrivetrain(
             val robotVelRobot = updatePoseEstimate()
 
             val command =
-                PoseVelocity2dDual(
-                    constant(Vector2d(0.0, 0.0), 3),
-                    txWorldTarget.heading
-                        .velocity()
-                        .plus(
-                            params.turnGain *
-                                localizer.pose.heading.minus(txWorldTarget.heading.value()) +
-                                params.turnVelGain *
-                                    (robotVelRobot.angVel -
-                                        txWorldTarget.heading.velocity().value())
-                        ),
-                )
+                HolonomicController(
+                        params.axialGain,
+                        params.lateralGain,
+                        params.headingGain,
+                        params.axialVelGain,
+                        params.lateralVelGain,
+                        params.headingVelGain,
+                    )
+                    .compute(txWorldTarget, localizer.pose, robotVelRobot)
             //            driveCommandWriter.write(DriveCommandMessage(command))
 
             val wheelVels = kinematics.inverse(command)
@@ -242,22 +297,33 @@ abstract class RoadRunnerTankDrivetrain(
                     params.kV / params.inPerTick,
                     params.kA / params.inPerTick,
                 )
-            val leftPower = feedforward.compute(wheelVels.left) / voltage
-            val rightPower = feedforward.compute(wheelVels.right) / voltage
-            //            tankCommandWriter.write(TankCommandMessage(voltage, leftPower,
-            // rightPower))
+            val leftFrontPower = feedforward.compute(wheelVels.leftFront) / voltage
+            val leftBackPower = feedforward.compute(wheelVels.leftBack) / voltage
+            val rightBackPower = feedforward.compute(wheelVels.rightBack) / voltage
+            val rightFrontPower = feedforward.compute(wheelVels.rightFront) / voltage
+            //            mecanumCommandWriter.write(
+            //                MecanumCommandMessage(
+            //                    voltage,
+            //                    leftFrontPower,
+            //                    leftBackPower,
+            //                    rightBackPower,
+            //                    rightFrontPower,
+            //                )
+            //            )
 
-            leftMotors.forEach { it.power = leftPower }
-            rightMotors.forEach { it.power = rightPower }
+            leftFront.power = feedforward.compute(wheelVels.leftFront) / voltage
+            leftBack.power = feedforward.compute(wheelVels.leftBack) / voltage
+            rightBack.power = feedforward.compute(wheelVels.rightBack) / voltage
+            rightFront.power = feedforward.compute(wheelVels.rightFront) / voltage
 
             val c = p.fieldOverlay()
             drawPoseHistory(c)
 
             c.setStroke("#4CAF50")
-            drawRobot(c, txWorldTarget.value())
+            Drawing.drawRobot(c, txWorldTarget.value())
 
             c.setStroke("#3F51B5")
-            drawRobot(c, localizer.pose)
+            Drawing.drawRobot(c, localizer.pose)
 
             c.setStroke("#7C4DFFFF")
             c.fillCircle(turn.beginPose.position.x, turn.beginPose.position.y, 2.0)
@@ -271,7 +337,7 @@ abstract class RoadRunnerTankDrivetrain(
         }
     }
 
-    fun updatePoseEstimate(): PoseVelocity2d {
+    private fun updatePoseEstimate(): PoseVelocity2d {
         val vel = localizer.update()
         poseHistory.add(localizer.pose)
 
@@ -279,7 +345,7 @@ abstract class RoadRunnerTankDrivetrain(
             poseHistory.removeFirst()
         }
 
-        //        estimatedPoseWriter.write(PoseMessage(localizer.getPose()))
+        //        estimatedPoseWriter.write(PoseMessage(localizer.pose))
 
         return vel
     }

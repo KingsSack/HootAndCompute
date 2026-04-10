@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor
 import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.attachment.drivetrain.Drivetrain
 import dev.kingssack.volt.util.Degrees
-import dev.kingssack.volt.util.Localizer
+import dev.kingssack.volt.integrations.rr.localizer.RoadRunnerLocalizer
 import dev.kingssack.volt.util.Radians
 import dev.kingssack.volt.util.toRadians
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -40,7 +40,7 @@ abstract class RoadRunnerDrivetrain<T : Any>(
 
     val lazyImu = LazyHardwareMapImu(hardwareMap, "imu", orientation)
 
-    abstract val localizer: Localizer
+    abstract val localizer: RoadRunnerLocalizer
 
     private val poseHistory = LinkedList<Pose2d>()
 
