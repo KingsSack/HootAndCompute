@@ -6,8 +6,8 @@ import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerDriveEncoderMecanumDrivetrain
-import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerMecanumDrivetrain
 
 /**
  * [Jones] with [RoadRunnerDriveEncoderMecanumDrivetrain] drivetrain.

@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.hardware.Gamepad
-import dev.kingssack.volt.attachment.drivetrain.pp.PedroPathingDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.PedroPathingDriveEncoderMecanumDrivetrain
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import dev.kingssack.volt.opmode.manual.DrivetrainControlsManualMode

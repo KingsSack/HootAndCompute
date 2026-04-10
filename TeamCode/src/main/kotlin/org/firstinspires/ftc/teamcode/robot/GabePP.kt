@@ -10,7 +10,7 @@ import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.pp.PedroPathingDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.PedroPathingDriveEncoderMecanumDrivetrain
 
 /**
  * [Gabe] with [PedroPathingDriveEncoderMecanumDrivetrain] drivetrain.

@@ -15,10 +15,10 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerDriveEncoderMecanumDrivetrain
-import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerMecanumDrivetrain
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.util.Drawing.drawRobot
+import dev.kingssack.volt.integrations.rr.Drawing.drawRobot
 import java.util.*
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
