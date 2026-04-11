@@ -11,8 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.pp.PedroPathingDrivetrain
 
 /**
- * A swerve [dev.kingssack.volt.attachment.drivetrain.Drivetrain] integrated with the PedroPathing
- * library.
+ * A swerve [PedroPathingDrivetrain] with a two-wheel localizer.
  *
  * @param hardwareMap The FTC hardware map
  * @param followerConstants constants for the path follower

@@ -10,8 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.pp.PedroPathingDrivetrain
 
 /**
- * A mecanum [dev.kingssack.volt.attachment.drivetrain.Drivetrain] integrated with the PedroPathing
- * library.
+ * A mecanum [PedroPathingDrivetrain] with drive encoder localization.
  *
  * @param hardwareMap The FTC hardware map
  * @param followerConstants constants for the path follower
