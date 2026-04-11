@@ -6,7 +6,15 @@ import com.pedropathing.geometry.BezierCurve
 import com.pedropathing.geometry.BezierLine
 import com.pedropathing.geometry.Pose
 
-/** Builder that creates an Action from PedroPathing Paths. */
+@DslMarker annotation class PedroPathingActionBuilderDsl
+
+/**
+ * Builder that creates an Action from PedroPathing Paths.
+ *
+ * @param follower the follower used to build the path and follow it when the action is executed
+ * @param startPose the starting pose of the path
+ */
+@PedroPathingActionBuilderDsl
 class PedroPathingActionBuilder(private val follower: Follower, startPose: Pose) {
     private val builder = follower.pathBuilder()
     private var lastPose = startPose
