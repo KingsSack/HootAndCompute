@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerDriveEncoderMecanumDrivetrain
 import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerMecanumDrivetrain
@@ -25,6 +26,14 @@ class JonesRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.
             RoadRunnerMecanumDrivetrain.DriveParams(
                 logoFacingDirection = logoFacingDirection,
                 usbFacingDirection = usbFacingDirection,
+                leftFrontName = leftFrontName,
+                leftFrontDirection = leftFrontDirection,
+                leftBackName = leftBackName,
+                leftBackDirection = leftBackDirection,
+                rightBackName = rightBackName,
+                rightBackDirection = rightBackDirection,
+                rightFrontName = rightFrontName,
+                rightFrontDirection = rightFrontDirection,
                 inPerTick = inPerTick,
                 lateralInPerTick = lateralInPerTick,
                 trackWidthTicks = trackWidthTicks,
@@ -45,6 +54,15 @@ class JonesRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.
     companion object {
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.RIGHT
+
+        @JvmField var leftFrontName: String = "lf"
+        @JvmField var leftFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD
+        @JvmField var leftBackName: String = "lr"
+        @JvmField var leftBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD
+        @JvmField var rightBackName: String = "rr"
+        @JvmField var rightBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.REVERSE
+        @JvmField var rightFrontName: String = "rf"
+        @JvmField var rightFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.REVERSE
 
         @JvmField var inPerTick: Double = 0.0227
         @JvmField var lateralInPerTick: Double = 0.02

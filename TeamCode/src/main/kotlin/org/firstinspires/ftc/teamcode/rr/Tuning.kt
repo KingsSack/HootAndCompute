@@ -14,12 +14,12 @@ import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.eventloop.opmode.*
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerDriveEncoderMecanumDrivetrain
 import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerMecanumDrivetrain
-import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.integrations.rr.Drawing.drawRobot
-import java.util.*
+import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 @Config
@@ -27,6 +27,15 @@ class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareM
     companion object {
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.LEFT
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
+
+        @JvmField var leftFrontName: String = "lf"
+        @JvmField var leftFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD
+        @JvmField var leftBackName: String = "lr"
+        @JvmField var leftBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.REVERSE
+        @JvmField var rightBackName: String = "rr"
+        @JvmField var rightBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.REVERSE
+        @JvmField var rightFrontName: String = "rf"
+        @JvmField var rightFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD
 
         @JvmField var inPerTick: Double = 0.0227
         @JvmField var lateralInPerTick: Double = 0.02
@@ -55,6 +64,14 @@ class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareM
             RoadRunnerMecanumDrivetrain.DriveParams(
                 logoFacingDirection,
                 usbFacingDirection,
+                leftFrontName,
+                leftFrontDirection,
+                leftBackName,
+                leftBackDirection,
+                rightBackName,
+                rightBackDirection,
+                rightFrontName,
+                rightFrontDirection,
                 inPerTick,
                 lateralInPerTick,
                 trackWidthTicks,
@@ -99,10 +116,13 @@ class RoadRunnerTest : LinearOpMode() {
 
             context(telemetry) { robot.update() }
 
-            with (telemetry) {
+            with(telemetry) {
                 addData("x", robot.drive.localizer.pose.position.x)
                 addData("y", robot.drive.localizer.pose.position.y)
-                addData("heading (deg)", Math.toDegrees(robot.drive.localizer.pose.heading.toDouble()))
+                addData(
+                    "heading (deg)",
+                    Math.toDegrees(robot.drive.localizer.pose.heading.toDouble()),
+                )
                 update()
             }
 
