@@ -24,13 +24,22 @@ class OTOSLocalizer(
     override var pose: Pose2d,
     params: LocalizerParams = LocalizerParams(),
 ) : RoadRunnerLocalizer {
+    /**
+     * Parameters for [OTOSLocalizer].
+     *
+     * @property sensorName the name of the OTOS in the hardware map
+     * @property angularScalar a scalar to apply to the angular velocity and acceleration readings
+     * @property linearScalar a scalar to apply to the linear velocity and acceleration readings
+     * @property offset an offset to apply to the pose readings, in the OTOS's coordinate system
+     */
     class LocalizerParams(
+        var sensorName: String = "sensor_otos",
         var angularScalar: Double = 1.0,
         var linearScalar: Double = 1.0,
         var offset: SparkFunOTOS.Pose2D = SparkFunOTOS.Pose2D(0.0, 0.0, 0.0),
     )
 
-    val otos: SparkFunOTOS = hardwareMap.get(SparkFunOTOS::class.java, "sensor_otos")
+    val otos: SparkFunOTOS = hardwareMap.get(SparkFunOTOS::class.java, params.sensorName)
 
     init {
         otos.position = pose.toOTOSPose()

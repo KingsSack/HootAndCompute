@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.ftc.Encoder
 import com.acmerobotics.roadrunner.ftc.OverflowEncoder
 import com.acmerobotics.roadrunner.ftc.RawEncoder
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 
 /**
@@ -24,15 +25,55 @@ class ThreeDeadWheelLocalizer(
     override var pose: Pose2d,
     private val params: LocalizerParams = LocalizerParams(),
 ) : RoadRunnerLocalizer {
+    /**
+     * Parameters for [ThreeDeadWheelLocalizer].
+     *
+     * @property par0Name the name of the first parallel encoder
+     * @property par0Direction the direction of the first parallel encoder
+     * @property par1Name the name of the second parallel encoder
+     * @property par1Direction the direction of the second parallel encoder
+     * @property perpName the name of the perpendicular encoder
+     * @property perpDirection the direction of the perpendicular encoder
+     * @property par0YTicks y position of the first parallel encoder (in tick units)
+     * @property par1YTicks y position of the second parallel encoder (in tick units)
+     * @property perpXTicks x position of the perpendicular encoder (in tick units)
+     */
     class LocalizerParams(
+        val par0Name: String = "par0",
+        val par0Direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        val par1Name: String = "par1",
+        val par1Direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        val perpName: String = "perp",
+        val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
         val par0YTicks: Double = 0.0,
         val par1YTicks: Double = 1.0,
         val perpXTicks: Double = 0.0,
     )
 
-    val par0: Encoder = OverflowEncoder(RawEncoder(hardwareMap.get(DcMotorEx::class.java, "par0")))
-    val par1: Encoder = OverflowEncoder(RawEncoder(hardwareMap.get(DcMotorEx::class.java, "par1")))
-    val perp: Encoder = OverflowEncoder(RawEncoder(hardwareMap.get(DcMotorEx::class.java, "perp")))
+    val par0: Encoder =
+        OverflowEncoder(
+            RawEncoder(
+                hardwareMap.get(DcMotorEx::class.java, params.par0Name).apply {
+                    direction = params.par0Direction
+                }
+            )
+        )
+    val par1: Encoder =
+        OverflowEncoder(
+            RawEncoder(
+                hardwareMap.get(DcMotorEx::class.java, params.par1Name).apply {
+                    direction = params.par1Direction
+                }
+            )
+        )
+    val perp: Encoder =
+        OverflowEncoder(
+            RawEncoder(
+                hardwareMap.get(DcMotorEx::class.java, params.perpName).apply {
+                    direction = params.perpDirection
+                }
+            )
+        )
 
     private var lastPar0Pos = 0
     private var lastPar1Pos = 0

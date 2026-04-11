@@ -38,10 +38,18 @@ abstract class RoadRunnerMecanumDrivetrain(
         RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection),
     ) {
     /**
-     * Parameters for the robot's mecanum drive.
+     * Parameters for [RoadRunnerMecanumDrivetrain].
      *
      * @property logoFacingDirection the direction the Control Hub's logo is facing
      * @property usbFacingDirection the direction the Control Hub's USB port is facing
+     * @property leftFrontName the name of the left front motor
+     * @property leftFrontDirection the direction of the left front motor
+     * @property leftBackName the name of the left back motor
+     * @property leftBackDirection the direction of the left back motor
+     * @property rightBackName the name of the right back motor
+     * @property rightBackDirection the direction of the right back motor
+     * @property rightFrontName the name of the right front motor
+     * @property rightFrontDirection the direction of the right front motor
      * @property inPerTick the inches per tick
      * @property lateralInPerTick the lateral inches per tick
      * @property trackWidthTicks the track width in ticks
@@ -63,6 +71,14 @@ abstract class RoadRunnerMecanumDrivetrain(
     class DriveParams(
         val logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP,
         val usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD,
+        val leftFrontName: String = "lf",
+        val leftFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        val leftBackName: String = "lr",
+        val leftBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        val rightBackName: String = "rr",
+        val rightBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        val rightFrontName: String = "rf",
+        val rightFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
         val inPerTick: Double = 1.0,
         val lateralInPerTick: Double = inPerTick,
         val trackWidthTicks: Double = 0.0,
@@ -100,24 +116,28 @@ abstract class RoadRunnerMecanumDrivetrain(
     override val defaultAccelConstraint =
         ProfileAccelConstraint(params.minProfileAccel, params.maxProfileAccel)
 
-    val leftFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lf")
-    val leftBack: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lr")
-    val rightBack: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "rr")
-    val rightFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "rf")
+    val leftFront: DcMotorEx =
+        hardwareMap.get(DcMotorEx::class.java, params.leftFrontName).apply {
+            direction = params.leftFrontDirection
+        }
+    val leftBack: DcMotorEx =
+        hardwareMap.get(DcMotorEx::class.java, params.leftBackName).apply {
+            direction = params.leftBackDirection
+        }
+    val rightBack: DcMotorEx =
+        hardwareMap.get(DcMotorEx::class.java, params.rightBackName).apply {
+            direction = params.rightBackDirection
+        }
+    val rightFront: DcMotorEx =
+        hardwareMap.get(DcMotorEx::class.java, params.rightFrontName).apply {
+            direction = params.rightFrontDirection
+        }
     private val driveMotors = listOf(leftFront, leftBack, rightBack, rightFront)
 
     private val poseHistory = LinkedList<Pose2d>()
 
-    //    private val estimatedPoseWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
-    //    private val targetPoseWriter = DownsampledWriter("TARGET_POSE", 50000000)
-    //    private val driveCommandWriter = DownsampledWriter("DRIVE_COMMAND", 50000000)
-    //    private val mecanumCommandWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
-
     init {
         driveMotors.forEach { it.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE }
-
-        leftBack.direction = DcMotorSimple.Direction.REVERSE
-        rightBack.direction = DcMotorSimple.Direction.REVERSE
     }
 
     override fun setDrivePowers(powers: PoseVelocity2d) {

@@ -25,29 +25,41 @@ class PinpointLocalizer(
     override var pose: Pose2d,
     params: LocalizerParams = LocalizerParams(),
 ) : RoadRunnerLocalizer {
-    class LocalizerParams(var parYTicks: Double = 0.0, var perpXTicks: Double = 0.0)
+    /**
+     * Parameters for [PinpointLocalizer].
+     *
+     * @property driverName the name of the Pinpoint driver in the hardware map
+     * @property parDirection the direction of the parallel encoder
+     * @property perpDirection the direction of the perpendicular encoder
+     * @property parYTicks the number of ticks the parallel encoder is offset in the Y direction
+     * @property perpXTicks the number of ticks the perpendicular encoder is offset in the X
+     *   direction
+     */
+    class LocalizerParams(
+        val driverName: String = "pinpoint",
+        val parDirection: GoBildaPinpointDriver.EncoderDirection =
+            GoBildaPinpointDriver.EncoderDirection.FORWARD,
+        val perpDirection: GoBildaPinpointDriver.EncoderDirection =
+            GoBildaPinpointDriver.EncoderDirection.FORWARD,
+        var parYTicks: Double = 0.0,
+        var perpXTicks: Double = 0.0,
+    )
+
+    private val mmPerTick = inPerTick * 25.4
 
     val driver: GoBildaPinpointDriver =
-        hardwareMap.get(GoBildaPinpointDriver::class.java, "pinpoint")
-    private val initialParDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD
-    private val initialPerpDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD
+        hardwareMap.get(GoBildaPinpointDriver::class.java, params.driverName).apply {
+            setEncoderResolution(1 / mmPerTick, DistanceUnit.MM)
+            setOffsets(
+                mmPerTick * params.parYTicks,
+                mmPerTick * params.perpXTicks,
+                DistanceUnit.MM,
+            )
+            setEncoderDirections(params.parDirection, params.perpDirection)
+            resetPosAndIMU()
+        }
 
-    private var txWorldPinpoint: Pose2d
     private var txPinpointRobot = Pose2d(0.0, 0.0, 0.0)
-
-    init {
-        val mmPerTick = inPerTick * 25.4
-        driver.setEncoderResolution(1 / mmPerTick, DistanceUnit.MM)
-        driver.setOffsets(
-            mmPerTick * params.parYTicks,
-            mmPerTick * params.perpXTicks,
-            DistanceUnit.MM,
-        )
-        driver.setEncoderDirections(initialParDirection, initialPerpDirection)
-        driver.resetPosAndIMU()
-
-        txWorldPinpoint = pose
-    }
 
     override fun update(): PoseVelocity2d {
         driver.update()

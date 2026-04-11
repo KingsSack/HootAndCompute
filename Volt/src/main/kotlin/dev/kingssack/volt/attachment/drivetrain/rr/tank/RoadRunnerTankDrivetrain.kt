@@ -9,6 +9,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.kingssack.volt.attachment.drivetrain.rr.RoadRunnerDrivetrain
 import dev.kingssack.volt.integrations.rr.Drawing.drawRobot
@@ -33,10 +34,14 @@ abstract class RoadRunnerTankDrivetrain(
         RevHubOrientationOnRobot(params.logoFacingDirection, params.usbFacingDirection),
     ) {
     /**
-     * Parameters for the robot's mecanum drive.
+     * Parameters for [RoadRunnerTankDrivetrain].
      *
      * @property logoFacingDirection the direction the Control Hub's logo is facing
      * @property usbFacingDirection the direction the Control Hub's USB port is facing
+     * @property leftMotorNames the names of the left motors in the hardware map
+     * @property leftMotorDirections the directions of the left motors
+     * @property rightMotorNames the names of the right motors in the hardware map
+     * @property rightMotorDirections the directions of the right motors
      * @property inPerTick the inches per tick
      * @property trackWidthTicks the track width in ticks
      * @property kS the static gain
@@ -52,6 +57,12 @@ abstract class RoadRunnerTankDrivetrain(
     class DriveParams(
         val logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP,
         val usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD,
+        val leftMotorNames: List<String> = listOf("left"),
+        val leftMotorDirections: List<DcMotorSimple.Direction> =
+            listOf(DcMotorSimple.Direction.FORWARD),
+        val rightMotorNames: List<String> = listOf("right"),
+        val rightMotorDirections: List<DcMotorSimple.Direction> =
+            listOf(DcMotorSimple.Direction.FORWARD),
         val inPerTick: Double = 1.0,
         val trackWidthTicks: Double = 0.0,
         val kS: Double = 0.0,
@@ -82,8 +93,14 @@ abstract class RoadRunnerTankDrivetrain(
     override val defaultAccelConstraint =
         ProfileAccelConstraint(params.minProfileAccel, params.maxProfileAccel)
 
-    val leftMotors: List<DcMotorEx> = listOf(hardwareMap.get(DcMotorEx::class.java, "left"))
-    val rightMotors: List<DcMotorEx> = listOf(hardwareMap.get(DcMotorEx::class.java, "right"))
+    val leftMotors: List<DcMotorEx> =
+        params.leftMotorNames.zip(params.leftMotorDirections).map { (name, direction) ->
+            hardwareMap.get(DcMotorEx::class.java, name).apply { this.direction = direction }
+        }
+    val rightMotors: List<DcMotorEx> =
+        params.rightMotorNames.zip(params.rightMotorDirections).map { (name, direction) ->
+            hardwareMap.get(DcMotorEx::class.java, name).apply { this.direction = direction }
+        }
 
     private val poseHistory = LinkedList<Pose2d>()
 
