@@ -1,6 +1,5 @@
 package dev.kingssack.volt.attachment
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import dev.kingssack.volt.core.ActionLifecycleBuilder
 import kotlinx.coroutines.flow.MutableStateFlow

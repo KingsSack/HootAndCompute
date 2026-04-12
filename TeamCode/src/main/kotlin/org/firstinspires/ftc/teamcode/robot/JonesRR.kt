@@ -5,26 +5,35 @@ import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithRR
-import org.firstinspires.ftc.robotcore.external.Telemetry
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerMecanumDrivetrain
 
 /**
- * [Jones] with [MecanumDriveWithRR] drivetrain.
+ * [Jones] with [RoadRunnerDriveEncoderMecanumDrivetrain] drivetrain.
  *
  * @param hardwareMap The FTC hardware map.
  * @param initialPose The initial pose of the robot.
  */
 @Config
 class JonesRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
-    Jones<MecanumDriveWithRR>(
+    Jones<RoadRunnerDriveEncoderMecanumDrivetrain>(
         hardwareMap,
-        MecanumDriveWithRR(
+        RoadRunnerDriveEncoderMecanumDrivetrain(
             hardwareMap,
             initialPose,
-            MecanumDriveWithRR.DriveParams(
+            RoadRunnerMecanumDrivetrain.DriveParams(
                 logoFacingDirection = logoFacingDirection,
                 usbFacingDirection = usbFacingDirection,
+                leftFrontName = leftFrontName,
+                leftFrontDirection = leftFrontDirection,
+                leftBackName = leftBackName,
+                leftBackDirection = leftBackDirection,
+                rightBackName = rightBackName,
+                rightBackDirection = rightBackDirection,
+                rightFrontName = rightFrontName,
+                rightFrontDirection = rightFrontDirection,
                 inPerTick = inPerTick,
                 lateralInPerTick = lateralInPerTick,
                 trackWidthTicks = trackWidthTicks,
@@ -46,6 +55,15 @@ class JonesRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.
         @JvmField var logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP
         @JvmField var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.RIGHT
 
+        @JvmField var leftFrontName: String = "lf"
+        @JvmField var leftFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD
+        @JvmField var leftBackName: String = "lr"
+        @JvmField var leftBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD
+        @JvmField var rightBackName: String = "rr"
+        @JvmField var rightBackDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.REVERSE
+        @JvmField var rightFrontName: String = "rf"
+        @JvmField var rightFrontDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.REVERSE
+
         @JvmField var inPerTick: Double = 0.0227
         @JvmField var lateralInPerTick: Double = 0.02
         @JvmField var trackWidthTicks: Double = 1297.32
@@ -64,11 +82,5 @@ class JonesRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.
         @JvmField var axialGain: Double = 5.0
         @JvmField var lateralGain: Double = 4.0
         @JvmField var headingGain: Double = 3.0
-    }
-
-    context(telemetry: Telemetry)
-    override fun update() {
-        drivetrain.update()
-        super.update()
     }
 }

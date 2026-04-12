@@ -1,4 +1,4 @@
-package dev.kingssack.volt.util
+package dev.kingssack.volt.integrations.rr
 
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.PoseVelocity2dDual
@@ -12,7 +12,7 @@ data class PoseMessage(
     val x: Double = pose.position.x,
     val y: Double = pose.position.y,
     val heading: Double = pose.heading.toDouble(),
-    val timestamp: Long = System.nanoTime()
+    val timestamp: Long = System.nanoTime(),
 )
 
 data class DriveCommandMessage(
@@ -23,7 +23,7 @@ data class DriveCommandMessage(
     val lateralAcceleration: Double = poseVelocity.linearVel.y[1],
     val angularVelocity: Double = poseVelocity.angVel[0],
     val angularAcceleration: Double = poseVelocity.angVel[1],
-    val timestamp: Long = System.nanoTime()
+    val timestamp: Long = System.nanoTime(),
 )
 
 data class MecanumCommandMessage(
@@ -32,7 +32,7 @@ data class MecanumCommandMessage(
     val leftBackPower: Double,
     val rightBackPower: Double,
     val rightFrontPower: Double,
-    val timestamp: Long = System.nanoTime()
+    val timestamp: Long = System.nanoTime(),
 )
 
 data class MecanumLocalizerInputsMessage(
@@ -44,5 +44,5 @@ data class MecanumLocalizerInputsMessage(
     val yaw: Double = angles.getYaw(AngleUnit.RADIANS),
     val pitch: Double = angles.getPitch(AngleUnit.RADIANS),
     val roll: Double = angles.getRoll(AngleUnit.RADIANS),
-    val timestamp: Long = System.nanoTime()
+    val timestamp: Long = System.nanoTime(),
 )
