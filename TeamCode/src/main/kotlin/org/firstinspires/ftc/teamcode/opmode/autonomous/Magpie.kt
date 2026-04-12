@@ -10,21 +10,9 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @VoltOpModeMeta("Magpie", "Competition", "Seahorse")
 class Magpie : DualAutonomousMode<JonesPP>() {
-    companion object {
-        @JvmField
-        var INITIAL_X: Double = 56.0
+    override val robot = JonesPP(hardwareMap, Pose(56.0, 8.0, 90.0.toRadians()).mirrorIfRed())
 
-        @JvmField
-        var INITIAL_Y: Double = 8.0
-
-        @JvmField
-        var INITIAL_HEADING: Double = 90.0
-    }
-
-    override val robot =
-        JonesPP(hardwareMap, mirroredForAlliance(Pose(INITIAL_X, INITIAL_Y, INITIAL_HEADING.toRadians())))
-
-    private val finalPose = mirroredForAlliance(Pose(56.0, 36.0, 115.0.toRadians()))
+    private val finalPose = Pose(56.0, 36.0, 115.0.toRadians()).mirrorIfRed()
 
     private val patterns =
         mapOf(
