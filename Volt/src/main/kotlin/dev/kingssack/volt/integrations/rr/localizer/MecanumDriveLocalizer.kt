@@ -5,7 +5,6 @@ import com.acmerobotics.roadrunner.ftc.Encoder
 import com.acmerobotics.roadrunner.ftc.OverflowEncoder
 import com.acmerobotics.roadrunner.ftc.RawEncoder
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.IMU
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 
@@ -71,7 +70,7 @@ class MecanumDriveLocalizer(
             return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
         }
 
-        val headingDelta = heading.minus(lastHeading!!)
+        val headingDelta = heading.minus(lastHeading)
         val twist =
             kinematics.forward(
                 MecanumKinematics.WheelIncrements(
@@ -116,10 +115,5 @@ class MecanumDriveLocalizer(
         pose = pose.plus(Twist2d(twist.line.value(), headingDelta))
 
         return twist.velocity().value()
-    }
-
-    init {
-        leftBack.direction = DcMotorSimple.Direction.REVERSE
-        rightBack.direction = DcMotorSimple.Direction.REVERSE
     }
 }
