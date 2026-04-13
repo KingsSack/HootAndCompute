@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
  *
  * @param leftMotors the left motors
  * @param rightMotors the right motors
- * @param kinematics the mecanum kinematics
+ * @param kinematics the tank kinematics
  * @param inPerTick the number of inches per encoder tick
  * @param pose the initial pose
  * @property leftEncoders the left encoders
