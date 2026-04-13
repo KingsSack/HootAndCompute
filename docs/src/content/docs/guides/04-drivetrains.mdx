@@ -1,152 +1,92 @@
 ---
-title: Using and Creating a Drivetrain
-description: Learn how to choose, use, and implement Drivetrains in Volt
+title: Adding a Drivetrain
+description: Learn how to choose and use Drivetrains in Volt
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-A `Drivetrain` is an [Attachment](../02-attachments) that houses your [Robot](../01-robots)'s drive logic.
+A `Drivetrain` is a type of [Attachment](../02-attachments) that defines [Actions](../../concepts/01-actions) that can move [Robots](../01-robots) autonomously and tele-operated.
 
-Volt currently provides one pre-built `Drivetrain` type: `MecanumDrivetrain`.
+## Steps
 
-## `MecanumDrivetrain`
-
-`MecanumDrivetrain` is an abstract `Drivetrain` class for four wheel mecanum drive robots. It has one method: `setDrivePowers`.
-
-`setDrivePowers` takes a `PoseVelocity2d` that can be used to power each motor.
-
-Implementations of `MecanumDrivetrain` are designed to work with `RobotWithMecanumDrivetrain`.
-
-### Choosing [RoadRunner](https://rr.brott.dev/docs/v1-0/installation/) vs [PedroPathing](https://pedropathing.com/docs/pathing/installation)
-
-There are two pre-built implementations of `MecanumDrivetrain`:
-
-- **`MecanumDriveWithRR`**: A `MecanumDrivetrain` implementation using [RoadRunner](https://rr.brott.dev/docs/v1-0/installation/)
-- **`MecanumDriveWithPP`**: A `MecanumDrivetrain` implementation using [PedroPathing](https://pedropathing.com/docs/pathing/installation)
-
----
-
-## Using `MecanumDriveWithRR`
-
-`MecanumDriveWithRR` constructor parameters:
-
-- **`hardwareMap: HardwareMap`**: Used to get drive motors
-- **`pose: Pose2d`**: Used to set the [Robot](../01-robots)'s initial pose
-- **`params: MecanumDriveWithRR.DriveParams`**: Used to configure [RoadRunner](https://rr.brott.dev/docs/v1-0/installation/)
-
-### `trajectory` Builder
-
-`MecanumDriveWithRR` provides a `trajectory` builder that composes [Actions](../../concepts/01-actions) using [RoadRunner](https://rr.brott.dev/docs/v1-0/installation/)'s `TrajectoryActionBuilder`.
-
-### Example
-
-<Tabs syncKey="language">
-
-<TabItem label="Kotlin">
-
-```kotlin
-class ExampleRobot(
-    hardwareMap: HardwareMap
-) : RobotWithMecanumDrivetrain<MecanumDriveWithRR>(
-    hardwareMap,
-    MecanumDriveWithRR(hardwareMap)
-) {
-    fun driveForwardAction() = drivetrain.trajectory {
-        strafeTo(Vector2d(24.0, 0.0))
-    }
-}
-```
-
-</TabItem>
-
-<TabItem label="Java">
-
-```java
-public class ExampleRobot extends RobotWithMecanumDrivetrain<MecanumDriveWithRR> {
-    public ExampleRobot(HardwareMap hardwareMap) {
-        super(hardwareMap, new MecanumDriveWithRR(hardwareMap));
-    }
-    
-    public Action driveForwardAction() {
-        return drivetrain.trajectory(builder -> {
-            builder.strafeTo(new Vector2d(24.0, 0.0));
-            return Unit.INSTANCE;
-        });
-    }
-}
-```
-
-</TabItem>
-
-</Tabs>
-
-## Using `MecanumDriveWithPP`
-
-`MecanumDriveWithPP` constructor parameters:
-
-- **`hardwareMap: HardwareMap`**: Used to get drive motors
-- **`followerConstants: FollowerConstants`**: Used to configure [PedroPathing](https://pedropathing.com/docs/pathing/installation)'s path follower
-- **`localizerConstants: DriveEncoderConstants`**: Used to configure [PedroPathing](https://pedropathing.com/docs/pathing/installation)'s drive encoder localizer
-- **`pathConstraints: PathConstraints`**: Used to configure [PedroPathing](https://pedropathing.com/docs/pathing/installation)'s path following constraints
-- **`driveConstants: MecanumConstants`**: Used to configure [PedroPathing](https://pedropathing.com/docs/pathing/installation)'s mecanum drivetrain logic
-- **`initialPose: Pose`**: Used to set the [Robot](../01-robots)'s initial pose
+Volt provides many pre-built `Drivetrain` classes for many combinations of drivetrain types, localization methods, and backends. Using these pre-built classes is the simplest way to add a `Drivetrain` to your [Robot](../01-robots).
 
 :::note
 
-When using `MecanumDriveWithPP` with [ManualModes](../08-manual-mode) `startTeleOpDrive()` must be called upon initialization.
+It is also possible to implement a custom `Drivetrain` class by extending one of the provided abstract classes. This guide assumes you will use one of the pre-built `Drivetrain` classes seen in the table below.
 
 :::
 
-### `path` Builder
+:::tip[Prerequisites]
 
-`MecanumDriveWithPP` provides a `path` builder that composes [Actions](../../concepts/01-actions) using a custom `FollowerActionBuilder` (built on [PedroPathing](https://pedropathing.com/docs/pathing/installation)'s path builder).
+This guide assumes you've [created a Robot class](../01-robots), [created an Attachment class](../02-attachments), and [learned to use built-in Attachments](../03-built-in-attachments).
 
-### Example
+:::
+
+### 1. Choose a `Drivetrain`
+
+Choosing a `Drivetrain` is a three-step process:
+
+1. Select a type of physical drivetrain (What drivetrain does your robot physically use?)
+2. Select a localization method (What localization hardware do you have?)
+3. Select a compatible backend (Which pathing backend/actions do you want to use?)
+
+:::note[See Also]
+
+See [RoadRunner vs PedroPathing](../../reference/drivetrain-backends) to decide which backend is best for you.
+
+:::
+
+This table contains all of Volt's pre-built `Drivetrain` classes:
+
+|Drivetrain|Localization|Backend|Class|
+|---|---|---|---|
+|Mecanum|Drive Encoder|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingDriveEncoderMecanumDrivetrain`|
+|Mecanum|Drive Encoder|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerDriveEncoderMecanumDrivetrain`|
+|Mecanum|Two Wheel|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingTwoWheelMecanumDrivetrain`|
+|Mecanum|Two Wheel|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerTwoWheelMecanumDrivetrain`|
+|Mecanum|Three Wheel|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingThreeWheelMecanumDrivetrain`|
+|Mecanum|Three Wheel|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerThreeWheelMecanumDrivetrain`|
+|Mecanum|Three Wheel + IMU|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingThreeWheelIMUMecanumDrivetrain`|
+|Mecanum|Pinpoint|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingPinpointMecanumDrivetrain`|
+|Mecanum|Pinpoint|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerPinpointMecanumDrivetrain`|
+|Mecanum|OTOS|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingOTOSMecanumDrivetrain`|
+|Mecanum|OTOS|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerOTOSMecanumDrivetrain`|
+|Swerve|Drive Encoder|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingDriveEncoderSwerveDrivetrain`|
+|Swerve|Two Wheel|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingTwoWheelSwerveDrivetrain`|
+|Swerve|Three Wheel|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingThreeWheelSwerveDrivetrain`|
+|Swerve|Three Wheel + IMU|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingThreeWheelIMUSwerveDrivetrain`|
+|Swerve|Pinpoint|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingPinpointSwerveDrivetrain`|
+|Swerve|OTOS|[PedroPathing](https://pedropathing.com/docs/pathing/installation)|`PedroPathingOTOSSwerveDrivetrain`|
+|Tank|Drive Encoder|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerDriveEncoderTankDrivetrain`|
+|Tank|Two Wheel|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerTwoWheelTankDrivetrain`|
+|Tank|Three Wheel|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerThreeWheelTankDrivetrain`|
+|Tank|Pinpoint|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerPinpointTankDrivetrain`|
+|Tank|OTOS|[RoadRunner](https://rr.brott.dev/)|`RoadRunnerOTOSTankDrivetrain`|
+
+Let's use a mecanum drivetrain, drive encoder localization, and PedroPathing.
+
+### 2. Create a `DrivetrainRobot`
+
+Make a `Robot` class that extends `DrivetrainRobot`. This gives your [Robot](../01-robots) access to a `drivetrain` instance.
 
 <Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
-```kotlin
-class ExampleRobot(
-    hardwareMap: HardwareMap
-) : RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
-    hardwareMap,
-    MecanumDriveWithPP(
-        hardwareMap,
-        FollowerConstants(),
-        DriveEncoderConstants(),
-        PathConstraints(),
-        MecanumConstants()
-    )
-) {
-    fun driveAction() = drivetrain.path {
-        lineTo(Pose(24.0, 0.0, 0.0))
-    }
-}
+```kotlin "DrivetrainRobot"
+class MyRobot(hardwareMap: HardwareMap) :
+    DrivetrainRobot(hardwareMap)
 ```
 
 </TabItem>
 
 <TabItem label="Java">
 
-```java
-public class ExampleRobot extends RobotWithMecanumDrivetrain<MecanumDriveWithPP> {
-    public ExampleRobot(HardwareMap hardwareMap) {
-        super(hardwareMap, new MecanumDriveWithPP(
-                hardwareMap,
-                FollowerConstants(),
-                DriveEncoderConstants(),
-                PathConstraints(),
-                MecanumConstants()
-        ));
-    }
-    
-    public Action driveAction() {
-        return drivetrain.path(builder -> {
-            builder.lineTo(new Pose(24.0, 0.0, 0.0));
-            return Unit.INSTANCE;
-        });
+```java "DrivetrainRobot"
+public class MyRobot extends DrivetrainRobot {
+    public MyRobot(HardwareMap hardwareMap) {
+        super(hardwareMap);
     }
 }
 ```
@@ -155,31 +95,144 @@ public class ExampleRobot extends RobotWithMecanumDrivetrain<MecanumDriveWithPP>
 
 </Tabs>
 
----
+### 3. Declare `Drivetrain` Type
 
-## Creating a Custom `Drivetrain`
+Pass a generic type parameter that inherits `Drivetrain`. This lets Volt know what type of `Drivetrain` class your [Robot](../01-robots) uses.
 
-Building a custom `Drivetrain` class is just like building an [Attachment](../02-attachments):
+In this case we'll use `PedroPathingDriveEncoderMecanumDrivetrain`:
 
-1. Extend `Drivetrain` (or `MecanumDrivetrain`)
-2. Configure hardware
-3. Write drive logic
+<Tabs syncKey="language">
 
-### Basic Example
+<TabItem label="Kotlin">
+
+```kotlin "<PedroPathingDriveEncoderMecanumDrivetrain>"
+class MyRobot(hardwareMap: HardwareMap) :
+    DrivetrainRobot<PedroPathingDriveEncoderMecanumDrivetrain>(hardwareMap)
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java "<PedroPathingDriveEncoderMecanumDrivetrain>"
+public class MyRobot extends DrivetrainRobot<PedroPathingDriveEncoderMecanumDrivetrain> {
+    public MyRobot(HardwareMap hardwareMap) {
+        super(hardwareMap);
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+### 4. Create and Configure `Drivetrain` Instance
+
+Create a new instance of your `Drivetrain` type. This is where you define hardware and tune your `Drivetrain`.
+
+:::tip
+
+Learn how to tune your robot on the [Tuning Your Robot](../../reference/tuning) page. Constants vary with each `Drivetrain` implementation.
+
+:::
+
+For our `PedroPathingDriveEncoderMecanumDrivetrain`, we'll supply simple `FollowerConstants`, `DriveEncoderConstants`, and `MecanumConstants`.
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin {4-17}
+class MyRobot(hardwareMap: HardwareMap) :
+    DrivetrainRobot<PedroPathingDriveEncoderMecanumDrivetrain>(
+        hardwareMap,
+        PedroPathingDriveEncoderMecanumDrivetrain(
+            hardwareMap = hardwareMap,
+            followerConstants = FollowerConstants()
+                .mass(9.8)
+                .translationalPIDFCoefficients(PIDFCoefficients(0.02, 0.0, 0.0, 0.07)),
+            localizerConstants = DriveEncoderConstants()
+                .robotWidth(14.0)
+                .robotLength(9.0)
+                .forwardTicksToInches(0.0057725)
+                .strafeTicksToInches(0.0069642)
+                .turnTicksToInches(0.009961),
+            driveConstants = MecanumConstants()
+                .maxPower(0.8),
+        ),
+    )
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {5-20}
+public class MyRobot extends DrivetrainRobot<PedroPathingDriveEncoderMecanumDrivetrain> {
+    public MyRobot(HardwareMap hardwareMap) {
+        super(
+            hardwareMap,
+            new PedroPathingDriveEncoderMecanumDrivetrain(
+                hardwareMap,
+                new FollowerConstants()
+                    .mass(9.8)
+                    .translationalPIDFCoefficients(new PIDFCoefficients(0.02, 0.0, 0.0, 0.07)),
+                new DriveEncoderConstants()
+                    .robotWidth(14.0)
+                    .robotLength(9.0)
+                    .forwardTicksToInches(0.0057725)
+                    .strafeTicksToInches(0.0069642)
+                    .turnTicksToInches(0.009961),
+                new PathConstants(),
+                new MecanumConstants()
+                    .maxPower(0.8),
+                new Pose()
+            )
+        );
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+In this case, we would have calculated the [Robot](../01-robots)'s mass, driving base width, and driving base length; tuned translational PIDF coefficients, forward ticks per inch, strafe ticks per inch, and turn ticks per inch; and experimented with various maximum powers.
+
+## Result
 
 <Tabs syncKey="language">
 
 <TabItem label="Kotlin">
 
 ```kotlin
-class ExampleDrivetrain(hardwareMap: HardwareMap) : Drivetrain() {
-    val leftFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lf")
-    val leftBack: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "lr")
-    val rightBack: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "rr")
-    val rightFront: DcMotorEx = hardwareMap.get(DcMotorEx::class.java, "rf")
-    
-    // Define drive actions here
-}
+import com.pedropathing.control.PIDFCoefficients
+import com.pedropathing.follower.FollowerConstants
+import com.pedropathing.ftc.drivetrains.MecanumConstants
+import com.pedropathing.ftc.localization.constants.DriveEncoderConstants
+import com.pedropathing.geometry.Pose
+import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.robot.DrivetrainRobot
+import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.PedroPathingDriveEncoderMecanumDrivetrain
+
+class MyRobot(hardwareMap: HardwareMap) :
+    DrivetrainRobot<PedroPathingDriveEncoderMecanumDrivetrain>(
+        hardwareMap,
+        PedroPathingDriveEncoderMecanumDrivetrain(
+            hardwareMap = hardwareMap,
+            followerConstants = FollowerConstants()
+                .mass(9.8)
+                .translationalPIDFCoefficients(PIDFCoefficients(0.02, 0.0, 0.0, 0.07)),
+            localizerConstants = DriveEncoderConstants()
+                .robotWidth(14.0)
+                .robotLength(9.0)
+                .forwardTicksToInches(0.0057725)
+                .strafeTicksToInches(0.0069642)
+                .turnTicksToInches(0.009961),
+            driveConstants = MecanumConstants()
+                .maxPower(0.8),
+        ),
+    )
 ```
 
 </TabItem>
@@ -187,21 +240,38 @@ class ExampleDrivetrain(hardwareMap: HardwareMap) : Drivetrain() {
 <TabItem label="Java">
 
 ```java
-public class ExampleDrivetrain extends Drivetrain {
-    public DcMotorEx leftFront;
-    public DcMotorEx leftBack;
-    public DcMotorEx rightBack;
-    public DcMotorEx rightFront;
-    
-    public ExampleDrivetrain(HardwareMap hardwareMap) {
-        super();
-        leftFront = hardwareMap.get(DcMotorEx.class, "lf");
-        leftBack = hardwareMap.get(DcMotorEx.class, "lr");
-        rightBack = hardwareMap.get(DcMotorEx.class, "rr");
-        rightFront = hardwareMap.get(DcMotorEx.class, "rf");
+import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.follower.FollowerConstants;
+import com.pedropathing.ftc.drivetrains.MecanumConstants;
+import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathConstraints;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import dev.kingssack.volt.robot.DrivetrainRobot;
+import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.PedroPathingDriveEncoderMecanumDrivetrain;
+
+public class MyRobot extends DrivetrainRobot<PedroPathingDriveEncoderMecanumDrivetrain> {
+    public MyRobot(HardwareMap hardwareMap) {
+        super(
+            hardwareMap,
+            new PedroPathingDriveEncoderMecanumDrivetrain(
+                hardwareMap,
+                new FollowerConstants()
+                    .mass(9.8)
+                    .translationalPIDFCoefficients(new PIDFCoefficients(0.02, 0, 0, 0.07)),
+                new DriveEncoderConstants()
+                    .robotWidth(14.0)
+                    .robotLength(9.0)
+                    .forwardTicksToInches(0.0057725)
+                    .strafeTicksToInches(0.0069642)
+                    .turnTicksToInches(0.009961),
+                new PathConstants(),
+                new MecanumConstants()
+                    .maxPower(0.8),
+                new Pose()
+            )
+        );
     }
-    
-    // Define drive actions here
 }
 ```
 
