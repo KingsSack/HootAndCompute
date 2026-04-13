@@ -1,0 +1,40 @@
+package dev.kingssack.volt.attachment.drivetrain.pp.swerve
+
+import com.pedropathing.follower.FollowerConstants
+import com.pedropathing.ftc.FollowerBuilder
+import com.pedropathing.ftc.drivetrains.CoaxialPod
+import com.pedropathing.ftc.drivetrains.SwerveConstants
+import com.pedropathing.ftc.localization.constants.DriveEncoderConstants
+import com.pedropathing.geometry.Pose
+import com.pedropathing.paths.PathConstraints
+import com.qualcomm.robotcore.hardware.HardwareMap
+import dev.kingssack.volt.attachment.drivetrain.pp.PedroPathingDrivetrain
+
+/**
+ * A swerve [PedroPathingDrivetrain] with drive encoder localization.
+ *
+ * @param hardwareMap the FTC hardware map
+ * @param followerConstants constants for the path follower
+ * @param localizerConstants constants for the drive encoder localizer
+ * @param pathConstraints constraints for path following
+ * @param driveConstants constants specific to the swerve drivetrain
+ * @param pods the coaxial pods used by the swerve drivetrain
+ * @param initialPose the robot's initial pose
+ */
+class DriveEncoderSwervePedroPathingDrivetrain(
+    hardwareMap: HardwareMap,
+    followerConstants: FollowerConstants = FollowerConstants(),
+    localizerConstants: DriveEncoderConstants = DriveEncoderConstants(),
+    pathConstraints: PathConstraints = PathConstraints(0.99, 100.0, 1.0, 1.0),
+    driveConstants: SwerveConstants = SwerveConstants(),
+    vararg pods: CoaxialPod,
+    initialPose: Pose = Pose(),
+) :
+    PedroPathingDrivetrain(
+        FollowerBuilder(followerConstants, hardwareMap)
+            .driveEncoderLocalizer(localizerConstants)
+            .pathConstraints(pathConstraints)
+            .swerveDrivetrain(driveConstants, *pods)
+            .build(),
+        initialPose,
+    )

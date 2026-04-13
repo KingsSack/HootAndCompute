@@ -9,7 +9,7 @@ import dev.kingssack.volt.util.Voltage
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
- * [CRServoWithPotentiometerAttachment] is an [Attachment] that controls a [crServo] with a
+ * [PotentiometerCRServoAttachment] is an [Attachment] that controls a [crServo] with a
  * [potentiometer].
  *
  * @param name the name of the cr servo
@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param potentiometer the potentiometer reading the position of the cr servo
  * @param direction the direction of the cr servo
  */
-open class CRServoWithPotentiometerAttachment(
+open class PotentiometerCRServoAttachment(
     name: String,
     crServo: CRServo,
     protected val potentiometer: AnalogInput,

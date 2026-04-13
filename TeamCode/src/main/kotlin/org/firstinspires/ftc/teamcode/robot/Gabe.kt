@@ -5,30 +5,30 @@ import com.acmerobotics.roadrunner.PoseVelocity2d
 import com.acmerobotics.roadrunner.Vector2d
 import com.qualcomm.hardware.dfrobot.HuskyLens
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver
-import com.qualcomm.robotcore.hardware.*
+import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import dev.kingssack.volt.annotations.VoltAction
-import dev.kingssack.volt.attachment.drivetrain.MecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.Drivetrain
 import dev.kingssack.volt.core.voltAction
-import dev.kingssack.volt.robot.RobotWithMecanumDrivetrain
-import kotlin.math.abs
+import dev.kingssack.volt.opmode.autonomous.AllianceColor
+import dev.kingssack.volt.robot.DrivetrainRobot
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.attachment.Launcher
 import org.firstinspires.ftc.teamcode.attachment.Storage
-import dev.kingssack.volt.opmode.autonomous.AllianceColor
+import kotlin.math.abs
 
 /**
  * Gabe is a robot for the 2025-2026 DECODE FTC Season.
  *
  * @param hardwareMap for initializing hardware components
- * @param T the type of mecanum drivetrain
- * @property drivetrain the mecanum drivetrain used by the robot
+ * @param T the type of drivetrain
+ * @property drivetrain the drivetrain used by the robot
  * @property rgb the LED driver for controlling RGB LEDs on the robot
  * @property launcher the launcher attachment for firing artifacts
  * @property storage the storage attachment for holding and releasing artifacts
- * @see MecanumDrivetrain
  */
-abstract class Gabe<T : MecanumDrivetrain>(hardwareMap: HardwareMap, override val drivetrain: T) :
-    RobotWithMecanumDrivetrain<T>(hardwareMap, drivetrain) {
+abstract class Gabe<T : Drivetrain>(hardwareMap: HardwareMap, override val drivetrain: T) :
+    DrivetrainRobot<T>(hardwareMap, drivetrain) {
     companion object {
         private const val LAUNCHER_LEFT_P = 54.7
         private const val LAUNCHER_LEFT_I = 0.21
