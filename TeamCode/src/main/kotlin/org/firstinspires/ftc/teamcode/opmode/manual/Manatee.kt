@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 
 import com.pedropathing.geometry.Pose
 import com.qualcomm.robotcore.hardware.Gamepad
-import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.PedroPathingDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.DriveEncoderMecanumPedroPathingDrivetrain
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
 import dev.kingssack.volt.opmode.manual.DrivetrainControlsManualMode
@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.attachment.Storage
 import org.firstinspires.ftc.teamcode.robot.GabePP
 
 @VoltOpModeMeta("Manatee", "Competition")
-class Manatee : DrivetrainControlsManualMode<PedroPathingDriveEncoderMecanumDrivetrain, GabePP>() {
+class Manatee : DrivetrainControlsManualMode<DriveEncoderMecanumPedroPathingDrivetrain, GabePP>() {
     override val robot = GabePP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
 
     // --- State ---

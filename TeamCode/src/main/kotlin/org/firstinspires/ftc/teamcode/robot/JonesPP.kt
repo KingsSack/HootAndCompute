@@ -10,18 +10,18 @@ import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.PedroPathingDriveEncoderMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.DriveEncoderMecanumPedroPathingDrivetrain
 
 /**
- * [Jones] with [PedroPathingDriveEncoderMecanumDrivetrain] drivetrain.
+ * [Jones] with [DriveEncoderMecanumPedroPathingDrivetrain] drivetrain.
  *
  * @param hardwareMap The FTC hardware map
  * @param initialPose The initial pose of the robot
  */
 class JonesPP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
-    Jones<PedroPathingDriveEncoderMecanumDrivetrain>(
+    Jones<DriveEncoderMecanumPedroPathingDrivetrain>(
         hardwareMap,
-        PedroPathingDriveEncoderMecanumDrivetrain(
+        DriveEncoderMecanumPedroPathingDrivetrain(
             hardwareMap,
             FollowerConstants()
                 .mass(9.8)

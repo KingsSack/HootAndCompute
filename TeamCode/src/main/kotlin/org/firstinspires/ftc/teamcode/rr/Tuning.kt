@@ -16,8 +16,8 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.eventloop.opmode.*
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerDriveEncoderMecanumDrivetrain
-import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.DriveEncoderMecanumRoadRunnerDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.MecanumRoadRunnerDrivetrain
 import dev.kingssack.volt.integrations.rr.Drawing.drawRobot
 import dev.kingssack.volt.robot.Robot
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
@@ -58,10 +58,10 @@ class TestRobot(hardwareMap: HardwareMap, initialPose: Pose2d) : Robot(hardwareM
     }
 
     val drive =
-        RoadRunnerDriveEncoderMecanumDrivetrain(
+        DriveEncoderMecanumRoadRunnerDrivetrain(
             hardwareMap,
             initialPose,
-            RoadRunnerMecanumDrivetrain.DriveParams(
+            MecanumRoadRunnerDrivetrain.DriveParams(
                 logoFacingDirection,
                 usbFacingDirection,
                 leftFrontName,

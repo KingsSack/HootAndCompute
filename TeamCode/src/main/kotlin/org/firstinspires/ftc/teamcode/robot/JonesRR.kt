@@ -7,23 +7,23 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.LogoFacingDirection
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerDriveEncoderMecanumDrivetrain
-import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.RoadRunnerMecanumDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.DriveEncoderMecanumRoadRunnerDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.MecanumRoadRunnerDrivetrain
 
 /**
- * [Jones] with [RoadRunnerDriveEncoderMecanumDrivetrain] drivetrain.
+ * [Jones] with [DriveEncoderMecanumRoadRunnerDrivetrain] drivetrain.
  *
  * @param hardwareMap The FTC hardware map.
  * @param initialPose The initial pose of the robot.
  */
 @Config
 class JonesRR(hardwareMap: HardwareMap, initialPose: Pose2d = Pose2d(Vector2d(0.0, 0.0), 0.0)) :
-    Jones<RoadRunnerDriveEncoderMecanumDrivetrain>(
+    Jones<DriveEncoderMecanumRoadRunnerDrivetrain>(
         hardwareMap,
-        RoadRunnerDriveEncoderMecanumDrivetrain(
+        DriveEncoderMecanumRoadRunnerDrivetrain(
             hardwareMap,
             initialPose,
-            RoadRunnerMecanumDrivetrain.DriveParams(
+            MecanumRoadRunnerDrivetrain.DriveParams(
                 logoFacingDirection = logoFacingDirection,
                 usbFacingDirection = usbFacingDirection,
                 leftFrontName = leftFrontName,
