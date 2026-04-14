@@ -12,6 +12,8 @@ Events are the primary way to map gamepad inputs and autonomous triggers to [Act
 Event
 ├── AutonomousEvent
 │   └── Start
+│   └── First
+│   └── When
 └── ManualEvent
     ├── ButtonEvent
     │   ├── Tap
@@ -45,11 +47,10 @@ Learn more about the [VoltActionBuilder](../03-volt-action-builder) on the [Volt
 
 ## Autonomous Events
 
-Autonomous events are used in [AutonomousModes](../../guides/06-autonomous-mode). Currently, there's only one `AutonomousEvent`.
-Import it with:
+Autonomous events are used in [AutonomousModes](../../guides/06-autonomous-mode). Import them with:
 
 ```kotlin
-import dev.kingssack.volt.util.Event.AutonomousEvent.Start
+import dev.kingssack.volt.util.Event.AutonomousEvent.*
 ```
 
 ### `Start`
@@ -63,6 +64,26 @@ Start then {
     wait(1.5)
     +robot.launcher.disable()
     instant { blackboard["endPose"] = robot.drivetrain.pose }
+}
+```
+
+### `First(trigger)`
+
+Triggers the first time a trigger becomes true.
+
+```kotlin
+First({ robot.drivetrain.pose.x > 100 }) then {
+    +robot.launcher.enable()
+}
+```
+
+### `When(trigger)`
+
+Triggers each tick a trigger is true.
+
+```kotlin
+When({ robot.drivetrain.pose.x == 100 }) then {
+    +robot.launcher.enable()
 }
 ```
 
