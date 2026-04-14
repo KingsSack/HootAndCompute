@@ -11,8 +11,8 @@ Events are the primary way to map gamepad inputs and autonomous triggers to [Act
 ```
 Event
 ├── AutonomousEvent
-│   └── Start
-│   └── First
+│   ├── Start
+│   ├── First
 │   └── When
 └── ManualEvent
     ├── ButtonEvent
