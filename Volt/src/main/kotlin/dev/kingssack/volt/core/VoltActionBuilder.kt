@@ -30,17 +30,21 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
             is SequentialAction -> "Sequence"
             is ParallelAction -> "Parallel"
             is InstantAction -> "Instant"
-            else ->
+            else -> {
+                val enclosingMethod = action.javaClass.enclosingMethod
+                val annotatedName =
+                    enclosingMethod
+                        ?.annotations
+                        ?.filterIsInstance<VoltAction>()
+                        ?.firstOrNull()
+                        ?.name
+
                 action.javaClass.simpleName.ifBlank {
-                    (((action.javaClass.enclosingMethod?.annotations?.firstOrNull {
-                            it is VoltAction
-                        } as VoltAction?)
-                        ?.name ?: action.javaClass.enclosingMethod?.name)
-                        ?: ("action of " +
-                            action.javaClass.declaringClass.simpleName +
-                            " extending " +
-                            action.javaClass.superclass.simpleName))
+                    annotatedName
+                        ?: enclosingMethod?.name
+                        ?: "Action of ${action.javaClass.declaringClass?.simpleName} extending ${action.javaClass.superclass?.simpleName}"
                 }
+            }
         }
     }
 
