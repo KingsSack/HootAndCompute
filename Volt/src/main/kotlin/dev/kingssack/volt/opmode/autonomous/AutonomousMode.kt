@@ -72,7 +72,7 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
         events.forEach { (event, action) ->
             when (event) {
                 Event.AutonomousEvent.Start ->
-                    runAction(VoltActionBuilder(robot).apply(action).build())
+                    startAction(VoltActionBuilder(robot).apply(action).build())
                 else -> {}
             }
         }
@@ -81,6 +81,7 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
 
     open fun tick() {
         processEvents()
+        processActions()
     }
 
     private fun processEvents() {
@@ -88,12 +89,12 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
             when (event) {
                 is Event.AutonomousEvent.When -> {
                     if (event.trigger()) {
-                        runAction(VoltActionBuilder(robot).apply(action).build())
+                        startAction(VoltActionBuilder(robot).apply(action).build())
                     }
                 }
                 is Event.AutonomousEvent.First -> {
                     if (event.trigger()) {
-                        runAction(VoltActionBuilder(robot).apply(action).build())
+                        startAction(VoltActionBuilder(robot).apply(action).build())
                         events.removeIf { it.first == event }
                     }
                 }
@@ -101,21 +102,23 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
             }
         }
     }
-
-    private fun runAction(action: Action) {
+    private val actions: MutableList<Pair<Action, Canvas>> = mutableListOf()
+    private fun startAction(action: Action) {
         val canvas = Canvas()
         action.preview(canvas)
-
-        var running = true
-        while (running && opModeIsActive() && !Thread.currentThread().isInterrupted) {
-            val packet = TelemetryPacket()
+        actions.add(action to canvas)
+    }
+    private fun processActions() {
+        val packet = TelemetryPacket()
+        actions.removeIf { (action, canvas) ->
             packet.fieldOverlay().operations.addAll(canvas.operations)
 
-            running = action.run(packet)
+            val running = action.run(packet)
 
             context(telemetry) { robot.update() }
             context(packet) { ActionTracer.writePacket() }
-            dash?.sendTelemetryPacket(packet)
+            running
         }
+        dash?.sendTelemetryPacket(packet)
     }
 }
