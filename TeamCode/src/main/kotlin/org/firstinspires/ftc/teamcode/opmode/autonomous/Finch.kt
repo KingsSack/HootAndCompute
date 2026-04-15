@@ -13,21 +13,17 @@ class Finch : MultiDualAutonomousMode<GabePP, FinchStartingPosition>() {
     override val robot =
         GabePP(
             hardwareMap,
-            mirroredForAlliance(
-                when (variant) {
-                    FinchStartingPosition.WALL -> Pose(56.0, 9.0, 90.0.toRadians())
-                    FinchStartingPosition.GOAL -> Pose(26.0, 133.0, 142.0.toRadians())
-                }
-            ),
+            when (variant) {
+                FinchStartingPosition.WALL -> Pose(56.0, 9.0, 90.0.toRadians())
+                FinchStartingPosition.GOAL -> Pose(26.0, 133.0, 142.0.toRadians())
+            }.mirrorIfRed(),
         )
 
-    private var launchPose: Pose =
-        mirroredForAlliance(
-            when (variant) {
-                FinchStartingPosition.WALL -> Pose(64.0, 100.0, 140.0.toRadians())
-                FinchStartingPosition.GOAL -> Pose(64.0, 125.0, 148.0.toRadians())
-            }
-        )
+    private var launchPose =
+        when (variant) {
+            FinchStartingPosition.WALL -> Pose(64.0, 100.0, 140.0.toRadians())
+            FinchStartingPosition.GOAL -> Pose(64.0, 125.0, 148.0.toRadians())
+        }.mirrorIfRed()
 
     init {
         blackboard["allianceColor"] = color
