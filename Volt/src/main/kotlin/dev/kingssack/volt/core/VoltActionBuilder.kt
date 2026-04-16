@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.InstantAction
 import com.acmerobotics.roadrunner.ParallelAction
 import com.acmerobotics.roadrunner.SequentialAction
+import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.telemetry.TracedAction
 import java.lang.System.nanoTime
@@ -29,7 +30,23 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
             is SequentialAction -> "Sequence"
             is ParallelAction -> "Parallel"
             is InstantAction -> "Instant"
-            else -> action.javaClass.simpleName.ifBlank { "Action" }
+            else -> {
+                val actionClass = action.javaClass
+
+                val enclosingMethod = actionClass.enclosingMethod
+                val annotatedName =
+                    enclosingMethod
+                        ?.annotations
+                        ?.filterIsInstance<VoltAction>()
+                        ?.firstOrNull()
+                        ?.name
+
+                actionClass.simpleName.ifBlank {
+                    annotatedName?.takeIf { it.isNotBlank() }
+                        ?: enclosingMethod?.name
+                        ?: "Action of ${actionClass.declaringClass?.simpleName} extending ${actionClass.superclass?.simpleName}"
+                }
+            }
         }
     }
 
