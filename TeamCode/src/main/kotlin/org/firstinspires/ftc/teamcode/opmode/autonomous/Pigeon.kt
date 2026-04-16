@@ -13,23 +13,19 @@ class Pigeon : MultiDualAutonomousMode<GabePP, StartingPosition>() {
     override val robot =
         GabePP(
             hardwareMap,
-            mirroredForAlliance(
-                when (variant) {
-                    StartingPosition.WALL -> Pose(57.0, 9.0, 90.0.toRadians())
-                    StartingPosition.GOAL -> Pose(26.0, 133.0, 323.0.toRadians())
-                    StartingPosition.RAMP -> Pose(15.0, 112.0, 0.0.toRadians())
-                }
-            ),
+            when (variant) {
+                StartingPosition.WALL -> Pose(57.0, 9.0, 90.0.toRadians())
+                StartingPosition.GOAL -> Pose(26.0, 133.0, 323.0.toRadians())
+                StartingPosition.RAMP -> Pose(15.0, 112.0, 0.0.toRadians())
+            }.mirrorIfRed(),
         )
 
     private val endPose =
-        mirroredForAlliance(
-            when (variant) {
-                StartingPosition.WALL -> Pose(37.0, 9.0, 90.0.toRadians())
-                StartingPosition.GOAL -> Pose(36.0, 125.0, 323.0.toRadians())
-                StartingPosition.RAMP -> Pose(15.0, 105.0, 0.0.toRadians())
-            }
-        )
+        when (variant) {
+            StartingPosition.WALL -> Pose(37.0, 9.0, 90.0.toRadians())
+            StartingPosition.GOAL -> Pose(36.0, 125.0, 323.0.toRadians())
+            StartingPosition.RAMP -> Pose(15.0, 105.0, 0.0.toRadians())
+        }.mirrorIfRed()
 
     init {
         blackboard["allianceColor"] = color

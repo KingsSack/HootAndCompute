@@ -10,11 +10,10 @@ import org.firstinspires.ftc.teamcode.util.toRadians
 
 @VoltOpModeMeta("Heron", "Competition", "Seahorse")
 class Heron : DualAutonomousMode<JonesPP>() {
-    override val robot =
-        JonesPP(hardwareMap, mirroredForAlliance(Pose(63.875, 8.0, 90.0.toRadians())))
+    override val robot = JonesPP(hardwareMap, Pose(63.875, 8.0, 90.0.toRadians()).mirrorIfRed())
 
-    private val launchPose = mirroredForAlliance(Pose(60.0, 12.0, 115.0.toRadians()))
-    private val finalPose = mirroredForAlliance(Pose(60.0, 30.0, 115.0.toRadians()))
+    private val launchPose = Pose(60.0, 12.0, 115.0.toRadians()).mirrorIfRed()
+    private val finalPose = Pose(60.0, 30.0, 115.0.toRadians()).mirrorIfRed()
 
     private val patterns =
         mapOf(
