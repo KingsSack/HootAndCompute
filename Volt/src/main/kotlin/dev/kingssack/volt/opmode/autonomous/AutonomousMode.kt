@@ -85,9 +85,9 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
     }
 
     private fun processEvents() {
-        events.forEach { (event, action) ->
+        events.removeIf { (event, action) ->
             when (event) {
-                is Event.AutonomousEvent.When -> {
+                is When -> {
                     if (event.trigger()) {
                         startAction(VoltActionBuilder(robot).apply(action).build())
                     }
@@ -95,11 +95,12 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
                 is Event.AutonomousEvent.First -> {
                     if (event.trigger()) {
                         startAction(VoltActionBuilder(robot).apply(action).build())
-                        events.removeIf { it.first == event }
+                        return@removeIf true
                     }
                 }
                 else -> {}
             }
+            false
         }
     }
     private val actions: MutableList<Pair<Action, Canvas>> = mutableListOf()
