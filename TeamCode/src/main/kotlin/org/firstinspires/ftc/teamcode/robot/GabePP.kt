@@ -10,18 +10,18 @@ import com.pedropathing.geometry.Pose
 import com.pedropathing.paths.PathConstraints
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import dev.kingssack.volt.attachment.drivetrain.MecanumDriveWithPP
+import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.DriveEncoderMecanumPedroPathingDrivetrain
 
 /**
- * [Gabe] with [MecanumDriveWithPP] drivetrain.
+ * [Gabe] with [DriveEncoderMecanumPedroPathingDrivetrain] drivetrain.
  *
  * @param hardwareMap The FTC hardware map
  * @param initialPose The initial pose of the robot
  */
 class GabePP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
-    Gabe<MecanumDriveWithPP>(
+    Gabe<DriveEncoderMecanumPedroPathingDrivetrain>(
         hardwareMap,
-        MecanumDriveWithPP(
+        DriveEncoderMecanumPedroPathingDrivetrain(
             hardwareMap,
             FollowerConstants()
                 .mass(9.15)

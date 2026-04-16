@@ -22,7 +22,7 @@ Ideally, it operates independently from your other subsystems.
 
 This page goes over creating your own `Attachment` from the abstract base class, which isn't always necessary.
 
-See [Using Built-In Attachments](../05-built-in-attachments) to learn more.
+See [Using Built-In Attachments](../03-built-in-attachments) to learn more.
 
 :::
 
@@ -88,7 +88,7 @@ class Claw extends Attachment {
 
 ### 2. The `update()` Method
 
-The `Robot` class automatically calls the `update()` method on every registered `Attachment` during each tick of your [OpMode](../03-opmodes).
+The `Robot` class automatically calls the `update()` method on every registered `Attachment` during each tick of your [OpMode](../05-opmodes).
 
 The base `Attachment` already implements `update()`  to add telemetry about the `Attachment`'s state
 (`Idle`, `Running`, or `Fault`). If you need continuous logic or custom telemetry, you can override this method.
@@ -447,6 +447,7 @@ class Claw extends Attachment {
 
 ## Next Steps
 
-- [Create an OpMode](../03-opmodes) that controls your attachment
-- [Discover Built-In Attachments](../06-built-in-attachments)
+- [Create an OpMode](../05-opmodes) that controls your attachment
+- [Discover Built-In Attachments](../03-built-in-attachments)
+- [Discover Drivetrains](../04-drivetrains)
 - [Learn more about Actions](../../concepts/01-actions)

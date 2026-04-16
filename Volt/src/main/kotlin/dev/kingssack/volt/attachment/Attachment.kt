@@ -1,7 +1,7 @@
 package dev.kingssack.volt.attachment
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
+import dev.kingssack.volt.core.ActionLifecycleBuilder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,67 +40,20 @@ abstract class Attachment(val name: String) {
             "Attachment $name is not ready. Current state: ${state.value}"
         }
 
-    @DslMarker @Target(AnnotationTarget.CLASS) annotation class AttachmentActionDsl
-
-    @AttachmentActionDsl
-    inner class AttachmentActionBuilder {
-        private var init: (() -> Unit)? = null
-        private var loop: (TelemetryPacket.() -> Boolean)? = null
-        private var cleanup: (() -> Unit)? = null
-
-        /** Sets the initialization block for the action. */
-        fun init(block: () -> Unit) {
-            init = block
-        }
-
-        /** Sets the looping block for the action. */
-        fun loop(block: TelemetryPacket.() -> Boolean) {
-            loop = block
-        }
-
-        /** Sets the cleanup block for the action. */
-        fun cleanup(block: () -> Unit) {
-            cleanup = block
-        }
-
-        fun build(): Action =
-            object : Action {
-                private var initialized = false
-
-                override fun run(p: TelemetryPacket): Boolean {
-                    return try {
-                        if (!initialized) {
-                            init?.invoke()
-                            setState(AttachmentState.Running)
-                            initialized = true
-                        }
-                        val done = loop?.invoke(p) ?: true
-                        if (done) {
-                            cleanup?.invoke()
-                            setState(AttachmentState.Idle)
-                        }
-                        !done
-                    } catch (e: Throwable) {
-                        setState(AttachmentState.Fault(e))
-                        try {
-                            cleanup?.invoke()
-                        } catch (ce: Throwable) {
-                            setState(AttachmentState.Fault(ce))
-                            throw ce
-                        }
-                        throw e
-                    }
-                }
-            }
-    }
-
     /**
-     * Creates an action using the [AttachmentActionBuilder].
+     * Creates an action using the [ActionLifecycleBuilder].
      *
      * @return an [Action] that can be executed by an OpMode
      */
-    fun action(block: AttachmentActionBuilder.() -> Unit): Action =
-        AttachmentActionBuilder().apply(block).build()
+    protected fun action(block: ActionLifecycleBuilder.() -> Unit) =
+        ActionLifecycleBuilder()
+            .apply {
+                onStart { setState(AttachmentState.Running) }
+                onComplete { setState(AttachmentState.Idle) }
+                onError { error -> setState(AttachmentState.Fault(error)) }
+            }
+            .apply(block)
+            .build()
 
     /** Updates the telemetry with the current state of the attachment. */
     context(telemetry: Telemetry)

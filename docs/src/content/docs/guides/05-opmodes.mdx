@@ -1,0 +1,67 @@
+---
+title: Volt OpModes
+description: Learn about developing OpModes with Volt
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+OpModes in Volt are built on top of the `VoltOpMode` base class.
+
+There are two main types of `VoltOpMode`: [AutonomousModes](../06-autonomous-mode) and [ManualModes](../08-manual-mode).
+
+The `VoltOpMode` class has the following properties:
+
+- **`hardwareMap: HardwareMap`**: Used to get hardware instances
+- **`telemetry: Telemetry`**: Used to log information to the driver station
+- **`gamepad1: Gamepad`**: Used to read input from the first gamepad
+- **`gamepad2: Gamepad`**: Used to read input from the second gamepad
+- **`blackboard: MutableMap<String, Any>`**: Used to store and share data across multiple OpModes
+
+The purpose of a `VoltOpMode` is to determine when to trigger [Actions](../../concepts/01-actions).
+This goal is accomplished using [Events](../../concepts/02-events).
+
+## Defining [Events](../../concepts/02-events)
+
+In both [AutonomousModes](../06-autonomous-mode) and [ManualModes](../08-manual-mode)
+[Events](../../concepts/02-events) are defined using the `then` method:
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin
+Event then { /* Build an Action */ }
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java
+then(Event, builder -> { /* Build an Action */ });
+```
+
+</TabItem>
+
+</Tabs>
+
+The `then` method pairs [Events](../../concepts/02-events) with a [VoltActionBuilder](../../concepts/03-volt-action-builder).
+In this builder, you can build simple or complex sequences of [Actions](../../concepts/01-actions)
+from the ones defined in your [Attachments](../02-attachments) and [Robots](../01-robots).
+
+## Adding Metadata
+
+A `VoltOpMode` requires the `VoltOpModeMeta` annotation to determine how it appears on the Driver Station app.
+
+The `VoltOpModeMeta` annotation has three parameters:
+
+- `name: String`: The only required parameter. Specifies the name that will appear on the Driver Station app.
+- `group: String`: Specifies the group that will appear on the Driver Station app. Defaults to `OpModeMeta.DefaultGroup` which shows up as "$$$$$$$".
+- `autoTransition: String`: Specifies the [ManualMode](../08-manual-mode) that an [AutonomousMode](../06-autonomous-mode) will automatically transition to on completion.
+
+## Next Steps
+
+- [Create an AutonomousMode](../06-autonomous-mode) to control your [Robot](../01-robots) autonomously
+- [Create a ManualMode](../08-manual-mode) to control your [Robot](../01-robots) with gamepads
+- [Learn more about Events](../../concepts/02-events)
+- [Learn more about the VoltActionBuilder](../../concepts/03-volt-action-builder)

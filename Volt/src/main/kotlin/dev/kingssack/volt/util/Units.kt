@@ -19,6 +19,8 @@ value class Power(val value: Double) {
     }
 }
 
+@JvmInline value class Ticks(val value: Int)
+
 @JvmInline
 value class Seconds(val value: Double) {
     init {

@@ -1,0 +1,186 @@
+---
+title: Using Built-In Attachments
+description: Learn how to use Volt's pre-made attachments.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Volt has several built-in [Attachments](../02-attachments) that can be used to quickly add functionality to your [Robots](../01-robots).
+
+These [Attachments](../02-attachments) include:
+
+1. **`DcMotorAttachment`**: Controls a single `DcMotor`
+2. **`ServoAttachment`**: Controls a single `Servo`
+3. **`CRServoAttachment`**: Controls a single `CRServo`
+4. **`CRServoWithPotentiometerAttachment`**: Controls a `CRServo` with an `AnalogInput` measuring its angular displacement
+
+## Using Built-In [Attachments](../02-attachments)
+
+There are two main ways to use a built-in attachment:
+
+1. **As-is**: Relies on existing [Actions](../../concepts/01-actions)
+2. **Extended**: Extends the existing implementation
+
+### As-is
+
+To use a built-in `Attachment` as-is, simply create a new instance of the `Attachment` in your `Robot` class:
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin {4}
+class MyRobot(hardwareMap: HardwareMap) : Robot(hardwareMap) {
+    private val clawServo by servo("clawServo")
+
+    val claw = attachment { ServoAttachment("Claw", clawServo) }
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java {8-17}
+public class MyRobot extends Robot {
+    private final Servo clawServo;
+    public final ServoAttachment claw;
+
+    public MyRobot(HardwareMap hardwareMap) {
+        super(hardwareMap);
+        clawServo = hardwareMap.get(Servo.class, "clawServo");
+        claw = attachment(() -> {
+            return new ServoAttachment(
+                    "Claw",
+                    clawServo
+            );
+        });
+    }
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+### Extended
+
+To extend a built-in `Attachment`, create a new class that inherits the `Attachment`:
+
+<Tabs syncKey="language">
+
+<TabItem label="Kotlin">
+
+```kotlin "ServoAttachment("Claw", servo)"
+class Claw(servo: Servo) : ServoAttachment("Claw", servo) {
+    // Custom functionality can be added here
+}
+```
+
+</TabItem>
+
+<TabItem label="Java">
+
+```java "ServoAttachment" {3}
+public class Claw extends ServoAttachment {
+    public Claw(Servo servo) {
+        super("Claw", servo);
+    }
+    
+    // Custom functionality can be added here
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+---
+
+## Simple Built-in [Attachments](../02-attachments) Reference
+
+The simplest built-in attachments control a single hardware actuator. These types of [Attachments](../02-attachments) are very common.
+
+### `DcMotorAttachment`
+
+#### Constructor Parameters
+
+1. **`name: String`**: The name of the `DcMotorAttachment`
+2. **`motor: DcMotor`**: The motor to control
+3. **`maxPosition: Int`**: The maximum position of the motor in encoder ticks
+4. **`minPosition: Int`**: The minimum position of the motor in encoder ticks
+5. **`direction: DcMotorSimple.Direction`**: The direction the motor should spin
+
+#### Properties
+
+- **`currentGoal: Int`**: The position of the current goal in encoder ticks
+
+#### Actions
+
+- **`reset()`**: Resets the motor's encoder
+- **`goTo(power: Double, position: Int)`**: Moves the motor to the specified `position` in encoder ticks at the specified `power`
+
+#### Telemetry
+
+Logs the current goal, current position, and whether the motor is running. Example output:
+
+```
+Goal 0
+Position 0
+Busy false
+```
+
+### `ServoAttachment`
+
+#### Constructor Parameters
+
+1. **`name: String`**: The name of the `ServoAttachment`
+2. **`servo: Servo`**: The servo to control
+5. **`direction: Servo.Direction`**: The direction the servo should spin
+
+#### Properties
+
+- **`position: ServoPosition`**: The position of the servo
+
+#### Actions
+
+- **`goTo(target: ServoPosition)`**: Moves the servo to the specified `target` servo position
+
+#### Telemetry
+
+Logs the current position of the servo. Example output:
+
+```
+Position 0.0
+```
+
+### `CRServoAttachment`
+
+#### Constructor Parameters
+
+1. **`name: String`**: The name of the `CRServoAttachment`
+2. **`crServo: CRServo`**: The cr servo to control
+5. **`direction: DcMotorSimple.Direction`**: The direction the cr servo should spin
+
+#### Properties
+
+None
+
+#### Actions
+
+- **`moveFor(power: Power, seconds: Seconds)`**: Moves the cr servo for the specified number of `seconds` at the specified `power`
+- **`start(power: Power)`**: Starts the cr servo at the specified `power`
+
+#### Telemetry
+
+Logs the current power being applied to the cr servo. Example output:
+
+```
+Power 0.0
+```
+
+## Next Steps
+
+- [Discover Drivetrains](../04-drivetrains)
+- [Learn more about Actions](../../concepts/01-actions)
+- [Learn more about Type-Safe Units](../../reference/type-safe-units)

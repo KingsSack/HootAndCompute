@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param name the name of the servo
  * @param servo the servo to control
  * @param direction the direction of the servo
+ * @property position the position of the servo
  */
 open class ServoAttachment(
     name: String,
@@ -42,6 +43,9 @@ open class ServoAttachment(
             loop { abs(position.value - target.value) < tolerance }
         }
     }
+
+    /** @see goTo */
+    fun goTo(target: Double) = goTo(ServoPosition(target))
 
     context(telemetry: Telemetry)
     override fun update() {

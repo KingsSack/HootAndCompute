@@ -30,17 +30,23 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
             is SequentialAction -> "Sequence"
             is ParallelAction -> "Parallel"
             is InstantAction -> "Instant"
-            else ->
-                action.javaClass.simpleName.ifBlank {
-                    (((action.javaClass.enclosingMethod?.annotations?.firstOrNull {
-                            it is VoltAction
-                        } as VoltAction?)
-                        ?.name ?: action.javaClass.enclosingMethod?.name)
-                        ?: ("action of " +
-                            action.javaClass.declaringClass.simpleName +
-                            " extending " +
-                            action.javaClass.superclass.simpleName))
+            else -> {
+                val actionClass = action.javaClass
+
+                val enclosingMethod = actionClass.enclosingMethod
+                val annotatedName =
+                    enclosingMethod
+                        ?.annotations
+                        ?.filterIsInstance<VoltAction>()
+                        ?.firstOrNull()
+                        ?.name
+
+                actionClass.simpleName.ifBlank {
+                    annotatedName?.takeIf { it.isNotBlank() }
+                        ?: enclosingMethod?.name
+                        ?: "Action of ${actionClass.declaringClass?.simpleName} extending ${actionClass.superclass?.simpleName}"
                 }
+            }
         }
     }
 
@@ -76,6 +82,10 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
     /** Adds an instant action that executes a block of code immediately. */
     fun instant(block: () -> Unit) {
         addAction(InstantAction(block))
+    }
+
+    fun action(block: ActionLifecycleBuilder.() -> Unit) {
+        addAction(ActionLifecycleBuilder().apply(block).build())
     }
 
     private fun extractActions(block: VoltActionBuilder<R>.() -> Unit): List<Action> {

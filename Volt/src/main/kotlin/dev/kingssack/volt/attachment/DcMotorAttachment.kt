@@ -3,6 +3,8 @@ package dev.kingssack.volt.attachment
 import com.acmerobotics.roadrunner.Action
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import dev.kingssack.volt.util.Power
+import dev.kingssack.volt.util.Ticks
 import org.firstinspires.ftc.robotcore.external.Telemetry
 
 /**
@@ -13,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
  * @param idlePower the idle power of the motor
  * @param maxPosition the maximum position of the motor
  * @param minPosition the minimum position of the motor
+ * @property currentGoal the position of the current goal
  */
 open class DcMotorAttachment(
     name: String,
@@ -20,7 +23,7 @@ open class DcMotorAttachment(
     private val idlePower: Double,
     private val maxPosition: Int,
     private val minPosition: Int = 0,
-    private val direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
 ) : Attachment(name) {
     init {
         // Set motor direction
@@ -54,13 +57,13 @@ open class DcMotorAttachment(
      *
      * @return an action to move the motor to a position
      */
-    fun goTo(power: Double, position: Int): Action {
-        require(position in minPosition..maxPosition)
+    fun goTo(power: Power, position: Ticks): Action {
+        require(position.value in minPosition..maxPosition)
 
         return action {
             init {
                 // Update current goal
-                currentGoal = position
+                currentGoal = position.value
 
                 // Set target position
                 motor.mode = DcMotor.RunMode.RUN_USING_ENCODER
@@ -68,7 +71,7 @@ open class DcMotorAttachment(
                 motor.mode = DcMotor.RunMode.RUN_TO_POSITION
 
                 // Set power
-                motor.power = power
+                motor.power = power.value
             }
 
             loop {
@@ -84,6 +87,9 @@ open class DcMotorAttachment(
             }
         }
     }
+
+    /** @see goTo */
+    fun goTo(power: Double, position: Int): Action = goTo(Power(power), Ticks(position))
 
     context(telemetry: Telemetry)
     override fun update() {

@@ -11,7 +11,9 @@ Events are the primary way to map gamepad inputs and autonomous triggers to [Act
 ```
 Event
 ├── AutonomousEvent
-│   └── Start
+│   ├── Start
+│   ├── First
+│   └── When
 └── ManualEvent
     ├── ButtonEvent
     │   ├── Tap
@@ -24,8 +26,8 @@ Event
     └── Combo
 ```
 
-- **`AutonomousEvent`** types are used in [AutonomousModes](../../guides/04-autonomous-mode) and respond to lifecycle triggers.
-- **`ManualEvent`** types are used in [ManualModes](../../guides/05-manual-mode) and respond to gamepad input.
+- **`AutonomousEvent`** types are used in [AutonomousModes](../../guides/06-autonomous-mode) and respond to lifecycle triggers.
+- **`ManualEvent`** types are used in [ManualModes](../../guides/08-manual-mode) and respond to gamepad input.
 
 ## Binding Events with `then`
 
@@ -45,11 +47,10 @@ Learn more about the [VoltActionBuilder](../03-volt-action-builder) on the [Volt
 
 ## Autonomous Events
 
-Autonomous events are used in [AutonomousModes](../../guides/04-autonomous-mode). Currently, there's only one `AutonomousEvent`.
-Import it with:
+Autonomous events are used in [AutonomousModes](../../guides/06-autonomous-mode). Import them with:
 
 ```kotlin
-import dev.kingssack.volt.util.Event.AutonomousEvent.Start
+import dev.kingssack.volt.util.Event.AutonomousEvent.*
 ```
 
 ### `Start`
@@ -66,9 +67,29 @@ Start then {
 }
 ```
 
+### `First(trigger)`
+
+Triggers the first time a trigger becomes true.
+
+```kotlin
+First({ robot.drivetrain.pose.x > 100 }) then {
+    +robot.launcher.enable()
+}
+```
+
+### `When(trigger)`
+
+Triggers each tick a trigger is true.
+
+```kotlin
+When({ robot.drivetrain.pose.x == 100 }) then {
+    +robot.launcher.enable()
+}
+```
+
 ## Manual Events
 
-Manual events are used in [ManualModes](../../guides/05-manual-mode). Import them with:
+Manual events are used in [ManualModes](../../guides/08-manual-mode). Import them with:
 
 ```kotlin
 import dev.kingssack.volt.util.Event.ManualEvent.*
@@ -178,7 +199,19 @@ Volt provides enum entries for every gamepad input. Entries suffixed with `1` re
 
 ## Putting It Together
 
+<<<<<<< ours
+<<<<<<< ours
+A typical [OpMode](../../guides/05-opmodes) override organizes bindings by attachment using extension functions:
+||||||| ancestor
 A typical [OpMode](../../guides/03-opmodes) override organizes bindings by attachment using extension functions:
+=======
+A typical `defineEvents()` override organizes bindings by attachment using extension functions:
+>>>>>>> theirs
+||||||| ancestor
+A typical `defineEvents()` override organizes bindings by attachment using extension functions:
+=======
+A typical [OpMode](../../guides/03-opmodes) override organizes bindings by attachment using extension functions:
+>>>>>>> theirs
 
 ```kotlin
 init {
