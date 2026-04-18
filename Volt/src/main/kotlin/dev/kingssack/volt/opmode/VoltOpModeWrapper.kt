@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier
 import dev.frozenmilk.sinister.sdk.apphooks.OnCreateEventLoop
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.VoltLogs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +30,7 @@ object VoltOpModeWrapper {
     var isActive = false
         private set
 
-    var currentOpMode: ActiveOpMode<*, *>? = null
+    var currentOpMode: ActiveOpMode<*, *, *>? = null
         private set
 
     fun initializeOpMode() {
@@ -43,7 +44,11 @@ object VoltOpModeWrapper {
         _state.value = OpModeState.Initializing
     }
 
-    fun <R : Robot, O : VoltOpMode<R>> postInitializeOpMode(opMode: O, robot: R, clazz: Class<O>) {
+    fun <R : Robot, E : Event, O : VoltOpMode<R, E>> postInitializeOpMode(
+        opMode: O,
+        robot: R,
+        clazz: Class<O>,
+    ) {
         currentOpMode = ActiveOpMode(opMode, robot, clazz)
         isActive = true
         postInitListeners.forEach {
@@ -80,18 +85,18 @@ object VoltOpModeWrapper {
         this.currentOpMode = null
     }
 
-    private val startListeners: MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
-    private val stopListeners: MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
+    private val startListeners: MutableList<(ActiveOpMode<*, *, *>) -> Unit> = mutableListOf()
+    private val stopListeners: MutableList<(ActiveOpMode<*, *, *>) -> Unit> = mutableListOf()
     private val initListeners: MutableList<() -> Unit> = mutableListOf()
-    private val postInitListeners: MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
+    private val postInitListeners: MutableList<(ActiveOpMode<*, *, *>) -> Unit> = mutableListOf()
 
     @Suppress("unused")
-    fun addStartListener(listener: (ActiveOpMode<*, *>) -> Unit) {
+    fun addStartListener(listener: (ActiveOpMode<*, *, *>) -> Unit) {
         startListeners.add(listener)
     }
 
     @Suppress("unused")
-    fun addStopListener(listener: (ActiveOpMode<*, *>) -> Unit) {
+    fun addStopListener(listener: (ActiveOpMode<*, *, *>) -> Unit) {
         stopListeners.add(listener)
     }
 
@@ -101,7 +106,7 @@ object VoltOpModeWrapper {
     }
 
     @Suppress("unused")
-    fun addPostInitListener(listener: (ActiveOpMode<*, *>) -> Unit) {
+    fun addPostInitListener(listener: (ActiveOpMode<*, *, *>) -> Unit) {
         postInitListeners.add(listener)
     }
 
@@ -128,7 +133,7 @@ object VoltOpModeWrapper {
     }
 
     @Suppress("unused")
-    class ActiveOpMode<R : Robot, O : VoltOpMode<R>>(
+    class ActiveOpMode<R : Robot, E : Event, O : VoltOpMode<R, E>>(
         val opMode: O,
         val robot: R,
         val clazz: Class<O>,
