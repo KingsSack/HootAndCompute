@@ -11,14 +11,9 @@ import java.lang.System.nanoTime
 
 @DslMarker annotation class VoltBuilderDsl
 
-/**
- * Builder for creating complex action sequences for a [Robot]
- *
- * @param R The type of Robot the actions will operate on
- * @param robot The robot instance the actions will control
- */
+/** Builder for creating complex action sequences for a [Robot] */
 @VoltBuilderDsl
-class VoltActionBuilder<R : Robot>(private val robot: R) {
+class VoltActionBuilder {
     private val _actions = mutableListOf<Action>()
 
     private fun addAction(action: Action) {
@@ -70,12 +65,12 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
     }
 
     /** Adds a parallel block of actions that will run simultaneously. */
-    fun parallel(block: VoltActionBuilder<R>.() -> Unit) {
+    fun parallel(block: VoltActionBuilder.() -> Unit) {
         addAction(ParallelAction(extractActions(block)))
     }
 
     /** Adds a sequential block of actions that will run one after another. */
-    fun sequence(block: VoltActionBuilder<R>.() -> Unit) {
+    fun sequence(block: VoltActionBuilder.() -> Unit) {
         addAction(SequentialAction(extractActions(block)))
     }
 
@@ -88,8 +83,8 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
         addAction(ActionLifecycleBuilder().apply(block).build())
     }
 
-    private fun extractActions(block: VoltActionBuilder<R>.() -> Unit): List<Action> {
-        return VoltActionBuilder(robot).apply(block)._actions
+    private fun extractActions(block: VoltActionBuilder.() -> Unit): List<Action> {
+        return VoltActionBuilder().apply(block)._actions
     }
 
     internal fun build(): SequentialAction {
@@ -97,7 +92,6 @@ class VoltActionBuilder<R : Robot>(private val robot: R) {
     }
 }
 
-context(robot: R)
-fun <R : Robot> voltAction(block: VoltActionBuilder<R>.() -> Unit): Action {
-    return VoltActionBuilder(robot).apply(block).build()
+fun voltAction(block: VoltActionBuilder.() -> Unit): Action {
+    return VoltActionBuilder().apply(block).build()
 }
