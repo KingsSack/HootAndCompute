@@ -20,11 +20,20 @@ class VoltActionBuilder {
         _actions.add(TracedAction(inferName(action), action))
     }
 
-    private fun inferName(action: Action): String {
-        return when (action) {
-            is SequentialAction -> "Sequence"
-            is ParallelAction -> "Parallel"
-            is InstantAction -> "Instant"
+    private fun inferName(action: Action): String =
+        when (action) {
+            is SequentialAction -> {
+                "Sequence"
+            }
+
+            is ParallelAction -> {
+                "Parallel"
+            }
+
+            is InstantAction -> {
+                "Instant"
+            }
+
             else -> {
                 val actionClass = action.javaClass
 
@@ -43,7 +52,6 @@ class VoltActionBuilder {
                 }
             }
         }
-    }
 
     /** Adds an [Action] to the current sequence. */
     operator fun Action.unaryPlus() {
@@ -83,15 +91,11 @@ class VoltActionBuilder {
         addAction(ActionLifecycleBuilder().apply(block).build())
     }
 
-    private fun extractActions(block: VoltActionBuilder.() -> Unit): List<Action> {
-        return VoltActionBuilder().apply(block)._actions
-    }
+    private fun extractActions(block: VoltActionBuilder.() -> Unit) =
+        VoltActionBuilder().apply(block)._actions
 
-    internal fun build(): SequentialAction {
-        return SequentialAction(_actions)
-    }
+    internal fun build() = SequentialAction(_actions)
 }
 
-fun voltAction(block: VoltActionBuilder.() -> Unit): Action {
-    return VoltActionBuilder().apply(block).build()
-}
+fun voltAction(block: VoltActionBuilder.() -> Unit): Action =
+    VoltActionBuilder().apply(block).build()

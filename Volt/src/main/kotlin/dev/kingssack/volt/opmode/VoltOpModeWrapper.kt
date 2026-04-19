@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier
 import dev.frozenmilk.sinister.sdk.apphooks.OnCreateEventLoop
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.VoltLogs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,43 +29,45 @@ object VoltOpModeWrapper {
     var isActive = false
         private set
 
-    var currentOpMode: ActiveOpMode<*, *, *>? = null
+    var currentOpMode: ActiveOpMode<*, *>? = null
         private set
+
+    private fun reportFault(error: Throwable) {
+        _state.value = OpModeState.Fault(error)
+        VoltLogs.log("OpMode fault: ${error.message ?: error::class.java.simpleName}")
+    }
 
     fun initializeOpMode() {
         initListeners.forEach {
             try {
                 it()
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         _state.value = OpModeState.Initializing
     }
 
-    fun <R : Robot, E : Event, O : VoltOpMode<R, E>> postInitializeOpMode(
-        opMode: O,
-        robot: R,
-        clazz: Class<O>,
-    ) {
+    fun <R : Robot, O : VoltOpMode<R>> postInitializeOpMode(opMode: O, robot: R, clazz: Class<O>) {
         currentOpMode = ActiveOpMode(opMode, robot, clazz)
         isActive = true
         postInitListeners.forEach {
             try {
-                it(currentOpMode!!)
+                currentOpMode?.let(it)
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         _state.value = OpModeState.WaitingForStart
     }
 
     private fun startOpMode() {
+        val opMode = currentOpMode ?: return
         startListeners.forEach {
             try {
-                it(currentOpMode!!)
+                it(opMode)
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         _state.value = OpModeState.Running
@@ -77,26 +78,26 @@ object VoltOpModeWrapper {
         _state.value = OpModeState.Inactive
         stopListeners.forEach {
             try {
-                it(currentOpMode!!)
+                currentOpMode?.let(it)
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         this.currentOpMode = null
     }
 
-    private val startListeners: MutableList<(ActiveOpMode<*, *, *>) -> Unit> = mutableListOf()
-    private val stopListeners: MutableList<(ActiveOpMode<*, *, *>) -> Unit> = mutableListOf()
+    private val startListeners: MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
+    private val stopListeners: MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
     private val initListeners: MutableList<() -> Unit> = mutableListOf()
-    private val postInitListeners: MutableList<(ActiveOpMode<*, *, *>) -> Unit> = mutableListOf()
+    private val postInitListeners: MutableList<(ActiveOpMode<*, *>) -> Unit> = mutableListOf()
 
     @Suppress("unused")
-    fun addStartListener(listener: (ActiveOpMode<*, *, *>) -> Unit) {
+    fun addStartListener(listener: (ActiveOpMode<*, *>) -> Unit) {
         startListeners.add(listener)
     }
 
     @Suppress("unused")
-    fun addStopListener(listener: (ActiveOpMode<*, *, *>) -> Unit) {
+    fun addStopListener(listener: (ActiveOpMode<*, *>) -> Unit) {
         stopListeners.add(listener)
     }
 
@@ -106,7 +107,7 @@ object VoltOpModeWrapper {
     }
 
     @Suppress("unused")
-    fun addPostInitListener(listener: (ActiveOpMode<*, *, *>) -> Unit) {
+    fun addPostInitListener(listener: (ActiveOpMode<*, *>) -> Unit) {
         postInitListeners.add(listener)
     }
 
@@ -121,19 +122,27 @@ object VoltOpModeWrapper {
 
         override fun onOpModePreStart(opMode: OpMode?) {
             if (isActive) {
-                startOpMode()
+                try {
+                    startOpMode()
+                } catch (e: Exception) {
+                    reportFault(e)
+                }
             }
         }
 
         override fun onOpModePostStop(opMode: OpMode?) {
             if (isActive) {
-                stopOpMode()
+                try {
+                    stopOpMode()
+                } catch (e: Exception) {
+                    reportFault(e)
+                }
             }
         }
     }
 
     @Suppress("unused")
-    class ActiveOpMode<R : Robot, E : Event, O : VoltOpMode<R, E>>(
+    class ActiveOpMode<R : Robot, O : VoltOpMode<R>>(
         val opMode: O,
         val robot: R,
         val clazz: Class<O>,

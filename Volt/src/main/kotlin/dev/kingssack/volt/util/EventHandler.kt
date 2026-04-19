@@ -4,31 +4,38 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.acmerobotics.roadrunner.Action
 import dev.kingssack.volt.core.VoltActionBuilder
-import dev.kingssack.volt.util.buttons.AnalogHandler
-import dev.kingssack.volt.util.buttons.AnalogInput
-import dev.kingssack.volt.util.buttons.Button
-import dev.kingssack.volt.util.buttons.ButtonHandler
 import dev.kingssack.volt.util.telemetry.ActionTracer
-import java.util.*
 
-sealed class EventHandler<E : Event> {
-    protected val bindings = mutableListOf<Pair<E, VoltActionBuilder.() -> Unit>>()
+class EventHandler {
+    private data class Binding<P>(val configurator: VoltActionBuilder.(P) -> Unit)
 
-    /** Binds [block] to an [event]. */
-    fun on(
-        event: E,
-        block: VoltActionBuilder.() -> Unit,
-    ) {
-        bindings.add(event to block)
+    private val bindings = mutableMapOf<Event<*>, MutableList<Binding<*>>>()
+
+    fun <P> bind(event: Event<P>, block: VoltActionBuilder.(P) -> Unit) {
+        bindings.getOrPut(event) { mutableListOf() }.add(Binding(block))
     }
 
-    abstract operator fun invoke()
-
-    protected val runningActions = mutableListOf<Action>()
+    private val runningActions = mutableListOf<Action>()
 
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
 
-    internal fun runActions() {
+    private fun processEvents() {
+        bindings.forEach { (event, eventBindings) ->
+            eventBindings.forEach { binding ->
+                @Suppress("UNCHECKED_CAST") val typedBinding = binding as Binding<Any?>
+                if (event.shouldTrigger()) {
+                    val builder = VoltActionBuilder()
+                    runningActions.add(
+                        builder
+                            .apply { typedBinding.configurator(builder, event.parameter) }
+                            .build()
+                    )
+                }
+            }
+        }
+    }
+
+    private fun runActions() {
         val packet = TelemetryPacket()
 
         // Run actions and remove finished ones
@@ -42,44 +49,8 @@ sealed class EventHandler<E : Event> {
         dash?.sendTelemetryPacket(packet)
     }
 
-    /** Event handler for autonomous modes. */
-    class AutonomousHandler : EventHandler<Event.AutonomousEvent>() {
-        private var startDispatched = false
-
-        override fun invoke() {
-            bindings.forEach { (event, block) ->
-                when (event) {
-                    Event.AutonomousEvent.Start -> {
-                        if (!startDispatched) {
-                            startDispatched = true
-                            runningActions.add(VoltActionBuilder().apply(block).build())
-                        }
-                    }
-
-                    else -> {
-                        if (event.trigger()) runningActions.add(VoltActionBuilder().apply(block).build())
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Event handler for manual modes.
-     *
-     * @param buttonHandlers the button handlers to check for button events
-     * @param analogHandlers the analog handlers to check for analog events
-     */
-    class ManualHandler(
-        private val buttonHandlers: EnumMap<Button, ButtonHandler>,
-        private val analogHandlers: EnumMap<AnalogInput, AnalogHandler>,
-    ) : EventHandler<Event.ManualEvent>() {
-        override fun invoke() {
-            bindings.forEach { (event, block) ->
-                if (event.trigger(buttonHandlers, analogHandlers)) {
-                    runningActions.add(VoltActionBuilder().apply(block).build())
-                }
-            }
-        }
+    internal operator fun invoke() {
+        processEvents()
+        runActions()
     }
 }

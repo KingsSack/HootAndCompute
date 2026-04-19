@@ -111,10 +111,10 @@ abstract class DrivetrainControlsManualMode<T : Drivetrain, R : DrivetrainRobot<
         }
 
         // Movement controls
-        Change(AnalogInput.LEFT_STICK_X1) then { instant { x = -gamepad1.left_stick_x.toDouble() } }
-        Change(AnalogInput.LEFT_STICK_Y1) then { instant { y = -gamepad1.left_stick_y.toDouble() } }
-        Change(AnalogInput.RIGHT_STICK_X1) then {
-            instant { rx = -gamepad1.right_stick_x * params.turnScale }
+        Change(AnalogInput.LEFT_STICK_X1) then { value -> instant { x = -value.toDouble() } }
+        Change(AnalogInput.LEFT_STICK_Y1) then { value -> instant { y = -value.toDouble() } }
+        Change(AnalogInput.RIGHT_STICK_X1) then { value ->
+            instant { rx = -value * params.turnScale }
         }
     }
 
