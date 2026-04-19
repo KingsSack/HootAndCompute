@@ -1,16 +1,15 @@
 package dev.kingssack.volt.opmode.manual
 
+import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Event
-import dev.kingssack.volt.util.EventHandler
 import dev.kingssack.volt.util.buttons.AnalogHandler
 import dev.kingssack.volt.util.buttons.AnalogInput
 import dev.kingssack.volt.util.buttons.Button
 import dev.kingssack.volt.util.buttons.ButtonHandler
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
-import java.util.*
 
 /**
  * ManualMode is an abstract class that defines the methods for running a manual mode.
@@ -19,12 +18,12 @@ import java.util.*
  * @property params the configuration object for manual control
  */
 abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualParams()) :
-    VoltOpMode<R, Event.ManualEvent>() {
+    VoltOpMode<R>() {
     @Suppress("unused")
     object Register : Registrar() {
         override fun register(
             registrationHelper: VoltRegistrationHelper,
-            clazz: Class<VoltOpMode<*, *>>,
+            clazz: Class<out VoltOpMode<*>>,
         ) {
             if (clazz.isAnnotationPresent(VoltOpModeMeta::class.java)) {
                 val annotation = clazz.getAnnotation(VoltOpModeMeta::class.java)
@@ -51,23 +50,26 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
      */
     data class ManualParams(val deadzone: Float = 0.05f, val inputExp: Float = 2.0f)
 
-    private val buttonHandlers = EnumMap<Button, ButtonHandler>(Button::class.java)
-    private val analogHandlers = EnumMap<AnalogInput, AnalogHandler>(AnalogInput::class.java)
+    /** Maps a [VoltActionBuilder] [block] to a [ManualEvent]. */
+    //    protected infix fun Event.ManualEvent.then(block: VoltActionBuilder.() -> Unit) {
+    //        eventHandler.register(this, block)
+    //    }
 
-    override val eventHandler = EventHandler.ManualHandler(buttonHandlers, analogHandlers)
+    /**
+     * Maps a [VoltActionBuilder] [block] to an [AnalogEvent] and provides the processed analog
+     * value.
+     */
+    //    protected infix fun Event.ManualEvent.AnalogEvent.then(block: VoltActionBuilder.(Float) ->
+    // Unit) {
+    //        eventHandler.register(this, block)
+    //    }
 
     /** Create a combo event with [buttons] */
     protected fun combo(vararg buttons: Button) = Event.ManualEvent.Combo(buttons.toSet())
 
-    private fun initializeInputMappings() {
-        Button.entries.forEach { button -> buttonHandlers[button] = ButtonHandler() }
-        AnalogInput.entries.forEach { analog ->
-            analogHandlers[analog] = AnalogHandler(params.deadzone, params.inputExp)
-        }
-    }
-
     init {
-        initializeInputMappings()
+        Button.entries.forEach { it.handler = ButtonHandler() }
+        AnalogInput.entries.forEach { it.handler = AnalogHandler(params.deadzone, params.inputExp) }
     }
 
     /** Tick the manual mode. */
@@ -78,13 +80,13 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
 
     private fun updateInputState() {
         Button.entries.forEach { button ->
-            val state = button.get(gamepad1, gamepad2)
-            buttonHandlers[button]?.update(state)
+            val state = button.getter(gamepad1, gamepad2)
+            button.handler.update(state)
         }
 
         AnalogInput.entries.forEach { analog ->
-            val state = analog.get(gamepad1, gamepad2)
-            analogHandlers[analog]?.update(state)
+            val state = analog.getter(gamepad1, gamepad2)
+            analog.handler.update(state)
         }
     }
 }

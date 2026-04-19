@@ -30,14 +30,13 @@ import java.lang.reflect.Modifier
  * @property gamepad2 used to get information from gamepad two
  * @property blackboard used to share information across opmodes
  */
-abstract class VoltOpMode<R : Robot, E : Event> {
+abstract class VoltOpMode<R : Robot> {
     protected abstract val robot: R
 
-    protected abstract val eventHandler: EventHandler<E>
+    private val eventHandler = EventHandler()
 
-    /** Maps an action to an event */
-    protected infix fun E.then(block: VoltActionBuilder.() -> Unit) {
-        eventHandler.on(this, block)
+    protected infix fun <P> Event<P>.then(block: VoltActionBuilder.(P) -> Unit) {
+        eventHandler.bind(this, block)
     }
 
     /** Code to run when the op mode begins. */
@@ -49,7 +48,6 @@ abstract class VoltOpMode<R : Robot, E : Event> {
     open fun tick() =
         context(telemetry) {
             eventHandler()
-            eventHandler.runActions()
             robot.update()
         }
 
@@ -78,9 +76,8 @@ abstract class VoltOpMode<R : Robot, E : Event> {
 
     // Runtime reflection to call register functions in opmodes
     class VoltRegistrationHelper(val h: RegistrationHelper) {
-        private class InternalOpMode<R : Robot, E : Event>(
-            val opModeBuilder: () -> VoltOpMode<R, E>
-        ) : LinearOpMode() {
+        private class InternalOpMode<R : Robot>(val opModeBuilder: () -> VoltOpMode<R>) :
+            LinearOpMode() {
             override fun runOpMode() {
                 telemetry.update()
                 VoltOpModeWrapper.initializeOpMode()
@@ -100,12 +97,14 @@ abstract class VoltOpMode<R : Robot, E : Event> {
                 try {
                     opMode.begin()
                 } finally {
-                    opMode.end()
+                    try {
+                        opMode.end()
+                    } catch (_: Exception) {}
                 }
             }
         }
 
-        fun register(c: Constructor<VoltOpMode<*, *>>, meta: OpModeMeta) {
+        fun register(c: Constructor<out VoltOpMode<*>>, meta: OpModeMeta) {
             h.register(
                 meta,
                 InternalOpMode {
@@ -119,7 +118,7 @@ abstract class VoltOpMode<R : Robot, E : Event> {
             )
         }
 
-        fun <R : Robot, E : Event> register(c: () -> VoltOpMode<R, E>, meta: OpModeMeta) {
+        fun register(c: () -> VoltOpMode<*>, meta: OpModeMeta) {
             h.register(
                 meta,
                 InternalOpMode {
@@ -137,7 +136,7 @@ abstract class VoltOpMode<R : Robot, E : Event> {
     abstract class Registrar {
         abstract fun register(
             registrationHelper: VoltRegistrationHelper,
-            clazz: Class<VoltOpMode<*, *>>,
+            clazz: Class<out VoltOpMode<*>>,
         )
     }
 
@@ -171,14 +170,14 @@ abstract class VoltOpMode<R : Robot, E : Event> {
                                 ?.get(null))
                                 as Registrar?
                         if (registrar !== null) {
-                            registrar.register(voltHelper, cls as Class<VoltOpMode<*, *>>)
+                            registrar.register(voltHelper, cls as Class<out VoltOpMode<*>>)
                             return
                         }
                         c = c.superclass as Class<*>
                     }
                 }
             } catch (e: Exception) {
-                VoltLogs.log("Error registering opmodes: ${e.message.toString()}")
+                VoltLogs.log("Error registering opmodes: ${e.message}")
                 registrationHelper.register(
                     OpModeMeta.Builder()
                         .setFlavor(OpModeMeta.Flavor.AUTONOMOUS)

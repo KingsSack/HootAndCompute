@@ -2,7 +2,10 @@ package dev.kingssack.volt.util.buttons
 
 import com.qualcomm.robotcore.hardware.Gamepad
 
-enum class Button(val get: (Gamepad, Gamepad) -> Boolean) {
+enum class Button(
+    val getter: (Gamepad, Gamepad) -> Boolean,
+    var handler: ButtonHandler = ButtonHandler(),
+) {
     A1({ g1, _ -> g1.a }),
     B1({ g1, _ -> g1.b }),
     X1({ g1, _ -> g1.x }),
@@ -39,7 +42,10 @@ enum class Button(val get: (Gamepad, Gamepad) -> Boolean) {
     TOUCHPAD_FINGER_TWO2({ _, g2 -> g2.touchpad_finger_2 }),
 }
 
-enum class AnalogInput(val get: (Gamepad, Gamepad) -> Float) {
+enum class AnalogInput(
+    val getter: (Gamepad, Gamepad) -> Float,
+    var handler: AnalogHandler = AnalogHandler(),
+) {
     LEFT_STICK_X1({ g1, _ -> g1.left_stick_x }),
     LEFT_STICK_Y1({ g1, _ -> g1.left_stick_y }),
     RIGHT_STICK_X1({ g1, _ -> g1.right_stick_x }),
