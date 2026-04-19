@@ -29,7 +29,7 @@ class AnalogHandler(private val deadzone: Float = 0.05f, private val inputExp: F
         if (abs(input) < deadzone) return 0.0f
 
         // Normalize input
-        val normalizedInput = (input - deadzone) / (1.0f - deadzone)
+        val normalizedInput = (abs(input) - deadzone) / (1.0f - deadzone)
 
         // Apply exponential scaling for fine control
         return normalizedInput.pow(inputExp) * if (input < 0.0f) -1.0f else 1.0f
@@ -37,7 +37,7 @@ class AnalogHandler(private val deadzone: Float = 0.05f, private val inputExp: F
 
     fun update(input: Float) {
         value = processInput(input)
-        changed = value != previousValue
+        changed = abs(value - previousValue) > 1e-4f
         previousValue = value
     }
 }
