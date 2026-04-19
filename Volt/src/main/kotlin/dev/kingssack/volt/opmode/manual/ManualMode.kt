@@ -4,7 +4,7 @@ import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.util.Event
+import dev.kingssack.volt.util.Event.ManualEvent
 import dev.kingssack.volt.util.buttons.AnalogHandler
 import dev.kingssack.volt.util.buttons.AnalogInput
 import dev.kingssack.volt.util.buttons.Button
@@ -12,7 +12,7 @@ import dev.kingssack.volt.util.buttons.ButtonHandler
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
 
 /**
- * ManualMode is an abstract class that defines the methods for running a manual mode.
+ * A [VoltOpMode] for manually controlling a [robot] with gamepads.
  *
  * @param R the robot type
  * @property params the configuration object for manual control
@@ -50,24 +50,16 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
      */
     data class ManualParams(val deadzone: Float = 0.05f, val inputExp: Float = 2.0f)
 
-    /** Maps a [VoltActionBuilder] [block] to a [ManualEvent]. */
-    //    protected infix fun Event.ManualEvent.then(block: VoltActionBuilder.() -> Unit) {
-    //        eventHandler.register(this, block)
-    //    }
-
-    /**
-     * Maps a [VoltActionBuilder] [block] to an [AnalogEvent] and provides the processed analog
-     * value.
-     */
-    //    protected infix fun Event.ManualEvent.AnalogEvent.then(block: VoltActionBuilder.(Float) ->
-    // Unit) {
-    //        eventHandler.register(this, block)
-    //    }
+    /** Bind a [ManualEvent] to a [block]. */
+    protected infix fun <P> ManualEvent<P>.then(block: VoltActionBuilder.(P) -> Unit) {
+        eventHandler.bind(this, block)
+    }
 
     /** Create a combo event with [buttons] */
-    protected fun combo(vararg buttons: Button) = Event.ManualEvent.Combo(buttons.toSet())
+    protected fun combo(vararg buttons: Button) = ManualEvent.Combo(buttons.toSet())
 
     init {
+        // Initialize handlers for all buttons and analog inputs
         Button.entries.forEach { it.handler = ButtonHandler() }
         AnalogInput.entries.forEach { it.handler = AnalogHandler(params.deadzone, params.inputExp) }
     }
@@ -80,13 +72,11 @@ abstract class ManualMode<R : Robot>(private val params: ManualParams = ManualPa
 
     private fun updateInputState() {
         Button.entries.forEach { button ->
-            val state = button.getter(gamepad1, gamepad2)
-            button.handler.update(state)
+            button.handler.update(button.getter(gamepad1, gamepad2))
         }
 
         AnalogInput.entries.forEach { analog ->
-            val state = analog.getter(gamepad1, gamepad2)
-            analog.handler.update(state)
+            analog.handler.update(analog.getter(gamepad1, gamepad2))
         }
     }
 }

@@ -33,11 +33,7 @@ import java.lang.reflect.Modifier
 abstract class VoltOpMode<R : Robot> {
     protected abstract val robot: R
 
-    private val eventHandler = EventHandler()
-
-    protected infix fun <P> Event<P>.then(block: VoltActionBuilder.(P) -> Unit) {
-        eventHandler.bind(this, block)
-    }
+    protected val eventHandler = EventHandler()
 
     /** Code to run when the op mode begins. */
     open fun begin() {
