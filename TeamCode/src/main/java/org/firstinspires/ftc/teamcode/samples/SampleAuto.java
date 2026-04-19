@@ -18,7 +18,7 @@ abstract public class SampleAuto extends AutonomousMode<SampleRobot> {
     public SampleAuto() {
         super();
 
-        then(Start.INSTANCE, builder -> {
+        then(Start.INSTANCE, (builder, param) -> {
             builder.unaryPlus(getRobot().score());
             return Unit.INSTANCE;
         });
