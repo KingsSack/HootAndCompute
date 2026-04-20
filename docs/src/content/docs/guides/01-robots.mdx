@@ -258,14 +258,11 @@ public class MyRobot extends Robot {
 
     // Actions
     public Action score() {
-        return VoltActionBuilderKt.voltAction(
-                this,
-                builder -> {
-                    builder.unaryPlus(motor.goTo(0.6, 200));
-                    builder.unaryPlus(motor.goTo(0.5, 0));
-                    return Unit.INSTANCE;
-                }
-        );
+        return VoltActionBuilderKt.voltAction(builder -> {
+            builder.unaryPlus(motor.goTo(0.6, 200));
+            builder.unaryPlus(motor.goTo(0.5, 0));
+            return Unit.INSTANCE;
+        });
     }
 }
 ```
@@ -339,14 +336,11 @@ public class MyRobot extends Robot {
     }
 
     public Action score() {
-        return VoltActionBuilderKt.voltAction(
-                this,
-                builder -> {
-                    builder.unaryPlus(motor.goTo(0.6, 200));
-                    builder.unaryPlus(motor.goTo(0.5, 0));
-                    return Unit.INSTANCE;
-                }
-        );
+        return VoltActionBuilderKt.voltAction(builder -> {
+            builder.unaryPlus(motor.goTo(0.6, 200));
+            builder.unaryPlus(motor.goTo(0.5, 0));
+            return Unit.INSTANCE;
+        });
     }
 }
 ```
