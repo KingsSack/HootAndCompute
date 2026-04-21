@@ -24,7 +24,8 @@ The `color` property references the selected `AllianceColor`.
 `DualAutonomousMode` also provides helper methods:
 
 - `<T> forAlliance(red: T, blue: T): T`: Returns `red` if the selected alliance is `RED` or `blue` if the selected alliance is `BLUE`.
-- `mirroredForAlliance(redPose: Pose)`: Returns a [PedroPathing](https://pedropathing.com/docs/pathing/installation) `Pose` that is mirrored if the selected alliance is `BLUE`.
+- `Pose.mirrorIfBlue(): Pose`: Returns a [PedroPathing](https://pedropathing.com/docs/pathing/installation) `Pose` that is mirrored if the selected alliance is `BLUE`.
+- `Pose.mirrorIfRed(): Pose`: Returns a [PedroPathing](https://pedropathing.com/docs/pathing/installation) `Pose` that is mirrored if the selected alliance is `RED`.
 
 ### Example
 
@@ -41,8 +42,8 @@ class Park : DualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWithPP>>(
     }
     
     // Mirror poses if BLUE
-    val initialPose = mirroredForAlliance(START_RED)
-    val parkPose = mirroredForAlliance(PARK_RED)
+    val initialPose = START_RED.mirrorIfBlue()
+    val parkPose = PARK_RED.mirrorIfBlue()
     
     override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
         hardwareMap,
@@ -76,8 +77,8 @@ public class Park extends DualAutonomousMode<RobotWithMecanumDrivetrain<MecanumD
     private static final Pose PARK_RED = new Pose(12, 36, Math.toRadians(270));
     
     // Mirror poses if BLUE
-    Pose initialPose = mirroredForAlliance(START_RED);
-    Pose parkPose = mirroredForAlliance(PARK_RED);
+    Pose initialPose = mirrorIfBlue(START_RED);
+    Pose parkPose = mirrorIfBlue(PARK_RED);
     
     private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
             new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
@@ -250,8 +251,8 @@ class Park : MultiDualAutonomousMode<RobotWithMecanumDrivetrain<MecanumDriveWith
     }
     
     // Get initial pose and mirror poses if BLUE
-    val initialPose = if (variant == StartingPosition.LEFT) mirroredForAlliance(START_LEFT_RED) else mirroredForAlliance(START_RIGHT_RED)
-    val parkPose = mirroredForAlliance(PARK_RED)
+    val initialPose = if (variant == StartingPosition.LEFT) START_LEFT_RED.mirrorIfBlue() else START_RIGHT_RED.mirrorIfBlue()
+    val parkPose = PARK_RED.mirrorIfBlue()
     
     override val robot = RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
         hardwareMap,
@@ -293,14 +294,14 @@ public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrivetrain<Mec
     // Get initial pose
     Pose getInitialPose() {
         if (getVariant().equals(StartingPosition.LEFT)) {
-            return mirroredForAlliance(START_LEFT_RED); // Mirror pose if BLUE
+            return mirrorIfBlue(START_LEFT_RED); // Mirror pose if BLUE
         }
         else {
-            return mirroredForAlliance(START_RIGHT_RED); // Mirror pose if BLUE
+            return mirrorIfBlue(START_RIGHT_RED); // Mirror pose if BLUE
         }
     };
     
-    Pose parkPose = mirroredForAlliance(PARK_RED); // Mirror pose if BLUE
+    Pose parkPose = mirrorIfBlue(PARK_RED); // Mirror pose if BLUE
     
     private final @NotNull RobotWithMecanumDrivetrain<MecanumDriveWithPP> robot =
             new RobotWithMecanumDrivetrain<MecanumDriveWithPP>(
