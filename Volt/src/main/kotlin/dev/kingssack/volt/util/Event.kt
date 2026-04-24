@@ -20,7 +20,7 @@ sealed interface Event<P> {
         data object Start : AutonomousEvent<Any> {
             override val parameter: Any = Unit
 
-            override fun shouldTrigger(): Boolean = true
+            override fun shouldTrigger() = false
         }
 
         /** Triggers when [condition] becomes true. Only runs once. */
