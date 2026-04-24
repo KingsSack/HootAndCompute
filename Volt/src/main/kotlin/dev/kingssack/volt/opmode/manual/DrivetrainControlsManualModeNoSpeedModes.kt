@@ -6,7 +6,6 @@ import dev.kingssack.volt.attachment.drivetrain.Drivetrain
 import dev.kingssack.volt.robot.DrivetrainRobot
 import dev.kingssack.volt.util.Event.ManualEvent.Change
 import dev.kingssack.volt.util.buttons.AnalogInput
-import java.util.*
 
 /**
  * An abstract class that defines the methods for running a manual mode with speed modes for a robot
@@ -19,7 +18,7 @@ import java.util.*
  * @property y the y-axis input from the gamepad
  * @property rx the rotation input from the gamepad
  */
-abstract class DrivetrainControlsManualModeNoSpeedmodes<T : Drivetrain, R : DrivetrainRobot<T>>(
+abstract class DrivetrainControlsManualModeNoSpeedModes<T : Drivetrain, R : DrivetrainRobot<T>>(
     private val params: SimpleManualModeWithSpeedModesParams =
         SimpleManualModeWithSpeedModesParams(),
     manualParams: ManualParams = ManualParams(),
@@ -29,7 +28,6 @@ abstract class DrivetrainControlsManualModeNoSpeedmodes<T : Drivetrain, R : Driv
      *
      * @property minPower the minimum power to register
      * @property turnScale the turn sensitivity
-     * @property normal the speed of the normal speed mode
      */
     data class SimpleManualModeWithSpeedModesParams(
         val minPower: Double = 0.05,

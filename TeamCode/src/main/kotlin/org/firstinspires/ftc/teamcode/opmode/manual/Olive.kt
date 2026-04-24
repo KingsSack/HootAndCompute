@@ -3,15 +3,15 @@ package org.firstinspires.ftc.teamcode.opmode.manual
 import com.pedropathing.geometry.Pose
 import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.DriveEncoderMecanumPedroPathingDrivetrain
 import dev.kingssack.volt.opmode.VoltOpModeMeta
-import dev.kingssack.volt.opmode.manual.DrivetrainControlsManualModeNoSpeedmodes
+import dev.kingssack.volt.opmode.manual.DrivetrainControlsManualModeNoSpeedModes
 import dev.kingssack.volt.util.Event.ManualEvent.Tap
 import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Classifier
 import org.firstinspires.ftc.teamcode.robot.JonesPP
 
-@VoltOpModeMeta("Olive")
-class Olive : DrivetrainControlsManualModeNoSpeedmodes<DriveEncoderMecanumPedroPathingDrivetrain, JonesPP>() {
-    override val robot = JonesPP(hardwareMap, Pose(0.0, 0.0, 0.0))
+@VoltOpModeMeta("Olive", "Showcase")
+class Olive : DrivetrainControlsManualModeNoSpeedModes<DriveEncoderMecanumPedroPathingDrivetrain, JonesPP>() {
+    override val robot = JonesPP(hardwareMap, Pose())
 
     init {
         // Toggle launcher
