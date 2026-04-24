@@ -95,7 +95,7 @@ sealed interface Event<P> {
             override fun shouldTrigger() = analogInput.handler.changed
         }
 
-        /** Triggers when [analogInput] crosses the [min] threshold. */
+        /** Triggers when [analogInput] is above [min]. */
         data class Threshold(override val analogInput: AnalogInput, val min: Float = 0.3f) :
             AnalogEvent {
             override val parameter: Float
