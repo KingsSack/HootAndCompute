@@ -19,11 +19,19 @@ class EventHandler {
 
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
 
+    private var started = false
+
     private fun processEvents() {
         bindings.forEach { (event, eventBindings) ->
-            eventBindings.forEach { binding ->
-                @Suppress("UNCHECKED_CAST") val typedBinding = binding as Binding<Any?>
-                if (event.shouldTrigger()) {
+            val triggered =
+                when (event) {
+                    is Event.AutonomousEvent.Start -> !started
+                    else -> event.shouldTrigger()
+                }
+
+            if (triggered) {
+                eventBindings.forEach { binding ->
+                    @Suppress("UNCHECKED_CAST") val typedBinding = binding as Binding<Any?>
                     val builder = VoltActionBuilder()
                     runningActions.add(
                         builder
@@ -33,6 +41,7 @@ class EventHandler {
                 }
             }
         }
+        started = true
     }
 
     private fun runActions() {
