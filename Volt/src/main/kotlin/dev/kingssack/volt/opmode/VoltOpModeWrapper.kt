@@ -32,12 +32,17 @@ object VoltOpModeWrapper {
     var currentOpMode: ActiveOpMode<*, *>? = null
         private set
 
+    private fun reportFault(error: Throwable) {
+        _state.value = OpModeState.Fault(error)
+        VoltLogs.log("OpMode fault: ${error.message ?: error::class.java.simpleName}")
+    }
+
     fun initializeOpMode() {
         initListeners.forEach {
             try {
                 it()
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         _state.value = OpModeState.Initializing
@@ -48,20 +53,21 @@ object VoltOpModeWrapper {
         isActive = true
         postInitListeners.forEach {
             try {
-                it(currentOpMode!!)
+                currentOpMode?.let(it)
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         _state.value = OpModeState.WaitingForStart
     }
 
     private fun startOpMode() {
+        val opMode = currentOpMode ?: return
         startListeners.forEach {
             try {
-                it(currentOpMode!!)
+                it(opMode)
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         _state.value = OpModeState.Running
@@ -72,9 +78,9 @@ object VoltOpModeWrapper {
         _state.value = OpModeState.Inactive
         stopListeners.forEach {
             try {
-                it(currentOpMode!!)
+                currentOpMode?.let(it)
             } catch (e: Exception) {
-                VoltLogs.log("Error in listener: ${e.message.toString()}")
+                reportFault(e)
             }
         }
         this.currentOpMode = null
@@ -116,13 +122,21 @@ object VoltOpModeWrapper {
 
         override fun onOpModePreStart(opMode: OpMode?) {
             if (isActive) {
-                startOpMode()
+                try {
+                    startOpMode()
+                } catch (e: Exception) {
+                    reportFault(e)
+                }
             }
         }
 
         override fun onOpModePostStop(opMode: OpMode?) {
             if (isActive) {
-                stopOpMode()
+                try {
+                    stopOpMode()
+                } catch (e: Exception) {
+                    reportFault(e)
+                }
             }
         }
     }

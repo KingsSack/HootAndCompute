@@ -8,7 +8,10 @@ import dev.frozenmilk.sinister.Scanner.Companion.INDEPENDENT
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
 import dev.frozenmilk.sinister.targeting.NarrowSearch
+import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.Event
+import dev.kingssack.volt.util.EventHandler
 import dev.kingssack.volt.util.VoltLogs
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
@@ -30,8 +33,19 @@ import java.lang.reflect.Modifier
 abstract class VoltOpMode<R : Robot> {
     protected abstract val robot: R
 
+    protected val eventHandler = EventHandler()
+
     /** Code to run when the op mode begins. */
-    abstract fun begin()
+    open fun begin() {
+        while (opModeIsActive()) tick()
+    }
+
+    /** Code to run every loop while the op mode is active. */
+    open fun tick() =
+        context(telemetry) {
+            eventHandler()
+            robot.update()
+        }
 
     /** Optional code to run when the op mode ends. */
     open fun end() {}
@@ -79,12 +93,14 @@ abstract class VoltOpMode<R : Robot> {
                 try {
                     opMode.begin()
                 } finally {
-                    opMode.end()
+                    try {
+                        opMode.end()
+                    } catch (_: Exception) {}
                 }
             }
         }
 
-        fun register(c: Constructor<VoltOpMode<*>>, meta: OpModeMeta) {
+        fun register(c: Constructor<out VoltOpMode<*>>, meta: OpModeMeta) {
             h.register(
                 meta,
                 InternalOpMode {
@@ -98,7 +114,7 @@ abstract class VoltOpMode<R : Robot> {
             )
         }
 
-        fun <R : Robot> register(c: () -> VoltOpMode<R>, meta: OpModeMeta) {
+        fun register(c: () -> VoltOpMode<*>, meta: OpModeMeta) {
             h.register(
                 meta,
                 InternalOpMode {
@@ -116,7 +132,7 @@ abstract class VoltOpMode<R : Robot> {
     abstract class Registrar {
         abstract fun register(
             registrationHelper: VoltRegistrationHelper,
-            clazz: Class<VoltOpMode<*>>,
+            clazz: Class<out VoltOpMode<*>>,
         )
     }
 
@@ -136,7 +152,7 @@ abstract class VoltOpMode<R : Robot> {
 
                 if (
                     VoltOpMode::class.java.isAssignableFrom(cls) &&
-                    !Modifier.isAbstract(cls.modifiers)
+                        !Modifier.isAbstract(cls.modifiers)
                 ) {
                     var c = cls
                     while (c !== VoltOpMode::class.java) {
@@ -144,20 +160,20 @@ abstract class VoltOpMode<R : Robot> {
                             (c.declaredClasses
                                 .firstOrNull { cls ->
                                     Registrar::class.java.isAssignableFrom(cls) &&
-                                            cls.fields.any { it.name == "INSTANCE" }
+                                        cls.fields.any { it.name == "INSTANCE" }
                                 }
                                 ?.getDeclaredField("INSTANCE")
                                 ?.get(null))
-                                    as Registrar?
+                                as Registrar?
                         if (registrar !== null) {
-                            registrar.register(voltHelper, cls as Class<VoltOpMode<*>>)
+                            registrar.register(voltHelper, cls as Class<out VoltOpMode<*>>)
                             return
                         }
                         c = c.superclass as Class<*>
                     }
                 }
             } catch (e: Exception) {
-                VoltLogs.log("Error registering opmodes: ${e.message.toString()}")
+                VoltLogs.log("Error registering opmodes: ${e.message}")
                 registrationHelper.register(
                     OpModeMeta.Builder()
                         .setFlavor(OpModeMeta.Flavor.AUTONOMOUS)

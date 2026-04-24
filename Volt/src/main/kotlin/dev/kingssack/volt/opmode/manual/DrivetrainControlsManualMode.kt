@@ -69,58 +69,53 @@ abstract class DrivetrainControlsManualMode<T : Drivetrain, R : DrivetrainRobot<
 
     init {
         // Speed mode controls
-        Tap(Button.Y1) then
-            {
-                instant {
-                    currentSpeedMode = SpeedMode.TURBO
-                    gamepad1.rumble(
-                        speedModes[SpeedMode.TURBO]!!,
-                        speedModes[SpeedMode.TURBO]!!,
-                        300,
-                    )
-                    gamepad1.setLedColor(255.0, 0.0, 0.0, 300)
-                }
+        Tap(Button.Y1) then {
+            instant {
+                currentSpeedMode = SpeedMode.TURBO
+                gamepad1.rumble(
+                    speedModes[SpeedMode.TURBO]!!,
+                    speedModes[SpeedMode.TURBO]!!,
+                    300,
+                )
+                gamepad1.setLedColor(255.0, 0.0, 0.0, 300)
             }
-        Tap(Button.B1) then
-            {
-                instant {
-                    currentSpeedMode = SpeedMode.NORMAL
-                    gamepad1.rumble(
-                        speedModes[SpeedMode.NORMAL]!!,
-                        speedModes[SpeedMode.NORMAL]!!,
-                        300,
-                    )
-                    gamepad1.setLedColor(0.0, 0.0, 255.0, 300)
-                }
+        }
+        Tap(Button.B1) then {
+            instant {
+                currentSpeedMode = SpeedMode.NORMAL
+                gamepad1.rumble(
+                    speedModes[SpeedMode.NORMAL]!!,
+                    speedModes[SpeedMode.NORMAL]!!,
+                    300,
+                )
+                gamepad1.setLedColor(0.0, 0.0, 255.0, 300)
             }
-        Tap(Button.A1) then
-            {
-                instant {
-                    currentSpeedMode = SpeedMode.PRECISE
-                    gamepad1.rumble(
-                        speedModes[SpeedMode.PRECISE]!!,
-                        speedModes[SpeedMode.PRECISE]!!,
-                        300,
-                    )
-                    gamepad1.setLedColor(0.0, 255.0, 0.0, 300)
-                }
+        }
+        Tap(Button.A1) then {
+            instant {
+                currentSpeedMode = SpeedMode.PRECISE
+                gamepad1.rumble(
+                    speedModes[SpeedMode.PRECISE]!!,
+                    speedModes[SpeedMode.PRECISE]!!,
+                    300,
+                )
+                gamepad1.setLedColor(0.0, 255.0, 0.0, 300)
             }
-        Tap(Button.X1) then
-            {
-                instant {
-                    currentSpeedMode = SpeedMode.SLOW
-                    gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300)
-                    gamepad1.setLedColor(255.0, 255.0, 0.0, 300)
-                }
+        }
+        Tap(Button.X1) then {
+            instant {
+                currentSpeedMode = SpeedMode.SLOW
+                gamepad1.rumble(speedModes[SpeedMode.SLOW]!!, speedModes[SpeedMode.SLOW]!!, 300)
+                gamepad1.setLedColor(255.0, 255.0, 0.0, 300)
             }
+        }
 
         // Movement controls
         Change(AnalogInput.LEFT_STICK_X1) then { value -> instant { x = -value.toDouble() } }
         Change(AnalogInput.LEFT_STICK_Y1) then { value -> instant { y = -value.toDouble() } }
-        Change(AnalogInput.RIGHT_STICK_X1) then
-            { value ->
-                instant { rx = -value * params.turnScale }
-            }
+        Change(AnalogInput.RIGHT_STICK_X1) then { value ->
+            instant { rx = -value * params.turnScale }
+        }
     }
 
     /**

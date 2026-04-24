@@ -35,7 +35,7 @@ public class SampleRobot extends Robot {
     }
 
     public Action score() {
-        return VoltActionBuilderKt.voltAction(this, builder -> {
+        return VoltActionBuilderKt.voltAction(builder -> {
             builder.unaryPlus(motorAttachment.goTo(0.5, 100));
             builder.unaryPlus(motorAttachment.goTo(0.5, 0));
             builder.unaryPlus(sampleAttachment.exampleAction());

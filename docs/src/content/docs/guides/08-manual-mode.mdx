@@ -119,15 +119,15 @@ public class ExampleTeleOp extends ManualMode<MyRobot> {
     public ExampleTeleOp() {
         super(new ManualParams());
 
-        then(new Release(Button.A1), builder -> {
+        then(new Release(Button.A1), (builder, param) -> {
             builder.unaryPlus(robot.score());
             return Unit.INSTANCE;
         });
-        then(new Release(Button.A2), builder -> {
+        then(new Release(Button.A2), (builder, param) -> {
             builder.unaryPlus(robot.getClaw().open());
             return Unit.INSTANCE;
         });
-        then(new Release(Button.B2), builder -> {
+        then(new Release(Button.B2), (builder, param) -> {
             builder.unaryPlus(robot.getClaw().close());
             return Unit.INSTANCE;
         });
@@ -188,15 +188,15 @@ public class ExampleTeleOp extends ManualMode<MyRobot> {
     public ExampleTeleOp() {
         super(new ManualParams());
 
-        then(new Release(Button.A1), builder -> {
+        then(new Release(Button.A1), (builder, param) -> {
             builder.unaryPlus(robot.score());
             return Unit.INSTANCE;
         });
-        then(new Release(Button.A2), builder -> {
+        then(new Release(Button.A2), (builder, param) -> {
             builder.unaryPlus(robot.getClaw().open());
             return Unit.INSTANCE;
         });
-        then(new Release(Button.B2), builder -> {
+        then(new Release(Button.B2), (builder, param) -> {
             builder.unaryPlus(robot.getClaw().close());
             return Unit.INSTANCE;
         });
@@ -259,15 +259,15 @@ public class ExampleTeleOp extends ManualMode<MyRobot> {
     public ExampleTeleOp() {
         super(new ManualParams());
 
-        then(new Release(Button.A1), builder -> {
+        then(new Release(Button.A1), (builder, param) -> {
             builder.unaryPlus(robot.score());
             return Unit.INSTANCE;
         });
-        then(new Release(Button.A2), builder -> {
+        then(new Release(Button.A2), (builder, param) -> {
             builder.unaryPlus(robot.getClaw().open());
             return Unit.INSTANCE;
         });
-        then(new Release(Button.B2), builder -> {
+        then(new Release(Button.B2), (builder, param) -> {
             builder.unaryPlus(robot.getClaw().close());
             return Unit.INSTANCE;
         });

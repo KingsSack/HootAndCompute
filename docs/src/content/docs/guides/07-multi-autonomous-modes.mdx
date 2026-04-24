@@ -101,7 +101,7 @@ public class Park extends DualAutonomousMode<RobotWithMecanumDrivetrain<MecanumD
     public Park() {
         blackboard.put("allianceColor", getColor()); // Save color to the blackboard
         
-        then(Start.INSTANCE, builder -> {
+        then(Start.INSTANCE, (builder, param) -> {
             builder.unaryPlus(getRobot().getDrivetrain().path(pathBuilder -> {
                 pathBuilder.lineTo(parkPose);
                 return Unit.INSTANCE;
@@ -209,7 +209,7 @@ public class Park extends MultiAutonomousMode<RobotWithMecanumDrivetrain<Mecanum
     }
     
     public Park() {
-        then(Start.INSTANCE, builder -> {
+        then(Start.INSTANCE, (builder, param) -> {
             builder.unaryPlus(getRobot().getDrivetrain().path(pathBuilder -> {
                 pathBuilder.lineTo(PARK);
                 return Unit.INSTANCE;
@@ -324,7 +324,7 @@ public class Park extends MultiDualAutonomousMode<RobotWithMecanumDrivetrain<Mec
     public Park() {
         blackboard.put("allianceColor", getColor()); // Save color to the blackboard
         
-        then(Start.INSTANCE, builder -> {
+        then(Start.INSTANCE, (builder, param) -> {
             builder.unaryPlus(getRobot().getDrivetrain().path(pathBuilder -> {
                 pathBuilder.lineTo(parkPose);
                 return Unit.INSTANCE;
