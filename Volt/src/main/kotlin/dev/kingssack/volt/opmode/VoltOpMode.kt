@@ -7,10 +7,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.frozenmilk.sinister.Scanner.Companion.INDEPENDENT
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
-import dev.frozenmilk.sinister.targeting.NarrowSearch
-import dev.kingssack.volt.core.VoltActionBuilder
+import dev.frozenmilk.sinister.targeting.TeamCodeSearch
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.EventHandler
 import dev.kingssack.volt.util.VoltLogs
 import org.firstinspires.ftc.robotcore.external.Telemetry
@@ -100,7 +98,7 @@ abstract class VoltOpMode<R : Robot> {
             }
         }
 
-        fun register(c: Constructor<out VoltOpMode<*>>, meta: OpModeMeta) {
+        fun register(c: Constructor<VoltOpMode<*>>, meta: OpModeMeta) {
             h.register(
                 meta,
                 InternalOpMode {
@@ -132,7 +130,7 @@ abstract class VoltOpMode<R : Robot> {
     abstract class Registrar {
         abstract fun register(
             registrationHelper: VoltRegistrationHelper,
-            clazz: Class<out VoltOpMode<*>>,
+            clazz: Class<VoltOpMode<*>>,
         )
     }
 
@@ -140,7 +138,7 @@ abstract class VoltOpMode<R : Robot> {
     private object Scan : OpModeScanner() {
         override val loadAdjacencyRule = INDEPENDENT
         override val unloadAdjacencyRule = INDEPENDENT
-        override val targets = NarrowSearch()
+        override val targets = TeamCodeSearch()
 
         override fun scan(
             loader: ClassLoader,
@@ -166,7 +164,7 @@ abstract class VoltOpMode<R : Robot> {
                                 ?.get(null))
                                 as Registrar?
                         if (registrar !== null) {
-                            registrar.register(voltHelper, cls as Class<out VoltOpMode<*>>)
+                            registrar.register(voltHelper, cls as Class<VoltOpMode<*>>)
                             return
                         }
                         c = c.superclass as Class<*>

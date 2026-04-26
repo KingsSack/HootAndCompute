@@ -17,7 +17,7 @@ abstract class AutonomousMode<R : Robot> : VoltOpMode<R>() {
     object Register : Registrar() {
         override fun register(
             registrationHelper: VoltRegistrationHelper,
-            clazz: Class<out VoltOpMode<*>>,
+            clazz: Class<VoltOpMode<*>>,
         ) {
             if (clazz.isAnnotationPresent(VoltOpModeMeta::class.java)) {
                 val annotation = clazz.getAnnotation(VoltOpModeMeta::class.java)
