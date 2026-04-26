@@ -539,22 +539,6 @@ class FlowEditorApiHandler : WebHandler {
     /** Exception thrown when a cycle is detected */
     private class CycleDetectedException(message: String) : Exception(message)
 
-    private fun findReachableNodes(
-        startId: String,
-        outgoing: Map<String, List<Connection>>,
-    ): Set<String> {
-        val visited = mutableSetOf<String>()
-        val queue = ArrayDeque<String>()
-        queue.add(startId)
-        while (queue.isNotEmpty()) {
-            val id = queue.removeFirst()
-            if (id in visited) continue
-            visited.add(id)
-            outgoing[id]?.forEach { queue.add(it.targetNode) }
-        }
-        return visited
-    }
-
     private fun NanoHTTPD.IHTTPSession.getQueryParameter(name: String): String? {
         return parameters[name]?.firstOrNull()?.takeIf { it.isNotBlank() }
     }
