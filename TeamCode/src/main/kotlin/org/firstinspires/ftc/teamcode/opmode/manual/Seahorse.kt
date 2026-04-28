@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.Gamepad
 import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.DriveEncoderMecanumPedroPathingDrivetrain
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.autonomous.AllianceColor
-import dev.kingssack.volt.opmode.manual.DrivetrainControlsManualMode
+import dev.kingssack.volt.opmode.manual.AdvancedDrivetrainManualMode
 import dev.kingssack.volt.util.Event.ManualEvent.*
 import dev.kingssack.volt.util.buttons.AnalogInput
 import dev.kingssack.volt.util.buttons.Button
@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.robot.Jones
 import org.firstinspires.ftc.teamcode.robot.JonesPP
 
 @VoltOpModeMeta("Seahorse", "Competition")
-class Seahorse : DrivetrainControlsManualMode<DriveEncoderMecanumPedroPathingDrivetrain, JonesPP>() {
+class Seahorse : AdvancedDrivetrainManualMode<DriveEncoderMecanumPedroPathingDrivetrain, JonesPP>() {
     override val robot = JonesPP(hardwareMap, blackboard["endPose"] as? Pose ?: Pose())
 
     // --- State ---
