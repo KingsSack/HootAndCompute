@@ -22,17 +22,11 @@ class VoltActionBuilder {
 
     private fun inferName(action: Action): String =
         when (action) {
-            is SequentialAction -> {
-                "Sequence"
-            }
+            is SequentialAction -> "Sequence"
 
-            is ParallelAction -> {
-                "Parallel"
-            }
+            is ParallelAction -> "Parallel"
 
-            is InstantAction -> {
-                "Instant"
-            }
+            is InstantAction -> "Instant"
 
             else -> {
                 val actionClass = action.javaClass
