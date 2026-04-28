@@ -9,6 +9,10 @@ object ActionTracer {
     private val trace = mutableListOf<TracedAction>()
     private val running = ConcurrentHashMap.newKeySet<TracedAction>()
 
+    fun clear() {
+        running.clear()
+    }
+
     context(action: TracedAction)
     fun markRunning() {
         trace.add(action)
