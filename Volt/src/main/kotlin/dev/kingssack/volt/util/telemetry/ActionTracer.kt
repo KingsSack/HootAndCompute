@@ -11,6 +11,7 @@ object ActionTracer {
 
     fun clear() {
         running.clear()
+        trace.clear()
     }
 
     context(action: TracedAction)
