@@ -164,6 +164,7 @@ abstract class VoltOpMode<R : Robot> {
                                 ?.get(null))
                                 as Registrar?
                         if (registrar !== null) {
+                            @Suppress("UNCHECKED_CAST")
                             registrar.register(voltHelper, cls as Class<VoltOpMode<*>>)
                             return
                         }

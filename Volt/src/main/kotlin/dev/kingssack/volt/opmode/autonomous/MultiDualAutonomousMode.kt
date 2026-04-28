@@ -25,6 +25,7 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
                 if (annotation != null) {
                     // If this is not the direct superclass, this might not work, but I don't know a
                     // better way.
+                    @Suppress("UNCHECKED_CAST")
                     val enumClass =
                         (clazz.genericSuperclass as ParameterizedType).actualTypeArguments[1]
                             as Class<Enum<*>>
@@ -60,6 +61,7 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
             }
         }
 
+        @Suppress("UNCHECKED_CAST")
         fun <E : Enum<*>> instantiateOpMode(
             value: E,
             clazz: Class<out VoltOpMode<*>>,
