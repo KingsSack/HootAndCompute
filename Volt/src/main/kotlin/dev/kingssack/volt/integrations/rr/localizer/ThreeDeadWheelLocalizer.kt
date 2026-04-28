@@ -38,7 +38,7 @@ class ThreeDeadWheelLocalizer(
      * @property par1YTicks y position of the second parallel encoder (in tick units)
      * @property perpXTicks x position of the perpendicular encoder (in tick units)
      */
-    class LocalizerParams(
+    data class LocalizerParams(
         val par0Name: String = "par0",
         val par0Direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
         val par1Name: String = "par1",
