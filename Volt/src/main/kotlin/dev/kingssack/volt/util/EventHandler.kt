@@ -6,11 +6,13 @@ import com.acmerobotics.roadrunner.Action
 import dev.kingssack.volt.core.VoltActionBuilder
 import dev.kingssack.volt.util.telemetry.ActionTracer
 
+/** Handles [Event] bindings. */
 class EventHandler {
     private data class Binding<P>(val configurator: VoltActionBuilder.(P) -> Unit)
 
     private val bindings = mutableMapOf<Event<*>, MutableList<Binding<*>>>()
 
+    /** Binds an action [block] to the given [event]. */
     fun <P> bind(event: Event<P>, block: VoltActionBuilder.(P) -> Unit) {
         bindings.getOrPut(event) { mutableListOf() }.add(Binding(block))
     }
@@ -58,6 +60,7 @@ class EventHandler {
         dash?.sendTelemetryPacket(packet)
     }
 
+    /** Processes triggered events and runs active actions. Should be called every loop. */
     internal operator fun invoke() {
         processEvents()
         runActions()
