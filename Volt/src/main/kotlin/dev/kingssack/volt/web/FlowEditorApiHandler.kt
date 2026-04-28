@@ -458,7 +458,7 @@ class FlowEditorApiHandler : WebHandler {
             }
         } else {
             val startNodes = flowGraph.nodes.count { it.type == "Event" && it.label == "Start" }
-            if (startNodes != 1) {
+            if (startNodes < 1) {
                 errors.add("Autonomous flow must have at least one start node, found $startNodes")
             }
         }
