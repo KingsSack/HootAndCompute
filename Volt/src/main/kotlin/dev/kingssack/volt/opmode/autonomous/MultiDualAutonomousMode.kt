@@ -3,8 +3,8 @@ package dev.kingssack.volt.opmode.autonomous
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
-import java.lang.reflect.ParameterizedType
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
+import java.lang.reflect.ParameterizedType
 
 /**
  * A [DualAutonomousMode] that can be registered as multiple separate opmodes, one for each value of
@@ -25,6 +25,7 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
                 if (annotation != null) {
                     // If this is not the direct superclass, this might not work, but I don't know a
                     // better way.
+                    @Suppress("UNCHECKED_CAST")
                     val enumClass =
                         (clazz.genericSuperclass as ParameterizedType).actualTypeArguments[1]
                             as Class<Enum<*>>
@@ -60,16 +61,15 @@ abstract class MultiDualAutonomousMode<R : Robot, E : Enum<*>> : DualAutonomousM
             }
         }
 
-        fun <R : Robot, E : Enum<*>> instantiateOpMode(
+        @Suppress("UNCHECKED_CAST")
+        fun <E : Enum<*>> instantiateOpMode(
             value: E,
-            clazz: Class<VoltOpMode<*>>,
+            clazz: Class<out VoltOpMode<*>>,
             color: AllianceColor,
-        ): MultiDualAutonomousMode<R, E> {
+        ): MultiDualAutonomousMode<*, E> {
             ColorHolder.color = color
             InfoHolder.type = value
-            return (clazz as Class<MultiDualAutonomousMode<R, E>>)
-                .getDeclaredConstructor()
-                .newInstance()
+            return clazz.getDeclaredConstructor().newInstance() as MultiDualAutonomousMode<*, E>
         }
     }
 

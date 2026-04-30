@@ -7,8 +7,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.frozenmilk.sinister.Scanner.Companion.INDEPENDENT
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner
 import dev.frozenmilk.sinister.sdk.opmodes.OpModeScanner.RegistrationHelper
-import dev.frozenmilk.sinister.targeting.NarrowSearch
+import dev.frozenmilk.sinister.targeting.TeamCodeSearch
 import dev.kingssack.volt.robot.Robot
+import dev.kingssack.volt.util.EventHandler
 import dev.kingssack.volt.util.VoltLogs
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
@@ -30,8 +31,19 @@ import java.lang.reflect.Modifier
 abstract class VoltOpMode<R : Robot> {
     protected abstract val robot: R
 
+    protected val eventHandler = EventHandler()
+
     /** Code to run when the op mode begins. */
-    abstract fun begin()
+    open fun begin() {
+        while (opModeIsActive()) tick()
+    }
+
+    /** Code to run every loop while the op mode is active. */
+    open fun tick() =
+        context(telemetry) {
+            eventHandler()
+            robot.update()
+        }
 
     /** Optional code to run when the op mode ends. */
     open fun end() {}
@@ -79,7 +91,9 @@ abstract class VoltOpMode<R : Robot> {
                 try {
                     opMode.begin()
                 } finally {
-                    opMode.end()
+                    try {
+                        opMode.end()
+                    } catch (_: Exception) {}
                 }
             }
         }
@@ -98,7 +112,7 @@ abstract class VoltOpMode<R : Robot> {
             )
         }
 
-        fun <R : Robot> register(c: () -> VoltOpMode<R>, meta: OpModeMeta) {
+        fun register(c: () -> VoltOpMode<*>, meta: OpModeMeta) {
             h.register(
                 meta,
                 InternalOpMode {
@@ -124,7 +138,7 @@ abstract class VoltOpMode<R : Robot> {
     private object Scan : OpModeScanner() {
         override val loadAdjacencyRule = INDEPENDENT
         override val unloadAdjacencyRule = INDEPENDENT
-        override val targets = NarrowSearch()
+        override val targets = TeamCodeSearch()
 
         override fun scan(
             loader: ClassLoader,
@@ -136,7 +150,7 @@ abstract class VoltOpMode<R : Robot> {
 
                 if (
                     VoltOpMode::class.java.isAssignableFrom(cls) &&
-                    !Modifier.isAbstract(cls.modifiers)
+                        !Modifier.isAbstract(cls.modifiers)
                 ) {
                     var c = cls
                     while (c !== VoltOpMode::class.java) {
@@ -144,12 +158,13 @@ abstract class VoltOpMode<R : Robot> {
                             (c.declaredClasses
                                 .firstOrNull { cls ->
                                     Registrar::class.java.isAssignableFrom(cls) &&
-                                            cls.fields.any { it.name == "INSTANCE" }
+                                        cls.fields.any { it.name == "INSTANCE" }
                                 }
                                 ?.getDeclaredField("INSTANCE")
                                 ?.get(null))
-                                    as Registrar?
+                                as Registrar?
                         if (registrar !== null) {
+                            @Suppress("UNCHECKED_CAST")
                             registrar.register(voltHelper, cls as Class<VoltOpMode<*>>)
                             return
                         }
@@ -157,7 +172,7 @@ abstract class VoltOpMode<R : Robot> {
                     }
                 }
             } catch (e: Exception) {
-                VoltLogs.log("Error registering opmodes: ${e.message.toString()}")
+                VoltLogs.log("Error registering opmodes: ${e.message}")
                 registrationHelper.register(
                     OpModeMeta.Builder()
                         .setFlavor(OpModeMeta.Flavor.AUTONOMOUS)

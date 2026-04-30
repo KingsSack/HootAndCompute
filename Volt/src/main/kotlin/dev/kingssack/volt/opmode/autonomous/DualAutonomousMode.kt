@@ -24,6 +24,7 @@ abstract class DualAutonomousMode<R : Robot> : AutonomousMode<R>() {
                     registrationHelper.register(
                         {
                             ColorHolder.color = AllianceColor.RED
+                            @Suppress("UNCHECKED_CAST")
                             val red =
                                 (clazz as Class<DualAutonomousMode<*>>)
                                     .getDeclaredConstructor()
@@ -44,6 +45,7 @@ abstract class DualAutonomousMode<R : Robot> : AutonomousMode<R>() {
                     registrationHelper.register(
                         {
                             ColorHolder.color = AllianceColor.BLUE
+                            @Suppress("UNCHECKED_CAST")
                             val blue =
                                 (clazz as Class<DualAutonomousMode<*>>)
                                     .getDeclaredConstructor()

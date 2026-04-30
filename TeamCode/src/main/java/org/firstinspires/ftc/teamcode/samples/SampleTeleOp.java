@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.samples;
 
 import dev.kingssack.volt.opmode.manual.ManualMode;
-import dev.kingssack.volt.util.Event.ManualEvent.*;
+import dev.kingssack.volt.util.Event.ManualEvent.Tap;
 import dev.kingssack.volt.util.buttons.Button;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ abstract public class SampleTeleOp extends ManualMode<SampleRobot> {
     public SampleTeleOp() {
         super(new ManualParams());
 
-        then(new Tap(Button.A1), builder -> {
+        then(new Tap(Button.A1), (builder, param) -> {
             builder.unaryPlus(getRobot().sampleAttachment.exampleAction());
             return Unit.INSTANCE;
         });
