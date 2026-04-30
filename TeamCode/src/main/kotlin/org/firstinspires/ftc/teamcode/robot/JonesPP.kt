@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot
 
-import com.pedropathing.control.FilteredPIDFCoefficients
 import com.pedropathing.control.PIDFCoefficients
+import com.pedropathing.control.PredictiveBrakingCoefficients
 import com.pedropathing.follower.FollowerConstants
 import com.pedropathing.ftc.drivetrains.MecanumConstants
 import com.pedropathing.ftc.localization.Encoder
@@ -27,10 +27,9 @@ class JonesPP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
                 .mass(9.8)
                 .forwardZeroPowerAcceleration(-55.0)
                 .lateralZeroPowerAcceleration(-110.0)
-                .translationalPIDFCoefficients(PIDFCoefficients(0.02, 0.0, 0.0, 0.07))
                 .headingPIDFCoefficients(PIDFCoefficients(0.04, 0.0, 0.0, 0.02))
-                .drivePIDFCoefficients(FilteredPIDFCoefficients(0.1, 0.0, 0.0, 0.0, 0.3))
-                .centripetalScaling(0.0003),
+                .predictiveBrakingCoefficients(PredictiveBrakingCoefficients(0.2, 0.027, 0.00027))
+                .centripetalScaling(0.0),
             DriveEncoderConstants()
                 .rightFrontMotorName("rf")
                 .rightRearMotorName("rr")
@@ -45,9 +44,9 @@ class JonesPP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
                 .forwardTicksToInches(0.0057725)
                 .strafeTicksToInches(0.0069642)
                 .turnTicksToInches(0.009961),
-            PathConstraints(0.99, 100.0, 1.0, 1.0),
+            PathConstraints(0.95, 100.0, 1.0, 1.0),
             MecanumConstants()
-                .maxPower(0.8)
+                .maxPower(1.0)
                 .rightFrontMotorName("rf")
                 .rightRearMotorName("rr")
                 .leftRearMotorName("lr")
@@ -56,7 +55,7 @@ class JonesPP(hardwareMap: HardwareMap, initialPose: Pose = Pose()) :
                 .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
                 .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
                 .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-                .xVelocity(50.0)
+                .xVelocity(55.0)
                 .yVelocity(55.0),
             initialPose,
         ),

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.pp;
 
-import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PredictiveBrakingCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -15,12 +15,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(9.8)
-            .forwardZeroPowerAcceleration(-55)
-            .lateralZeroPowerAcceleration(-110)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.02, 0.0, 0.0, 0.07))
-            .headingPIDFCoefficients(new PIDFCoefficients(0.04, 0.0, 0.0, 0.02))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.1, 0.0, 0.0, 0.0, 0.3))
-            .centripetalScaling(0.0003);
+            .headingPIDFCoefficients(new PIDFCoefficients(0.04, 0, 0, 0.01))
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.2, 0.027, 0.00027))
+            .centripetalScaling(0);
 
     public static DriveEncoderConstants localizerConstants =
             new DriveEncoderConstants()
@@ -39,14 +36,14 @@ public class Constants {
                     .turnTicksToInches(0.009961);
 
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.99,
+            0.95,
             100,
             1,
             1
     );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(0.8)
+            .maxPower(1)
             .rightFrontMotorName("rf")
             .rightRearMotorName("rr")
             .leftRearMotorName("lr")
@@ -55,7 +52,7 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(50)
+            .xVelocity(55)
             .yVelocity(55);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
