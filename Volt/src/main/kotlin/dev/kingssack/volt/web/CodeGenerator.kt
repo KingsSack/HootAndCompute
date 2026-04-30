@@ -93,6 +93,13 @@ class CodeGenerator(
             eventNodes.forEachIndexed { index, eventNode ->
                 val actionChain = getOrderedActionChain(eventNode.id)
                 val eventExpr = generateEventConstructor(eventNode)
+
+                if (eventExpr == null) {
+                    appendLine("        // Unsupported event type: ${eventNode.label}")
+                    if (index < eventNodes.size - 1) appendLine()
+                    return@forEachIndexed
+                }
+
                 val isAnalog = eventNode.label in setOf("Change", "Threshold")
 
                 if (isAnalog) appendLine("        $eventExpr then { value ->")
@@ -136,7 +143,7 @@ class CodeGenerator(
         return result
     }
 
-    private fun generateEventConstructor(eventNode: Node): String =
+    private fun generateEventConstructor(eventNode: Node): String? =
         when (eventNode.label) {
             "Start" -> "Start"
             "Tap" -> {
@@ -172,7 +179,7 @@ class CodeGenerator(
                 if (buttons.isEmpty()) "combo()"
                 else "combo(${buttons.joinToString(", ") { "Button.$it" }})"
             }
-            else -> "// Unsupported event: ${eventNode.label}"
+            else -> null
         }
 
     private fun generateActionCall(actionNode: Node): String {
