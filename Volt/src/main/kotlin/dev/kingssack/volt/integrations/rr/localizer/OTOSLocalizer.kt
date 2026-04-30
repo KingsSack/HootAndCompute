@@ -32,7 +32,7 @@ class OTOSLocalizer(
      * @property linearScalar a scalar to apply to the linear velocity and acceleration readings
      * @property offset an offset to apply to the pose readings, in the OTOS's coordinate system
      */
-    class LocalizerParams(
+    data class LocalizerParams(
         var sensorName: String = "sensor_otos",
         var angularScalar: Double = 1.0,
         var linearScalar: Double = 1.0,

@@ -68,7 +68,7 @@ abstract class RoadRunnerMecanumDrivetrain(
      * @property lateralVelGain the lateral velocity gain
      * @property headingVelGain the heading velocity gain
      */
-    class DriveParams(
+    data class DriveParams(
         val logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP,
         val usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD,
         val leftFrontName: String = "lf",

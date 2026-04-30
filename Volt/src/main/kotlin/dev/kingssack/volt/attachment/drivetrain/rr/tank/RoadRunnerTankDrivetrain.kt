@@ -54,7 +54,7 @@ abstract class RoadRunnerTankDrivetrain(
      * @property maxAngAccel the maximum angular acceleration
      * @property ramseteZeta the
      */
-    class DriveParams(
+    data class DriveParams(
         val logoFacingDirection: LogoFacingDirection = LogoFacingDirection.UP,
         val usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD,
         val leftMotorNames: List<String> = listOf("left"),

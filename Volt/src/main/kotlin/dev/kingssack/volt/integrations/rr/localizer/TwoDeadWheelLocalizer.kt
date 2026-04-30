@@ -43,7 +43,7 @@ class TwoDeadWheelLocalizer(
      * @property parYTicks y position of the parallel encoder (in tick units)
      * @property perpXTicks x position of the perpendicular encoder (in tick units)
      */
-    class LocalizerParams(
+    data class LocalizerParams(
         val parName: String = "par",
         val parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
         val perpName: String = "perp",

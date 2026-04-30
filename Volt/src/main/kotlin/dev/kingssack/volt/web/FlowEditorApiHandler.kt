@@ -4,10 +4,9 @@ import android.util.Log
 import com.google.gson.Gson
 import dev.kingssack.volt.service.MetadataService
 import fi.iki.elonen.NanoHTTPD
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.mapOf
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Web handler for the Volt Flow Editor API endpoints.
@@ -75,10 +74,7 @@ class FlowEditorApiHandler : WebHandler {
     private fun handleGetOpMode(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         val id =
             session.getQueryParameter("id")
-                ?: return createErrorResponse(
-                    "Missing id",
-                    NanoHTTPD.Response.Status.BAD_REQUEST,
-                )
+                ?: return createErrorResponse("Missing id", NanoHTTPD.Response.Status.BAD_REQUEST)
         val opMode =
             opModes[id]
                 ?: return createErrorResponse(
@@ -166,10 +162,7 @@ class FlowEditorApiHandler : WebHandler {
     private fun handleDeleteOpMode(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
         val id =
             session.getQueryParameter("id")
-                ?: return createErrorResponse(
-                    "Missing id",
-                    NanoHTTPD.Response.Status.BAD_REQUEST,
-                )
+                ?: return createErrorResponse("Missing id", NanoHTTPD.Response.Status.BAD_REQUEST)
         if (opModes.remove(id) != null) {
             return createJsonResponse(gson.toJson(mapOf("success" to true)))
         }
@@ -464,8 +457,8 @@ class FlowEditorApiHandler : WebHandler {
                 errors.add("Manual flow should not have Start/End nodes")
             }
         } else {
-            val startNodes = flowGraph.nodes.count { it.type == "start" }
-            if (startNodes != 1) {
+            val startNodes = flowGraph.nodes.count { it.type == "Event" && it.label == "Start" }
+            if (startNodes < 1) {
                 errors.add("Autonomous flow must have at least one start node, found $startNodes")
             }
         }
@@ -500,11 +493,7 @@ class FlowEditorApiHandler : WebHandler {
         val visiting = mutableSetOf<String>()
 
         flowGraph.nodes.forEach { node ->
-            if (
-                node.type == "start" ||
-                    node.type.endsWith("_trigger") ||
-                    node.type == "while_pressed"
-            ) {
+            if (node.type == "Event") {
                 visitNode(node.id, flowGraph, visited, visiting)
             }
         }
@@ -538,22 +527,6 @@ class FlowEditorApiHandler : WebHandler {
 
     /** Exception thrown when a cycle is detected */
     private class CycleDetectedException(message: String) : Exception(message)
-
-    private fun findReachableNodes(
-        startId: String,
-        outgoing: Map<String, List<Connection>>,
-    ): Set<String> {
-        val visited = mutableSetOf<String>()
-        val queue = ArrayDeque<String>()
-        queue.add(startId)
-        while (queue.isNotEmpty()) {
-            val id = queue.removeFirst()
-            if (id in visited) continue
-            visited.add(id)
-            outgoing[id]?.forEach { queue.add(it.targetNode) }
-        }
-        return visited
-    }
 
     private fun NanoHTTPD.IHTTPSession.getQueryParameter(name: String): String? {
         return parameters[name]?.firstOrNull()?.takeIf { it.isNotBlank() }

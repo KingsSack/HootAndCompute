@@ -17,22 +17,23 @@ class CodeGenerator(
         val className = sanitizeClassName(opMode.name)
 
         return buildString {
-                appendLine("package org.firstinspires.ftc.teamcode.generated")
-                appendLine()
+            appendLine("package org.firstinspires.ftc.teamcode.generated")
+            appendLine()
 
-                generateImports().forEach { appendLine(it) }
-                appendLine()
+            generateImports().forEach { appendLine(it) }
+            appendLine()
 
-                appendLine(generateAnnotation())
+            appendLine(generateAnnotation())
 
-                appendLine("${generateClassDeclaration(className)} {")
-                appendLine("    override fun defineEvents() {")
-                append(generateDefineEventsBody())
-                appendLine()
-                appendLine("    }")
-                appendLine("}")
-            }
-            .trimEnd()
+            appendLine("${generateClassDeclaration(className)} {")
+            appendLine(generateRobotDeclaration())
+            appendLine()
+
+            appendLine("    init {")
+            append(generateInitBody())
+            appendLine("    }")
+            appendLine("}")
+        }.trimEnd()
     }
 
     private fun sanitizeClassName(rawName: String): String {
@@ -51,8 +52,7 @@ class CodeGenerator(
     private fun generateImports(): List<String> {
         val imports = mutableListOf<String>()
 
-        val annotationClass = if (isManual) "TeleOp" else "Autonomous"
-        imports.add("import com.qualcomm.robotcore.eventloop.opmode.$annotationClass")
+        imports.add("import dev.kingssack.volt.opmode.VoltOpModeMeta")
 
         val subpackage = if (isManual) "manual" else "autonomous"
         imports.add("import dev.kingssack.volt.opmode.$subpackage.${opMode.type}")
@@ -71,17 +71,20 @@ class CodeGenerator(
     }
 
     private fun generateAnnotation(): String {
-        val type = if (isManual) "TeleOp" else "Autonomous"
-        return "@$type(name = \"${opMode.name}\", group = \"Volt\")"
+        return "@VoltOpModeMeta(\"${opMode.name}\", \"Volt\")"
     }
 
     private fun generateClassDeclaration(className: String): String {
         val typeSignature = robotMeta?.typeSignature ?: opMode.robotId
-        val factoryExp = robotMeta?.factoryExpression ?: "${opMode.robotId}(it)"
-        return "class $className : ${opMode.type}<$typeSignature>({ $factoryExp })"
+        return "class $className : ${opMode.type}<$typeSignature>()"
     }
 
-    private fun generateDefineEventsBody(): String {
+    private fun generateRobotDeclaration(): String {
+        val factoryExp = robotMeta?.factoryExpression ?: "${opMode.robotId}(hardwareMap)"
+        return "    override val robot = $factoryExp"
+    }
+
+    private fun generateInitBody(): String {
         val eventNodes = flowGraph.nodes.filter { it.type == "Event" }
 
         if (eventNodes.isEmpty()) return "        // No events defined"
@@ -90,6 +93,13 @@ class CodeGenerator(
             eventNodes.forEachIndexed { index, eventNode ->
                 val actionChain = getOrderedActionChain(eventNode.id)
                 val eventExpr = generateEventConstructor(eventNode)
+
+                if (eventExpr == null) {
+                    appendLine("        // Unsupported event type: ${eventNode.label}")
+                    if (index < eventNodes.size - 1) appendLine()
+                    return@forEachIndexed
+                }
+
                 val isAnalog = eventNode.label in setOf("Change", "Threshold")
 
                 if (isAnalog) appendLine("        $eventExpr then { value ->")
@@ -133,9 +143,11 @@ class CodeGenerator(
         return result
     }
 
-    private fun generateEventConstructor(eventNode: Node): String =
+    private fun generateEventConstructor(eventNode: Node): String? =
         when (eventNode.label) {
             "Start" -> "Start"
+            "First" -> "First(\"${eventNode.parameters["condition"] ?: "condition"}\")"
+            "When" -> "When(\"${eventNode.parameters["condition"] ?: "condition"}\")"
             "Tap" -> {
                 val button = eventNode.parameters["button"] ?: "A1"
                 "Tap(Button.$button)"
@@ -169,7 +181,7 @@ class CodeGenerator(
                 if (buttons.isEmpty()) "combo()"
                 else "combo(${buttons.joinToString(", ") { "Button.$it" }})"
             }
-            else -> "// Unsupported event: ${eventNode.label}"
+            else -> null
         }
 
     private fun generateActionCall(actionNode: Node): String {

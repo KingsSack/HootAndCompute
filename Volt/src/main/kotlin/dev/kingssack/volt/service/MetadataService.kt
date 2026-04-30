@@ -3,8 +3,8 @@ package dev.kingssack.volt.service
 import com.qualcomm.robotcore.hardware.HardwareMap
 import dev.frozenmilk.sinister.Scanner
 import dev.frozenmilk.sinister.Scanner.Companion.INDEPENDENT
-import dev.frozenmilk.sinister.targeting.NarrowSearch
 import dev.frozenmilk.sinister.targeting.SearchTarget
+import dev.frozenmilk.sinister.targeting.TeamCodeSearch
 import dev.kingssack.volt.annotations.VoltAction
 import dev.kingssack.volt.attachment.Attachment
 import dev.kingssack.volt.model.ActionMetadata
@@ -14,13 +14,7 @@ import dev.kingssack.volt.model.RobotMetadata
 import dev.kingssack.volt.robot.Robot
 import dev.kingssack.volt.util.Event
 import dev.kingssack.volt.util.telemetry.ActionTracer
-import java.lang.reflect.GenericArrayType
-import java.lang.reflect.Method
-import java.lang.reflect.Modifier
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.lang.reflect.TypeVariable
-import java.lang.reflect.WildcardType
+import java.lang.reflect.*
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.kotlinFunction
@@ -42,7 +36,8 @@ object MetadataService {
     private object Scan : Scanner {
         override val loadAdjacencyRule = INDEPENDENT
         override val unloadAdjacencyRule = INDEPENDENT
-        override val targets: SearchTarget = NarrowSearch()
+        override val targets: SearchTarget =
+            TeamCodeSearch().apply { include("dev.kingssack.volt") }
 
         override fun scan(loader: ClassLoader, cls: Class<*>) {
             if (
@@ -114,8 +109,8 @@ object MetadataService {
 
         val factoryArgs = constructorParams.joinToString(", ") { $$"${$${it.name}}" }
         val factoryExpression =
-            if (factoryArgs.isNotEmpty()) "${cls.simpleName}(it, $factoryArgs)"
-            else "${cls.simpleName}(it)"
+            if (factoryArgs.isNotEmpty()) "${cls.simpleName}(hardwareMap, $factoryArgs)"
+            else "${cls.simpleName}(hardwareMap)"
 
         robots.add(
             RobotMetadata(
@@ -132,7 +127,10 @@ object MetadataService {
     private fun extractConstructorParams(cls: Class<*>): List<ParameterMetadata> {
         val primaryConstructor = cls.kotlin.primaryConstructor ?: return emptyList()
         return primaryConstructor.valueParameters
-            .filter { it.type.classifier != HardwareMap::class && it.type.classifier != ActionTracer::class }
+            .filter {
+                it.type.classifier != HardwareMap::class &&
+                    it.type.classifier != ActionTracer::class
+            }
             .map { param ->
                 ParameterMetadata(
                     name = param.name ?: "arg",

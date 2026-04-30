@@ -42,6 +42,10 @@ open class Robot(
 
     internal val attachments = mutableListOf<Attachment>()
 
+    init {
+        tracer.clear()
+    }
+
     protected fun registerAttachment(attachment: Attachment) {
         attachments.add(attachment)
     }

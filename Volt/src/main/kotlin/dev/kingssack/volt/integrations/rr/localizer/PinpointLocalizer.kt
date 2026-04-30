@@ -35,7 +35,7 @@ class PinpointLocalizer(
      * @property perpXTicks the number of ticks the perpendicular encoder is offset in the X
      *   direction
      */
-    class LocalizerParams(
+    data class LocalizerParams(
         val driverName: String = "pinpoint",
         val parDirection: GoBildaPinpointDriver.EncoderDirection =
             GoBildaPinpointDriver.EncoderDirection.FORWARD,
