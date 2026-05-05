@@ -78,6 +78,8 @@ abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
 
         telemetry.addData("Status", "Agent Ready")
         telemetry.update()
+
+        super.begin()
     }
 
     override fun tick() {
