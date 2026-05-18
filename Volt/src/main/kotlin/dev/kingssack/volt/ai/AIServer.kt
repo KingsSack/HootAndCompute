@@ -3,249 +3,323 @@ package dev.kingssack.volt.ai
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import fi.iki.elonen.NanoWSD
-import java.io.IOException
+import fi.iki.elonen.NanoHTTPD
+import java.io.PipedInputStream
+import java.io.PipedOutputStream
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Executors
 
 /**
- * WebSocket server for AI client communication.
+ * A REST API for controlling a robot with an AI agent.
  *
- * Provides a WebSocket interface for AI agents to execute robot actions and receive state updates.
- * Supports request-response correlation via request IDs and provides heartbeat functionality for
- * connection health monitoring.
+ * Provides endpoints for listing available actions, retrieving robot state, and executing actions.
+ * Actions are executed via a cached thread pool to support parallel execution.
  *
  * @param port the port to listen on (default: 8081)
  */
-class AIServer(port: Int = 8081) : NanoWSD(port) {
+class AIServer(private val registry: ActionRegistry, port: Int = 8081) : NanoHTTPD(port) {
+    private val TAG = "VoltAIServer"
     private val gson = Gson()
-    private var activeSocket: AIWebSocket? = null
-    private var actionCallback: ((String, Map<String, Any?>, String?) -> ActionResult)? = null
-    private var stateProvider: (() -> Map<String, Any>)? = null
 
-    companion object {
-        private const val TAG = "VoltAIServer"
-        private const val PING_INTERVAL_MS = 5000L
+    private val pendingExecutions = ConcurrentHashMap<String, ActionPending>()
+    private val executionPool = Executors.newCachedThreadPool { runnable ->
+        val thread = Thread(runnable, "ai-action-executor")
+        thread.isDaemon = true
+        thread
+    }
+
+    private val queuedActions = ConcurrentLinkedQueue<AIOpMode.RunningAction>()
+
+    /** Callback to retrieve the current robot state message. Set by [AIOpMode] each tick. */
+    var stateProvider: (() -> String)? = null
+
+    init {
+        start(SOCKET_READ_TIMEOUT, false)
+        Log.d(TAG, "Server started on port $port")
     }
 
     /**
-     * Result of an action execution.
+     * Processes all pending action executions.
      *
-     * @property success whether the action was successfully queued/executed
-     * @property message a human-readable status message
-     * @property data optional additional data returned by the action
-     * @property actionId the ID of the action that was executed (for tracking)
+     * Submits each pending execution to the thread pool. The result is stored back in the
+     * [ActionPending] for clients to retrieve via the REST API.
+     *
+     * @return a list of actions that were successfully queued for execution
      */
-    data class ActionResult(
-        val success: Boolean,
-        val message: String,
-        val data: Map<String, Any?>? = null,
-        val actionId: String? = null,
-    )
+    fun processPendingExecutions(): List<AIOpMode.RunningAction> {
+        val snapshot = pendingExecutions.entries.toList()
 
-    /**
-     * Sets the [callback] for handling action execution requests.
-     *
-     * @param callback function that receives (actionId, params, requestId) and returns an
-     *   [ActionResult]
-     */
-    fun setActionCallback(callback: (String, Map<String, Any?>, String?) -> ActionResult) {
-        actionCallback = callback
-    }
-
-    /**
-     * Sets the [provider] for robot state data.
-     *
-     * This [provider] is called when a client requests the current state via the `get_state`
-     * message.
-     *
-     * @param provider Function that returns the current robot state as a map
-     */
-    fun setStateProvider(provider: () -> Map<String, Any>) {
-        stateProvider = provider
-    }
-
-    override fun openWebSocket(handshake: IHTTPSession?): WebSocket = AIWebSocket(handshake)
-
-    /**
-     * Sends a ping to the active client to check connection health.
-     *
-     * Should be called periodically (e.g., every 5 seconds) to detect stale connections.
-     */
-    fun sendPing() {
-        val socket = activeSocket ?: return
-        try {
-            socket.ping(ByteArray(0))
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to send ping", e)
-            clearActiveSocket(socket)
-        }
-    }
-
-    private fun clearActiveSocket(socket: AIWebSocket) {
-        if (activeSocket == socket) {
-            activeSocket = null
-        }
-    }
-
-    inner class AIWebSocket(handshake: IHTTPSession?) : WebSocket(handshake) {
-        private var lastPongTime = System.currentTimeMillis()
-
-        override fun onOpen() {
-            Log.i(TAG, "AI Client connected")
-            activeSocket = this
-            lastPongTime = System.currentTimeMillis()
-
-            try {
-                // Send available tools on connection
-                val tools = ActionRegistry.toAITools()
-                val response = mapOf("type" to "tools", "tools" to tools)
-                send(gson.toJson(response))
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to send tools", e)
-            }
-        }
-
-        override fun onMessage(message: WebSocketFrame) {
-            try {
-                val json = gson.fromJson(message.textPayload, JsonObject::class.java)
-                val requestId = json.get("request_id")?.asString
-
-                when (val type = json.get("type")?.asString) {
-                    "execute" -> handleExecute(json, requestId)
-                    "get_tools" -> handleGetTools(requestId)
-                    "get_state" -> handleGetState(requestId)
-                    else -> sendError("Unknown message type: $type", requestId)
+        // 1. Submit pending executions to the background threads
+        for ((requestId, pending) in snapshot) {
+            if (pending.resultData != null) continue
+            executionPool.submit {
+                try {
+                    val tool = registry.actions[pending.name]
+                    val action = tool?.invoke(pending.params)
+                    if (action != null) {
+                        pending.resultData =
+                            ActionResult(
+                                status = "queued",
+                                message = "Action queued for execution",
+                                name = pending.name,
+                                requestId = requestId,
+                            )
+                        Log.d(TAG, "Executing action: ${pending.name}, params: ${pending.params}")
+                        queuedActions.add(AIOpMode.RunningAction(action, requestId))
+                    } else {
+                        pending.resultData =
+                            ActionResult(
+                                status = "failed",
+                                message = "Action not found: ${pending.name}",
+                                name = pending.name,
+                                requestId = requestId,
+                            )
+                    }
+                } catch (e: ActionRegistry.ParameterValidationException) {
+                    pending.resultData =
+                        ActionResult(
+                            status = "failed",
+                            message = "Validation error: ${e.message}",
+                            name = pending.name,
+                            requestId = requestId,
+                        )
+                } catch (e: Exception) {
+                    pending.resultData =
+                        ActionResult(
+                            status = "failed",
+                            message = "Execution error: ${e.message}",
+                            name = pending.name,
+                            requestId = requestId,
+                        )
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error processing message", e)
-                sendError(e.message ?: "Unknown error", null)
             }
         }
 
-        private fun handleExecute(json: JsonObject, requestId: String?) {
-            val actionId =
-                json.get("action_id")?.asString ?: return sendError("Missing action_id", requestId)
-            val params =
-                json.get("params")?.asJsonObject?.let {
-                    gson.fromJson<Map<String, Any?>>(it, Map::class.java)
-                } ?: emptyMap()
-
-            val result =
-                actionCallback?.invoke(actionId, params, requestId)
-                    ?: ActionResult(false, "No action handler registered")
-
-            val response = buildMap {
-                put("type", "result")
-                put("action_id", actionId)
-                put("success", result.success)
-                put("message", result.message)
-                result.data?.let { put("data", it) }
-                requestId?.let { put("request_id", it) }
-            }
-            send(gson.toJson(response))
+        // 2. Safely drain whatever has finished processing into a list
+        val newActions = mutableListOf<AIOpMode.RunningAction>()
+        while (queuedActions.isNotEmpty()) {
+            val action = queuedActions.poll()
+            if (action != null) newActions.add(action)
         }
 
-        private fun handleGetTools(requestId: String?) {
-            val tools = ActionRegistry.toAITools()
-            val response = buildMap {
-                put("type", "tools")
-                put("tools", tools)
-                requestId?.let { put("request_id", it) }
-            }
-            send(gson.toJson(response))
-        }
-
-        private fun handleGetState(requestId: String?) {
-            val state = stateProvider?.invoke() ?: mapOf()
-            val response = buildMap {
-                put("type", "state")
-                put("state", state)
-                requestId?.let { put("request_id", it) }
-            }
-            send(gson.toJson(response))
-        }
-
-        private fun sendError(message: String, requestId: String?) {
-            val response = buildMap {
-                put("type", "error")
-                put("message", message)
-                requestId?.let { put("request_id", it) }
-            }
-            send(gson.toJson(response))
-        }
-
-        override fun onClose(
-            code: WebSocketFrame.CloseCode?,
-            reason: String?,
-            initiatedByRemote: Boolean,
-        ) {
-            Log.i(TAG, "AI Client disconnected: $reason")
-            clearActiveSocket(this)
-        }
-
-        override fun onPong(pong: WebSocketFrame?) {
-            lastPongTime = System.currentTimeMillis()
-            Log.d(TAG, "Pong received - connection alive")
-        }
-
-        override fun onException(exception: IOException?) {
-            Log.e(TAG, "WebSocket error", exception)
-            clearActiveSocket(this)
-        }
-
-        /** Returns whether the connection is considered alive based on recent pong responses. */
-        fun isConnectionAlive(): Boolean =
-            System.currentTimeMillis() - lastPongTime < PING_INTERVAL_MS * 3
+        return newActions
     }
 
     /**
-     * Broadcasts the current robot state to the connected client.
+     * Gets the result of a previously submitted action execution.
      *
-     * @param state the state data to broadcast
+     * @param requestId the client-assigned ID for the execution request
+     * @return the result, or null if not found or still pending
      */
-    fun broadcastState(state: Map<String, Any>) {
-        val socket = activeSocket ?: return
-        try {
-            val response = mapOf("type" to "state", "state" to state)
-            socket.send(gson.toJson(response))
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to broadcast state", e)
-            clearActiveSocket(socket)
-        }
+    fun getResult(requestId: String): ActionResult? {
+        return pendingExecutions[requestId]?.resultData
     }
 
     /**
-     * Broadcasts an action completion notification to the connected client.
+     * Resolves the result of a pending action.
      *
-     * @param actionId the ID of the completed action
-     * @param requestId the original request ID (for correlation)
+     * @param requestId the client-assigned ID for the execution request
      * @param success whether the action completed successfully
-     * @param message a status message about the completion
-     * @param data optional result data from the action
+     * @param message a human-readable status message
      */
-    fun broadcastActionComplete(
-        actionId: String,
-        requestId: String?,
-        success: Boolean,
-        message: String,
-        data: Map<String, Any?>? = null,
-    ) {
-        val socket = activeSocket ?: return
-        try {
-            val response = buildMap {
-                put("type", "action_complete")
-                put("action_id", actionId)
-                put("success", success)
-                put("message", message)
-                data?.let { put("data", it) }
-                requestId?.let { put("request_id", it) }
-            }
-            socket.send(gson.toJson(response))
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to broadcast action completion", e)
-            clearActiveSocket(socket)
+    fun resolveAction(requestId: String, success: Boolean, message: String) {
+        pendingExecutions[requestId]?.resultData =
+            ActionResult(
+                status = if (success) "completed" else "failed",
+                message = message,
+                requestId = requestId,
+            )
+    }
+
+    override fun serve(session: IHTTPSession): Response {
+        val method = session.method
+        val uri = session.uri
+
+        return when (method) {
+            Method.GET -> handleGet(uri)
+            Method.POST -> handlePost(session)
+            else ->
+                newFixedLengthResponse(
+                    Response.Status.METHOD_NOT_ALLOWED,
+                    MIME_PLAINTEXT,
+                    "Method not supported",
+                )
         }
     }
 
-    /** Returns whether there is an active, healthy client connection. */
-    fun hasActiveConnection(): Boolean = activeSocket?.isConnectionAlive() == true
+    private fun handlePost(session: IHTTPSession): Response {
+        // 1. Safely read based on Content-Length to avoid keep-alive deadlocks
+        val contentLength = session.headers["content-length"]?.toIntOrNull() ?: 0
+        if (contentLength <= 0) {
+            return errorResponse("Missing Content-Length or empty request body")
+        }
+
+        val buffer = ByteArray(contentLength)
+        var bytesRead = 0
+        val inputStream = session.inputStream
+        while (bytesRead < contentLength) {
+            val read = inputStream.read(buffer, bytesRead, contentLength - bytesRead)
+            if (read == -1) break
+            bytesRead += read
+        }
+
+        val requestBody = String(buffer, Charsets.UTF_8)
+
+        // 2. Parse the JSON
+        val json =
+            try {
+                gson.fromJson(requestBody, JsonObject::class.java)
+            } catch (e: Exception) {
+                return errorResponse("Invalid JSON provided")
+            }
+
+        val name = json.get("name")?.asString ?: return errorResponse("Missing 'name' field")
+        val paramsRaw = json.get("params")?.asJsonObject ?: JsonObject()
+        @Suppress("UNCHECKED_CAST")
+        val params: Map<String, Any?> =
+            gson.fromJson(paramsRaw, Map::class.java) as? Map<String, Any?> ?: emptyMap()
+        val requestId = json.get("requestId")?.asString ?: UUID.randomUUID().toString()
+
+        Log.d(
+            TAG,
+            "Received action execution request: $name, params: $params, requestId: $requestId",
+        )
+
+        // If a result already exists for this requestId, return it (idempotent)
+        val existing = pendingExecutions[requestId]
+        if (existing != null && existing.resultData != null)
+            return jsonResponse(gson.toJson(existing.resultData))
+
+        // Queue the execution
+        pendingExecutions[requestId] = ActionPending(name, params, requestId)
+
+        return jsonResponse(
+            gson.toJson(
+                ActionResult(
+                    status = "queued",
+                    message = "Action queued",
+                    name = name,
+                    requestId = requestId,
+                )
+            )
+        )
+    }
+
+    private fun handleGet(uri: String): Response =
+        when {
+            uri == "/api/actions" -> handleGetActions()
+            uri == "/api/state" -> handleGetState()
+            uri.startsWith("/api/result/") -> {
+                val requestId = uri.removePrefix("/api/result/")
+                handleGetResult(requestId)
+            }
+            uri == "/api/stream" -> createStreamResponse()
+            else -> newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not Found")
+        }
+
+    private fun handleGetActions(): Response {
+        Log.d(TAG, "Sending action list")
+        val descriptors =
+            registry.actions.map { (_, tool) ->
+                mapOf(
+                    "name" to tool.name,
+                    "description" to tool.description,
+                    "parameterSchema" to tool.parameters,
+                )
+            }
+        return jsonResponse(gson.toJson(mapOf("actions" to descriptors)))
+    }
+
+    private fun handleGetState(): Response {
+        Log.d(TAG, "Sending robot state")
+        val stateMessage = stateProvider?.invoke() ?: "No state available"
+        return jsonResponse(gson.toJson(mapOf("state" to stateMessage)))
+    }
+
+    private fun handleGetResult(requestId: String): Response {
+        Log.d(TAG, "Sending result for requestId: $requestId")
+        val result = getResult(requestId)
+        return if (result != null) {
+            jsonResponse(gson.toJson(result))
+        } else {
+            newFixedLengthResponse(
+                Response.Status.NOT_FOUND,
+                "application/json",
+                gson.toJson(mapOf("error" to "Result not found")),
+            )
+        }
+    }
+
+    private fun createStreamResponse(): Response {
+        val pipedInput = PipedInputStream()
+        val pipedOutput = PipedOutputStream(pipedInput)
+
+        // Background thread sends SSE keepalive messages
+        Thread {
+                try {
+                    while (true) {
+                        val keepalive = "event: keepalive\ndata: {}\n\n".toByteArray()
+                        pipedOutput.write(keepalive)
+                        pipedOutput.flush()
+                        Thread.sleep(15000)
+                    }
+                } catch (_: Exception) {
+                    try {
+                        pipedOutput.close()
+                    } catch (_: Exception) {}
+                }
+            }
+            .apply {
+                isDaemon = true
+                name = "sse-keepalive"
+            }
+            .start()
+
+        return newChunkedResponse(Response.Status.OK, "text/event-stream", pipedInput)
+    }
+
+    private fun jsonResponse(body: String): Response =
+        newFixedLengthResponse(Response.Status.OK, "application/json", body)
+
+    private fun errorResponse(message: String): Response =
+        jsonResponse(gson.toJson(mapOf("error" to message)))
+
+    /** Shuts down the execution thread pool. */
+    fun shutdown() {
+        executionPool.shutdown()
+    }
 }
+
+/**
+ * Result of an action execution.
+ *
+ * @property status the execution status: "queued", "completed", or "failed"
+ * @property message a human-readable status message
+ * @property data optional additional data returned by the action
+ * @property name the name of the action that was executed
+ * @property requestId the client-assigned ID for this execution request
+ */
+data class ActionResult(
+    val status: String,
+    val message: String,
+    val data: Map<String, Any?>? = null,
+    val name: String? = null,
+    val requestId: String? = null,
+)
+
+/**
+ * Pending action execution request.
+ *
+ * @property name the name of the action being executed
+ * @property params the parameters used to build the action
+ * @property requestId the client-assigned ID for tracking
+ * @property resultData the result once execution completes (null until done)
+ */
+data class ActionPending(
+    val name: String,
+    val params: Map<String, Any?>,
+    val requestId: String,
+    var resultData: ActionResult? = null,
+)

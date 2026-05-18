@@ -6,21 +6,24 @@ import com.acmerobotics.roadrunner.Action
 import dev.kingssack.volt.opmode.VoltOpMode
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.robot.Robot
-import dev.kingssack.volt.util.EventHandler
+import dev.kingssack.volt.robot.RobotState
+import dev.kingssack.volt.util.telemetry.ActionTracer
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta
-import java.util.concurrent.ConcurrentLinkedQueue
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta.Builder
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta.Flavor
 
 /**
  * A [VoltOpMode] for controlling a [robot] with a Large Language Model.
  *
- * Provides a [WebSocket server][AIServer] interface for AI clients to execute robot actions
- * remotely. Actions are queued and executed sequentially, with state updates broadcast to connected
- * clients.
+ * Provides a REST API server interface for AI clients to execute robot actions remotely. Actions
+ * are submitted via the REST API, processed each tick, and results are returned to the client.
+ * Supports parallel execution via a cached thread pool.
  *
  * @param R the robot type
  * @param serverPort the port for the [AIServer] (default: 8081)
+ * @property server the [AIServer] instance
  */
-abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
+abstract class AIOpMode<R : Robot>(private val serverPort: Int = 8081) : VoltOpMode<R>() {
     @Suppress("unused")
     object Register : Registrar() {
         override fun register(
@@ -32,10 +35,10 @@ abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
                 if (annotation != null) {
                     registrationHelper.register(
                         clazz.getDeclaredConstructor(),
-                        OpModeMeta.Builder()
+                        Builder()
                             .setName(annotation.name)
                             .setGroup(annotation.group)
-                            .setFlavor(OpModeMeta.Flavor.TELEOP)
+                            .setFlavor(Flavor.TELEOP)
                             .setSource(OpModeMeta.Source.EXTERNAL_LIBRARY)
                             .build(),
                     )
@@ -44,29 +47,15 @@ abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
         }
     }
 
-    companion object {
-        private const val PING_INTERVAL_MS = 5000L
-        private const val MAX_PENDING_ACTIONS = 10
-    }
+    private val dash: FtcDashboard? = FtcDashboard.getInstance()
 
-    private var aiServer = AIServer(serverPort)
-    private val pendingActions = ConcurrentLinkedQueue<PendingAction>()
-    private var currentPendingAction: PendingAction? = null
-    private var lastPingTime = 0L
-    private val dashboard = FtcDashboard.getInstance()
+    private lateinit var registry: ActionRegistry
 
-    /**
-     * Wrapper for an action with its metadata for tracking.
-     *
-     * @property action the action to execute
-     * @property actionId the unique ID of the action
-     * @property requestId the client's unique request ID
-     */
-    private data class PendingAction(
-        val action: Action,
-        val actionId: String,
-        val requestId: String?,
-    )
+    private lateinit var server: AIServer
+
+    data class RunningAction(val action: Action, val requestId: String)
+
+    private val runningActions = mutableListOf<RunningAction>()
 
     init {
         telemetry.addData("Status", "Initializing Agent...")
@@ -74,149 +63,52 @@ abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
     }
 
     override fun begin() {
-        ActionRegistry.clear()
-        ActionRegistry.registerInstance(robot)
-        for (attachment in robot.attachments) {
-            ActionRegistry.registerInstance(attachment)
-        }
+        registry = ActionRegistry(listOf(robot) + robot.attachments)
+        server = AIServer(registry, serverPort)
 
-        try {
-            aiServer.start()
-            aiServer.setActionCallback { actionId, params, requestId ->
-                executeAction(actionId, params, requestId)
-            }
-            aiServer.setStateProvider { buildRobotState() }
+        // Wire up the server callbacks
+        server.stateProvider = { getRobotState() }
 
-            while (opModeIsActive()) {
-                telemetry.addData("Status", "Agent is running")
-                telemetry.addData(
-                    "Connection",
-                    if (aiServer.hasActiveConnection()) "Active" else "None",
-                )
-                telemetry.addData("Pending Actions", pendingActions.size)
-                telemetry.addData("Current Action", currentPendingAction?.actionId ?: "None")
-                tick()
-                telemetry.update()
-            }
-        } catch (e: Exception) {
-            telemetry.addData("Status", "AI mode crashed: ${e.message}")
-            telemetry.update()
-        } finally {
-            aiServer.stop()
-            ActionRegistry.clear()
-        }
+        telemetry.addData("Status", "Agent Ready")
+        telemetry.update()
+
+        super.begin()
     }
 
-    private fun executeAction(
-        actionId: String,
-        params: Map<String, Any?>,
-        requestId: String?,
-    ): AIServer.ActionResult {
-        // Check queue capacity
-        if (pendingActions.size >= MAX_PENDING_ACTIONS) {
-            return AIServer.ActionResult(
-                success = false,
-                message = "Action queue full (max $MAX_PENDING_ACTIONS)",
-                actionId = actionId,
-            )
-        }
-
-        return try {
-            val action = ActionRegistry.execute(actionId, params)
-            if (action != null) {
-                pendingActions.add(PendingAction(action, actionId, requestId))
-                AIServer.ActionResult(
-                    success = true,
-                    message = "Action queued: $actionId",
-                    actionId = actionId,
-                )
-            } else {
-                AIServer.ActionResult(
-                    success = false,
-                    message = "Unknown action: $actionId",
-                    actionId = actionId,
-                )
-            }
-        } catch (e: ActionRegistry.ParameterValidationException) {
-            AIServer.ActionResult(
-                success = false,
-                message = "Validation error: ${e.message}",
-                actionId = actionId,
-            )
-        } catch (e: Exception) {
-            AIServer.ActionResult(
-                success = false,
-                message = "Execution error: ${e.message}",
-                actionId = actionId,
-            )
-        }
-    }
-
-    /** Main tick function called each loop iteration. */
     override fun tick() {
+        runningActions.addAll(server.processPendingExecutions())
+        runActions()
+        context(telemetry) { robot.update() }
+    }
+
+    override fun end() {
+        super.end()
+        server.shutdown()
+    }
+
+    private fun getRobotState(): String =
+        when (val state = robot.state.value) {
+            is RobotState.Initializing -> "The robot is initializing"
+            is RobotState.Idle -> "The robot is idle"
+            is RobotState.Running -> "The robot is running actions"
+            is RobotState.Fault -> "The robot has encountered an error: ${state.error.message}"
+        }
+
+    private fun runActions() {
         val packet = TelemetryPacket()
 
-        // Process current action
-        currentPendingAction?.let { pending ->
-            try {
-                if (!pending.action.run(packet)) {
-                    // Action completed successfully
-                    aiServer.broadcastActionComplete(
-                        actionId = pending.actionId,
-                        requestId = pending.requestId,
-                        success = true,
-                        message = "Action completed: ${pending.actionId}",
-                    )
-                    currentPendingAction = null
-                }
-            } catch (e: Exception) {
-                // Action failed
-                aiServer.broadcastActionComplete(
-                    actionId = pending.actionId,
-                    requestId = pending.requestId,
-                    success = false,
-                    message = "Action failed: ${e.message}",
-                )
-                currentPendingAction = null
+        // Run actions and remove finished ones
+        runningActions.removeAll { (action, requestId) ->
+            action.preview(packet.fieldOverlay())
+            if (!action.run(packet)) {
+                server.resolveAction(requestId, true, "Action completed")
+                return@removeAll true
             }
+            false
         }
 
-        // Start next action if idle
-        if (currentPendingAction == null) {
-            currentPendingAction = pendingActions.poll()
-        }
-
-        // Send telemetry packet to dashboard
-        dashboard.sendTelemetryPacket(packet)
-
-        // Periodic ping for connection health
-        val now = System.currentTimeMillis()
-        if (now - lastPingTime > PING_INTERVAL_MS) {
-            aiServer.sendPing()
-            lastPingTime = now
-        }
-
-        broadcastRobotState()
+        // Write telemetry
+        context(packet) { ActionTracer.writePacket() }
+        dash?.sendTelemetryPacket(packet)
     }
-
-    /** Broadcasts the current robot state to connected AI clients. */
-    protected open fun broadcastRobotState() {
-        val state = buildRobotState()
-        aiServer.broadcastState(state)
-    }
-
-    /**
-     * Builds the current robot state map to broadcast to clients.
-     *
-     * Override this method to include additional state information.
-     *
-     * @return a map of state key-value pairs
-     */
-    protected open fun buildRobotState(): Map<String, Any> =
-        mapOf(
-            "hasActiveAction" to (currentPendingAction != null),
-            "currentActionId" to (currentPendingAction?.actionId ?: ""),
-            "pendingActions" to pendingActions.size,
-            "connectionAlive" to aiServer.hasActiveConnection(),
-        )
 }
