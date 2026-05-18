@@ -15,15 +15,15 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta.Flavor
 /**
  * A [VoltOpMode] for controlling a [robot] with a Large Language Model.
  *
- * Provides a REST API server interface for AI clients to execute robot actions remotely.
- * Actions are submitted via the REST API, processed each tick, and results are returned
- * to the client. Supports parallel execution via a cached thread pool.
+ * Provides a REST API server interface for AI clients to execute robot actions remotely. Actions
+ * are submitted via the REST API, processed each tick, and results are returned to the client.
+ * Supports parallel execution via a cached thread pool.
  *
  * @param R the robot type
  * @param serverPort the port for the [AIServer] (default: 8081)
  * @property server the [AIServer] instance
  */
-abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
+abstract class AIOpMode<R : Robot>(private val serverPort: Int = 8081) : VoltOpMode<R>() {
     @Suppress("unused")
     object Register : Registrar() {
         override fun register(
@@ -49,12 +49,11 @@ abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
 
     private val dash: FtcDashboard? = FtcDashboard.getInstance()
 
-    val server = AIServer(serverPort)
+    private lateinit var registry: ActionRegistry
 
-    data class RunningAction(
-        val action: Action,
-        val requestId: String,
-    )
+    private lateinit var server: AIServer
+
+    data class RunningAction(val action: Action, val requestId: String)
 
     private val runningActions = mutableListOf<RunningAction>()
 
@@ -64,17 +63,11 @@ abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
     }
 
     override fun begin() {
-        ActionRegistry.clear()
-        ActionRegistry.registerInstance(robot)
-        for (attachment in robot.attachments) {
-            ActionRegistry.registerInstance(attachment)
-        }
+        registry = ActionRegistry(listOf(robot) + robot.attachments)
+        server = AIServer(registry, serverPort)
 
         // Wire up the server callbacks
         server.stateProvider = { getRobotState() }
-        server.executor = { actionId, params ->
-            ActionRegistry.execute(actionId, params)
-        }
 
         telemetry.addData("Status", "Agent Ready")
         telemetry.update()
@@ -85,6 +78,7 @@ abstract class AIOpMode<R : Robot>(serverPort: Int = 8081) : VoltOpMode<R>() {
     override fun tick() {
         runningActions.addAll(server.processPendingExecutions())
         runActions()
+        context(telemetry) { robot.update() }
     }
 
     override fun end() {

@@ -1,11 +1,14 @@
 package dev.kingssack.volt.ai
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 
 /**
@@ -16,7 +19,8 @@ import java.util.concurrent.Executors
  *
  * @param port the port to listen on (default: 8081)
  */
-class AIServer(port: Int = 8081) : NanoHTTPD(port) {
+class AIServer(private val registry: ActionRegistry, port: Int = 8081) : NanoHTTPD(port) {
+    private val TAG = "VoltAIServer"
     private val gson = Gson()
 
     private val pendingExecutions = ConcurrentHashMap<String, ActionPending>()
@@ -26,19 +30,14 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
         thread
     }
 
+    private val queuedActions = ConcurrentLinkedQueue<AIOpMode.RunningAction>()
+
     /** Callback to retrieve the current robot state message. Set by [AIOpMode] each tick. */
     var stateProvider: (() -> String)? = null
 
-    /**
-     * Callback to execute an action and return it, or null if not found. Set by [AIOpMode] each
-     * tick.
-     */
-    var executor:
-            ((actionId: String, params: Map<String, Any?>) -> com.acmerobotics.roadrunner.Action?)? =
-        null
-
     init {
         start(SOCKET_READ_TIMEOUT, false)
+        Log.d(TAG, "Server started on port $port")
     }
 
     /**
@@ -51,27 +50,30 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
      */
     fun processPendingExecutions(): List<AIOpMode.RunningAction> {
         val snapshot = pendingExecutions.entries.toList()
-        val newActions = mutableListOf<AIOpMode.RunningAction>()
+
+        // 1. Submit pending executions to the background threads
         for ((requestId, pending) in snapshot) {
             if (pending.resultData != null) continue
             executionPool.submit {
                 try {
-                    val action = executor?.invoke(pending.actionId, pending.params)
+                    val tool = registry.actions[pending.name]
+                    val action = tool?.invoke(pending.params)
                     if (action != null) {
                         pending.resultData =
                             ActionResult(
                                 status = "queued",
                                 message = "Action queued for execution",
-                                actionId = pending.actionId,
+                                name = pending.name,
                                 requestId = requestId,
                             )
-                        newActions.add(AIOpMode.RunningAction(action, requestId))
+                        Log.d(TAG, "Executing action: ${pending.name}, params: ${pending.params}")
+                        queuedActions.add(AIOpMode.RunningAction(action, requestId))
                     } else {
                         pending.resultData =
                             ActionResult(
                                 status = "failed",
-                                message = "Action not found: ${pending.actionId}",
-                                actionId = pending.actionId,
+                                message = "Action not found: ${pending.name}",
+                                name = pending.name,
                                 requestId = requestId,
                             )
                     }
@@ -80,7 +82,7 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
                         ActionResult(
                             status = "failed",
                             message = "Validation error: ${e.message}",
-                            actionId = pending.actionId,
+                            name = pending.name,
                             requestId = requestId,
                         )
                 } catch (e: Exception) {
@@ -88,12 +90,20 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
                         ActionResult(
                             status = "failed",
                             message = "Execution error: ${e.message}",
-                            actionId = pending.actionId,
+                            name = pending.name,
                             requestId = requestId,
                         )
                 }
             }
         }
+
+        // 2. Safely drain whatever has finished processing into a list
+        val newActions = mutableListOf<AIOpMode.RunningAction>()
+        while (queuedActions.isNotEmpty()) {
+            val action = queuedActions.poll()
+            if (action != null) newActions.add(action)
+        }
+
         return newActions
     }
 
@@ -140,35 +150,57 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
     }
 
     private fun handlePost(session: IHTTPSession): Response {
-        val inputStream = session.inputStream
-        val requestBody = inputStream.reader().use { it.readText() }
+        // 1. Safely read based on Content-Length to avoid keep-alive deadlocks
+        val contentLength = session.headers["content-length"]?.toIntOrNull() ?: 0
+        if (contentLength <= 0) {
+            return errorResponse("Missing Content-Length or empty request body")
+        }
 
-        val json = gson.fromJson(requestBody, JsonObject::class.java)
-        val actionId = json.get("id").asString ?: return errorResponse("Missing 'id' field")
+        val buffer = ByteArray(contentLength)
+        var bytesRead = 0
+        val inputStream = session.inputStream
+        while (bytesRead < contentLength) {
+            val read = inputStream.read(buffer, bytesRead, contentLength - bytesRead)
+            if (read == -1) break
+            bytesRead += read
+        }
+
+        val requestBody = String(buffer, Charsets.UTF_8)
+
+        // 2. Parse the JSON
+        val json =
+            try {
+                gson.fromJson(requestBody, JsonObject::class.java)
+            } catch (e: Exception) {
+                return errorResponse("Invalid JSON provided")
+            }
+
+        val name = json.get("name")?.asString ?: return errorResponse("Missing 'name' field")
         val paramsRaw = json.get("params")?.asJsonObject ?: JsonObject()
         @Suppress("UNCHECKED_CAST")
         val params: Map<String, Any?> =
             gson.fromJson(paramsRaw, Map::class.java) as? Map<String, Any?> ?: emptyMap()
-        val requestId = json.get("requestId")?.asString ?: java.util.UUID.randomUUID().toString()
+        val requestId = json.get("requestId")?.asString ?: UUID.randomUUID().toString()
+
+        Log.d(
+            TAG,
+            "Received action execution request: $name, params: $params, requestId: $requestId",
+        )
 
         // If a result already exists for this requestId, return it (idempotent)
-        val existing = pendingExecutions.get(requestId)
-        if (existing != null) {
-            val rd = existing.resultData
-            if (rd != null) {
-                return jsonResponse(gson.toJson(rd))
-            }
-        }
+        val existing = pendingExecutions[requestId]
+        if (existing != null && existing.resultData != null)
+            return jsonResponse(gson.toJson(existing.resultData))
 
         // Queue the execution
-        pendingExecutions[requestId] = ActionPending(actionId, params, requestId)
+        pendingExecutions[requestId] = ActionPending(name, params, requestId)
 
         return jsonResponse(
             gson.toJson(
                 ActionResult(
                     status = "queued",
                     message = "Action queued",
-                    actionId = actionId,
+                    name = name,
                     requestId = requestId,
                 )
             )
@@ -188,23 +220,26 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
         }
 
     private fun handleGetActions(): Response {
-        val tools = ActionRegistry.toAITools()
-        val descriptors = tools.map { tool ->
-            mapOf(
-                "name" to tool.name,
-                "description" to tool.description,
-                "inputSchema" to tool.inputSchema,
-            )
-        }
+        Log.d(TAG, "Sending action list")
+        val descriptors =
+            registry.actions.map { (_, tool) ->
+                mapOf(
+                    "name" to tool.name,
+                    "description" to tool.description,
+                    "parameterSchema" to tool.parameters,
+                )
+            }
         return jsonResponse(gson.toJson(mapOf("actions" to descriptors)))
     }
 
     private fun handleGetState(): Response {
+        Log.d(TAG, "Sending robot state")
         val stateMessage = stateProvider?.invoke() ?: "No state available"
         return jsonResponse(gson.toJson(mapOf("state" to stateMessage)))
     }
 
     private fun handleGetResult(requestId: String): Response {
+        Log.d(TAG, "Sending result for requestId: $requestId")
         val result = getResult(requestId)
         return if (result != null) {
             jsonResponse(gson.toJson(result))
@@ -223,19 +258,19 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
 
         // Background thread sends SSE keepalive messages
         Thread {
-            try {
-                while (true) {
-                    val keepalive = "event: keepalive\ndata: {}\n\n".toByteArray()
-                    pipedOutput.write(keepalive)
-                    pipedOutput.flush()
-                    Thread.sleep(15000)
-                }
-            } catch (_: Exception) {
                 try {
-                    pipedOutput.close()
-                } catch (_: Exception) {}
+                    while (true) {
+                        val keepalive = "event: keepalive\ndata: {}\n\n".toByteArray()
+                        pipedOutput.write(keepalive)
+                        pipedOutput.flush()
+                        Thread.sleep(15000)
+                    }
+                } catch (_: Exception) {
+                    try {
+                        pipedOutput.close()
+                    } catch (_: Exception) {}
+                }
             }
-        }
             .apply {
                 isDaemon = true
                 name = "sse-keepalive"
@@ -263,27 +298,27 @@ class AIServer(port: Int = 8081) : NanoHTTPD(port) {
  * @property status the execution status: "queued", "completed", or "failed"
  * @property message a human-readable status message
  * @property data optional additional data returned by the action
- * @property actionId the ID of the action that was executed (for tracking)
+ * @property name the name of the action that was executed
  * @property requestId the client-assigned ID for this execution request
  */
 data class ActionResult(
     val status: String,
     val message: String,
     val data: Map<String, Any?>? = null,
-    val actionId: String? = null,
+    val name: String? = null,
     val requestId: String? = null,
 )
 
 /**
  * Pending action execution request.
  *
- * @property actionId the ID of the action to execute
- * @property params the parameters to pass to the action
+ * @property name the name of the action being executed
+ * @property params the parameters used to build the action
  * @property requestId the client-assigned ID for tracking
  * @property resultData the result once execution completes (null until done)
  */
 data class ActionPending(
-    val actionId: String,
+    val name: String,
     val params: Map<String, Any?>,
     val requestId: String,
     var resultData: ActionResult? = null,

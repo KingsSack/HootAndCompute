@@ -4,6 +4,6 @@ package dev.kingssack.volt.annotations
 @Retention(AnnotationRetention.RUNTIME)
 annotation class AIParam(
     val description: String,
-    val min: Double = Double.NEGATIVE_INFINITY,
-    val max: Double = Double.POSITIVE_INFINITY,
+    val required: Boolean = true,
+    val enum: Array<String> = [],
 )
