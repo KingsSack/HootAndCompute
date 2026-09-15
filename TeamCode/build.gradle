@@ -21,13 +21,14 @@ apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 buildscript {
     repositories {
+        google()
         mavenCentral()
         maven {
             url "https://repo.dairy.foundation/releases"
         }
     }
     dependencies {
-        classpath "dev.frozenmilk:Load:0.2.4"
+        classpath "dev.frozenmilk:Load:0.3.1"
     }
 }
 
@@ -43,10 +44,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
     namespace = 'org.firstinspires.ftc.teamcode'
 }
 
@@ -58,18 +55,18 @@ repositories {
         url = 'https://maven.pedropathing.com/'
     }
     maven {
-        url = 'https://mymaven.bylazar.com/releases'
-    }
-    maven {
         url = "https://repo.dairy.foundation/releases"
     }
 }
 dependencies {
-    implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
+    implementation("com.acmerobotics.slothboard:dashboard:0.3.1+0.6.0")
+    implementation("com.bylazar.sloth:fullpanels:0.2.4.1+1.0.12")
+
     implementation project(':FtcRobotController')
     implementation project(':Volt')
 
-    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+    implementation("dev.frozenmilk.sinister:Sloth:0.3.1")
+
     implementation("com.acmerobotics.roadrunner:ftc:0.1.23") {
         exclude group: "com.acmerobotics.dashboard"
     }
@@ -80,12 +77,4 @@ dependencies {
 
     implementation 'com.pedropathing:ftc:2.1.2'
     implementation 'com.pedropathing:telemetry:1.0.0'
-
-    implementation 'com.bylazar:fullpanels:1.0.12'
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
 }
