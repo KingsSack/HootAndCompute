@@ -58,6 +58,9 @@ repositories {
         url = 'https://maven.pedropathing.com/'
     }
     maven {
+        url = 'https://mymaven.bylazar.com/releases'
+    }
+    maven {
         url = "https://repo.dairy.foundation/releases"
     }
 }
@@ -74,6 +77,11 @@ dependencies {
     implementation("com.acmerobotics.roadrunner:actions:1.0.1") {
         exclude group: "com.acmerobotics.dashboard"
     }
+
+    implementation 'com.pedropathing:ftc:2.1.2'
+    implementation 'com.pedropathing:telemetry:1.0.0'
+
+    implementation 'com.bylazar:fullpanels:1.0.12'
 }
 
 kotlin {

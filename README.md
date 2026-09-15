@@ -1,6 +1,6 @@
 ## NOTICE
 
-This repository contains the public FTC SDK for the DECODE (2025-2026) competition season.
+This repository contains the public FTC SDK for the BIOBUZZ (2026-2027) competition season.
 
 >[!Warning]
 >This repository is for the Hoot And Compute robotics team!

@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.util.AprilTagAiming
 import org.firstinspires.ftc.vision.VisionPortal
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection
 import java.util.concurrent.TimeUnit
 
 /**
@@ -162,15 +163,17 @@ abstract class Jones<T : Drivetrain>(hardwareMap: HardwareMap, override val driv
      * @return list of detected AprilTags
      */
     context(telemetry: Telemetry)
-    fun getDetectedAprilTags(id: Int? = null): List<AprilTagDetection> {
+    fun getDetectedAprilTags(id: Int? = null): List<AprilTagSingleDetection> {
         val detections = aprilTag.detections
         telemetry.addData("Detected", "${detections.size} Tags")
 
+        val singleDetections = detections.filterIsInstance<AprilTagSingleDetection>()
+
         val result =
             if (id == null) {
-                detections
+                singleDetections
             } else {
-                detections.filter { it.id == id }
+                singleDetections.filter { it.id == id }
             }
 
         for (detection in result) {
