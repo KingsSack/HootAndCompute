@@ -199,7 +199,7 @@ Volt provides enum entries for every gamepad input. Entries suffixed with `1` re
 
 ## Putting It Together
 
-A typical [OpMode](../../guides/03-opmodes) organizes bindings by attachment using extension functions:
+A typical [OpMode](../../guides/05-opmodes) organizes bindings by attachment using extension functions:
 
 ```kotlin
 init {
