@@ -34,7 +34,6 @@ repositories {
 
 dependencies {
     dokka(project(":TeamCode"))
-    dokka(project(":Volt"))
 }
 
 dokka {

@@ -59,11 +59,13 @@ repositories {
     maven {
         url = "https://repo.dairy.foundation/releases"
     }
+    maven { url = 'https://jitpack.io' }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
-    implementation project(':Volt')
+
+    implementation 'com.github.KingsSack:Volt:0.4.0'
 
     implementation 'dev.frozenmilk.sinister:Sloth:0.3.1'
     implementation 'com.acmerobotics.slothboard:dashboard:0.3.1+0.6.0'
