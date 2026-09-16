@@ -1,16 +1,16 @@
 package org.firstinspires.ftc.teamcode.opmode.manual
 
-import dev.kingssack.volt.attachment.drivetrain.pp.mecanum.DriveEncoderMecanumPedroPathingDrivetrain
+import dev.kingssack.volt.attachment.drivetrain.rr.mecanum.DriveEncoderMecanumRoadRunnerDrivetrain
 import dev.kingssack.volt.opmode.VoltOpModeMeta
 import dev.kingssack.volt.opmode.manual.DrivetrainManualMode
 import dev.kingssack.volt.util.Event.ManualEvent.Tap
 import dev.kingssack.volt.util.buttons.Button
 import org.firstinspires.ftc.teamcode.attachment.Classifier
-import org.firstinspires.ftc.teamcode.robot.JonesPP
+import org.firstinspires.ftc.teamcode.robot.JonesRR
 
 @VoltOpModeMeta("Olive", "Showcase")
-class Olive : DrivetrainManualMode<DriveEncoderMecanumPedroPathingDrivetrain, JonesPP>() {
-    override val robot = JonesPP(hardwareMap)
+class Olive : DrivetrainManualMode<DriveEncoderMecanumRoadRunnerDrivetrain, JonesRR>() {
+    override val robot = JonesRR(hardwareMap)
 
     private fun defineControls() {
         // Toggle launcher
@@ -23,7 +23,6 @@ class Olive : DrivetrainManualMode<DriveEncoderMecanumPedroPathingDrivetrain, Jo
     }
 
     init {
-        robot.drivetrain.startTeleOpDrive()
         defineControls()
     }
 }
