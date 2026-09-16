@@ -1,4 +1,18 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 include ':FtcRobotController'
 include ':TeamCode'
-include ':Volt'
 
+if (file('../Volt').exists()) {
+    includeBuild('../Volt') {
+        dependencySubstitution {
+            substitute module('com.github.KingsSack:volt') using project(':Volt')
+        }
+    }
+}

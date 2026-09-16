@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+apply plugin: 'com.android.application'
+
 //
 // build.gradle in TeamCode
 //
@@ -19,13 +23,14 @@ apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 buildscript {
     repositories {
+        google()
         mavenCentral()
         maven {
             url "https://repo.dairy.foundation/releases"
         }
     }
     dependencies {
-        classpath "dev.frozenmilk:Load:0.2.4"
+        classpath "dev.frozenmilk:Load:0.3.1"
     }
 }
 
@@ -41,10 +46,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
     namespace = 'org.firstinspires.ftc.teamcode'
 }
 
@@ -58,24 +59,31 @@ repositories {
     maven {
         url = "https://repo.dairy.foundation/releases"
     }
+    maven { url = 'https://jitpack.io' }
 }
-dependencies {
-    implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
-    implementation project(':FtcRobotController')
-    implementation project(':Volt')
 
-    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+dependencies {
+    implementation project(':FtcRobotController')
+
+    implementation 'com.github.KingsSack:Volt:0.4.0'
+
+    implementation 'dev.frozenmilk.sinister:Sloth:0.3.1'
+    implementation 'com.acmerobotics.slothboard:dashboard:0.3.1+0.6.0'
+
     implementation("com.acmerobotics.roadrunner:ftc:0.1.23") {
         exclude group: "com.acmerobotics.dashboard"
     }
-    implementation "com.acmerobotics.roadrunner:core:1.0.1"
+    implementation 'com.acmerobotics.roadrunner:core:1.0.1'
     implementation("com.acmerobotics.roadrunner:actions:1.0.1") {
         exclude group: "com.acmerobotics.dashboard"
     }
+
+    implementation 'com.pedropathing:ftc:2.1.2'
+    implementation 'com.pedropathing:telemetry:1.0.0'
 }
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
+        jvmTarget = JvmTarget.JVM_1_8
     }
 }
